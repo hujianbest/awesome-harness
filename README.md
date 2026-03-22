@@ -18,7 +18,7 @@
 awesome-harness-engineering/
 ├── README.md                 # 本说明
 ├── AGENTS.md                 # 给自动化 Agent 的仓库内操作约定
-├── daily-skills/             # 技能包集合（主资产）：docx / xlsx / pptx / pdf / mcp-builder / skill-creator / test-driven-development 等
+├── daily-skills/             # 技能包集合（主资产）：docx / xlsx / pptx / pdf / mcp-builder / skill-creator / tdd-cpp / test-driven-development 等
 ├── playbooks/                # 可复用的 Harness 流程说明、检查清单、评审模板（按需补充）
 ├── templates/                # 新技能、MCP 服务等的起步骨架（按需补充）
 └── .cursor/skills/           # 已在仓库内接入的 Cursor 技能（例如 skill-creator）
@@ -34,7 +34,8 @@ awesome-harness-engineering/
 | [daily-skills/pdf](daily-skills/pdf) | PDF 合并、拆分、表单、OCR 等处理流程 |
 | [daily-skills/mcp-builder](daily-skills/mcp-builder) | 使用 Python（FastMCP）或 Node/TypeScript 搭建 MCP 服务 |
 | [daily-skills/skill-creator](daily-skills/skill-creator) | 编写新技能、迭代与评估技能效果 |
-| [daily-skills/test-driven-development](daily-skills/test-driven-development) | 测试驱动开发（先写失败测试再实现） |
+| [daily-skills/tdd-cpp](daily-skills/tdd-cpp) | C++ 测试驱动开发（GoogleTest + CMake） |
+| [daily-skills/test-driven-development](daily-skills/test-driven-development) | 测试驱动开发（通用，先写失败测试再实现） |
 
 ## 使用方式
 

@@ -22,7 +22,8 @@
 | `daily-skills/pdf/` | PDF 处理 |
 | `daily-skills/mcp-builder/` | MCP 服务端开发 |
 | `daily-skills/skill-creator/` | 技能的创建与评估 |
-| `daily-skills/test-driven-development/` | TDD 流程 |
+| `daily-skills/tdd-cpp/` | C++ TDD（GoogleTest + CMake） |
+| `daily-skills/test-driven-development/` | TDD 流程（通用） |
 | `.cursor/skills/` | 仓库内 Cursor 已链接的技能 |
 | `playbooks/` | Harness 流程与检查清单（按需） |
 | `templates/` | 新项目/新技能模板（按需） |
