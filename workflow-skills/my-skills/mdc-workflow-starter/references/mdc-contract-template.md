@@ -15,12 +15,12 @@
 
 | 逻辑工件 | 实际路径 | 批准信号 | 是否必需 |
 |---|---|---|---|
-| 需求规格 | `docs/specs/<file>.md` | `Status: Approved` 或 `状态: 已批准` | 是 |
-| 设计文档 | `docs/designs/<file>.md` | `Status: Approved` 或 `状态: 已批准` | 是 |
-| 任务计划 | `docs/tasks/<file>.md` | `Status: Approved`、`状态: 已批准` 或 tasks-review PASS | 是 |
+| 需求规格 | `docs/specs/<file>.md` | `状态: 已批准`，兼容 `Status: Approved` | 是 |
+| 设计文档 | `docs/designs/<file>.md` | `状态: 已批准`，兼容 `Status: Approved` | 是 |
+| 任务计划 | `docs/tasks/<file>.md` | `状态: 已批准`，兼容 `Status: Approved` 或 tasks-review `通过` / `PASS` | 是 |
 | 进度记录 | `task-progress.md` | 无 | 是 |
 | 发布说明 | `RELEASE_NOTES.md` | 无 | 建议 |
-| 评审记录 | `docs/reviews/` | PASS / REVISE / BLOCKED | 建议 |
+| 评审记录 | `docs/reviews/` | `通过` / `需修改` / `阻塞`，兼容 `PASS` / `REVISE` / `BLOCKED` | 建议 |
 | 验证记录 | `docs/verification/` | 命令输出摘要或验证结论 | 建议 |
 
 ## 路由证据
@@ -43,9 +43,10 @@
 
 在本项目中，可将以下信号视为批准证据：
 
-- `Status: Approved`
 - `状态: 已批准`
-- 带有 `PASS` 结论的评审记录
+- 兼容旧写法：`Status: Approved`
+- 带有 `通过` 结论的评审记录
+- 兼容旧写法：带有 `PASS` 结论的评审记录
 - 进度或验证记录中的阶段标记
 
 ## 备注

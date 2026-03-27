@@ -23,7 +23,7 @@
 
 例如：
 
-- 已有 approved spec，但没有 approved design
+- 已有已批准规格，但没有已批准设计
 - prompt 明确表达需求变更
 - prompt 明确表达紧急热修复
 

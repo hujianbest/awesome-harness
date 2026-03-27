@@ -20,14 +20,14 @@
 ## 当前阶段
 
 - phase: implement
-- active task: TASK-003
+- 活跃任务: TASK-003
 - next skill: mdc-bug-patterns
 
 ## 已批准工件
 
-- requirement spec: approved
-- design doc: approved
-- task plan: approved
+- 需求规格: 已批准
+- 设计文档: 已批准
+- 任务计划: 已批准
 ```
 
 ### 变更请求示例

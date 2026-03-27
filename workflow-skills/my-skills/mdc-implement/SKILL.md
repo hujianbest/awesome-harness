@@ -23,6 +23,19 @@ TDD 执行统一委托给现有的 `mdc-test-driven-dev` skill。
 
 除非当前任务明确属于非代码配置类工作且该例外已被记录，否则不得绕过 `mdc-test-driven-dev`，也不得在没有失败测试的前提下编写生产代码。
 
+## 红旗信号
+
+出现以下想法时，先停下。这通常说明你正在为跳步找理由：
+
+| 想法 | 实际要求 |
+|---|---|
+| “这个任务很小，直接改掉更快” | 任务再小，也必须先通过 `mdc-test-driven-dev`。 |
+| “测试后面再补也行” | 先有失败测试，再写生产代码。 |
+| “我先顺手把相邻任务一起做了” | 一次只允许一个活跃任务。 |
+| “现在已经差不多了，可以先说完成” | 完成要等评审、回归和完成门禁都走完。 |
+| “这些 review 太重了，先跳过一个” | `mdc-bug-patterns` 到 `mdc-completion-gate` 的顺序是强制的。 |
+| “旧的绿测结果也能证明这次改动没问题” | 必须有当前任务对应的新鲜证据。 |
+
 ## 工作流
 
 ### 1. 对齐上下文
@@ -55,12 +68,12 @@ TDD 执行统一委托给现有的 `mdc-test-driven-dev` skill。
 
 当前任务实现完成后：
 
-1. use `mdc-bug-patterns`
-2. then use `mdc-test-review`
-3. then use `mdc-code-review`
-4. then use `mdc-traceability-review`
-5. then use `mdc-regression-gate`
-6. then use `mdc-completion-gate`
+1. 使用 `mdc-bug-patterns`
+2. 然后使用 `mdc-test-review`
+3. 然后使用 `mdc-code-review`
+4. 然后使用 `mdc-traceability-review`
+5. 然后使用 `mdc-regression-gate`
+6. 然后使用 `mdc-completion-gate`
 
 这个顺序是强制的。
 
@@ -80,6 +93,7 @@ TDD 执行统一委托给现有的 `mdc-test-driven-dev` skill。
 - 把旧的绿测结果当成当前证据
 - 在完成门禁前就说“做完了”
 - 因为当前任务变麻烦就切换任务
+- 因为赶进度而跳过缺陷模式排查、评审或门禁
 
 ## 完成条件
 

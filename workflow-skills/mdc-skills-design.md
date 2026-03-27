@@ -187,13 +187,13 @@ flowchart TD
 
 | 逻辑工件 | 推荐默认路径 | 作用 |
 |---|---|---|
-| Requirement Spec | `docs/specs/YYYY-MM-DD-<topic>-srs.md` | 说明 WHAT |
-| Design Doc | `docs/designs/YYYY-MM-DD-<topic>-design.md` | 说明 HOW |
-| Task Plan | `docs/tasks/YYYY-MM-DD-<topic>-tasks.md` | 说明怎么拆任务、怎么执行 |
-| Progress Log | `task-progress.md` | 记录当前状态、最近进展、下一步 |
-| Review Record | `docs/reviews/` | 记录各阶段审查结论 |
-| Verification Record | `docs/verification/` | 记录测试、回归、完成验证证据 |
-| Release Notes | `RELEASE_NOTES.md` | 记录用户可见交付变化 |
+| 需求规格 | `docs/specs/YYYY-MM-DD-<topic>-srs.md` | 说明做什么 |
+| 设计文档 | `docs/designs/YYYY-MM-DD-<topic>-design.md` | 说明怎么做 |
+| 任务计划 | `docs/tasks/YYYY-MM-DD-<topic>-tasks.md` | 说明怎么拆任务、怎么执行 |
+| 进度记录 | `task-progress.md` | 记录当前状态、最近进展、下一步 |
+| 评审记录 | `docs/reviews/` | 记录各阶段审查结论 |
+| 验证记录 | `docs/verification/` | 记录测试、回归、完成验证证据 |
+| 发布说明 | `RELEASE_NOTES.md` | 记录用户可见交付变化 |
 
 ### 6.3 推荐的阶段证据工件
 
@@ -635,7 +635,8 @@ flowchart TD
 
 这里的“已批准”建议不要只靠对话表述，至少要在交付件中体现状态，例如：
 
-- `Status: Draft / Approved`
+- `状态: 草稿 / 已批准`
+- 兼容旧写法：`Status: Draft / Approved`
 - 审查结论记录
 - 进度记录、任务状态或验证记录中的阶段标记
 

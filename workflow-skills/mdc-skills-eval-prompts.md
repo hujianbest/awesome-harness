@@ -77,7 +77,8 @@
 
 且文档里有：
 
-- `Status: Approved`
+- `状态: 已批准`
+- 或兼容旧写法：`Status: Approved`
 
 不存在：
 
