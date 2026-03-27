@@ -2,7 +2,7 @@
 
 ## 目的
 
-验证在存在 approved requirement spec，但不存在 approved design 时，是否会路由到 `sdd-work-design`。
+验证在存在 approved requirement spec，但不存在 approved design 时，是否会路由到 `mdc-design`。
 
 ## 用户 Prompt
 
@@ -12,6 +12,6 @@
 
 ## 期望
 
-- 先命中 `sdd-workflow-starter`
+- 先命中 `mdc-workflow-starter`
 - 识别 `docs/specs/2026-03-26-release-approval-srs.md` 已批准
-- 因为没有 design doc，路由到 `sdd-work-design`
+- 因为没有 design doc，路由到 `mdc-design`

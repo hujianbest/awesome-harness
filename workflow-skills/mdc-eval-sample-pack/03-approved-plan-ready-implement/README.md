@@ -2,7 +2,7 @@
 
 ## 目的
 
-验证在 spec、design、task plan 都已批准，且 `workflow-state.json` 指向实现阶段时，是否路由到 `sdd-work-implement`。
+验证在 spec、design、task plan 都已批准，且当前任务进度证据指向实现阶段时，是否路由到 `mdc-implement`。
 
 ## 用户 Prompt
 
@@ -12,7 +12,7 @@
 
 ## 期望
 
-- 先命中 `sdd-workflow-starter`
-- 读取 `workflow-state.json`
-- 路由到 `sdd-work-implement`
+- 先命中 `mdc-workflow-starter`
+- 读取 `task-progress.md` 或等价进度证据
+- 路由到 `mdc-implement`
 - 后续应明确 review/gate 顺序

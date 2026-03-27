@@ -2,7 +2,7 @@
 
 ## 目的
 
-验证在主链工件已存在且根目录存在 `hotfix-request.json` 时，是否优先路由到 `sdd-work-hotfix`。
+验证在主链工件已存在且有明确缺陷/紧急修复证据时，是否优先路由到 `mdc-hotfix`。
 
 ## 用户 Prompt
 
@@ -12,7 +12,7 @@
 
 ## 期望
 
-- 先命中 `sdd-workflow-starter`
-- 优先识别 `hotfix-request.json`
-- 路由到 `sdd-work-hotfix`
+- 先命中 `mdc-workflow-starter`
+- 优先识别缺陷记录或等价热修复证据
+- 路由到 `mdc-hotfix`
 - 保留复现、回归和 completion gate

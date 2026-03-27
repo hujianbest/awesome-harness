@@ -1,34 +1,34 @@
-# SDD Skills 手工试跑 Checklist
+# MDC Skills 手工试跑 Checklist
 
-这份清单用于团队手工验证 SDD skills 是否能按预期触发、路由和串联。
+这份清单用于团队手工验证 MDC skills 是否能按预期触发、路由和串联。
 
 适用对象：
 
-- 需要验收这套 SDD skills 的设计者
+- 需要验收这套 MDC skills 的设计者
 - 首次接入这套流程的团队成员
 - 需要做回归验证的维护者
 
 ## 试跑前准备
 
-- [ ] 确认 `.cursor/skills/` 下的 SDD skills 已存在
+- [ ] 确认 `.cursor/skills/` 下的 MDC skills 已存在
 - [ ] 确认已准备好要测试的场景目录
-- [ ] 确认当前只测试一个场景，避免多个信号文件互相干扰
+- [ ] 确认当前只测试一个场景，避免多个证据同时干扰
 - [ ] 打开对应场景 README，核对前置工件是否齐全
 - [ ] 准备好记录结果的表格或文档
 
 ## 推荐使用的测试资产
 
-- 场景说明：`workflow-skills/sdd-skills-eval-prompts.md`
-- 样例包：`workflow-skills/sdd-eval-sample-pack/`
-- 入口 eval：`.cursor/skills/sdd-workflow-starter/evals/evals.json`
+- 场景说明：`workflow-skills/mdc-skills-eval-prompts.md`
+- 样例包：`workflow-skills/mdc-eval-sample-pack/`
+- 入口 eval：`.cursor/skills/mdc-workflow-starter/evals/evals.json`
 
 ## 每个场景的执行步骤
 
 ### Step 1：进入场景目录
 
 - [ ] 选择一个场景目录
-- [ ] 核对该目录中的 spec / design / tasks / state / signal 文件是否与 README 一致
-- [ ] 确认没有多余的 `change-request.json` 或 `hotfix-request.json`
+- [ ] 核对该目录中的 spec / design / tasks / progress / change / hotfix 证据是否与 README 一致
+- [ ] 确认没有多余的变更或热修复证据造成串扰
 
 ### Step 2：投喂用户 Prompt
 
@@ -38,7 +38,7 @@
 
 ### Step 3：观察首个命中 skill
 
-- [ ] 是否先命中 `sdd-workflow-starter`
+- [ ] 是否先命中 `mdc-workflow-starter`
 - [ ] 是否先做 phase routing，而不是直接进入设计/任务/实现
 - [ ] 是否引用了正确的证据来判断阶段
 
@@ -84,29 +84,29 @@
 
 ### 入口级最低标准
 
-- [ ] 5 个主场景里，至少 4 个先命中 `sdd-workflow-starter`
+- [ ] 5 个主场景里，至少 4 个先命中 `mdc-workflow-starter`
 - [ ] 5 个主场景里，至少 4 个被正确路由到期望 skill
 - [ ] 不出现“直接进入实现”的严重越权
 
 ### 主链级最低标准
 
-- [ ] 从 `work-specify` 到 `work-implement` 的主链没有明显断链
-- [ ] `work-implement` 之后能明确给出 review/gate 顺序
+- [ ] 从 `mdc-specify` 到 `mdc-implement` 的主链没有明显断链
+- [ ] `mdc-implement` 之后能明确给出完整质量链顺序
 - [ ] completion 相关结论不会在没有 fresh evidence 的情况下提前出现
 
 ### 支线级最低标准
 
-- [ ] 有 `change-request.json` 时优先进入 `sdd-work-increment`
-- [ ] 有 `hotfix-request.json` 时优先进入 `sdd-work-hotfix`
+- [ ] 有明确变更证据时优先进入 `mdc-increment`
+- [ ] 有明确热修复证据时优先进入 `mdc-hotfix`
 - [ ] 支线不会绕过 review / regression / completion discipline
 
 ## 常见失败信号
 
 - [ ] 用户一说“继续”就直接开始写代码
 - [ ] 已存在 draft spec，却被当作 approved spec
-- [ ] 需求变更场景直接进入 `sdd-work-implement`
+- [ ] 需求变更场景直接进入 `mdc-implement`
 - [ ] 热修复场景跳过复现或回归
-- [ ] 只做 review 的请求被错误地送回 `work-design` 或 `work-specify`
+- [ ] 只做 review 的请求被错误地送回 `mdc-design` 或 `mdc-specify`
 - [ ] handoff 只说“下一步继续”，但没说具体 skill
 
 ## 发现问题后的处理建议
@@ -114,7 +114,7 @@
 ### 如果是入口误触发
 
 - 检查 skill description 是否太弱或太宽
-- 检查 `sdd-workflow-starter` 是否缺少特定场景的路由规则
+- 检查 `mdc-workflow-starter` 是否缺少特定场景的路由规则
 
 ### 如果是主链断链
 
@@ -123,7 +123,7 @@
 
 ### 如果是支线绕过纪律
 
-- 检查 `sdd-work-increment` / `sdd-work-hotfix` 是否明确要求回到 review/gate
+- 检查 `mdc-increment` / `mdc-hotfix` 是否明确要求回到 review / gate
 
 ## 建议执行顺序
 

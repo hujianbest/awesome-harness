@@ -1,12 +1,12 @@
-# SDD Skills 演练 Prompt 集
+# MDC Skills 演练 Prompt 集
 
-这份文档用于验证当前 SDD skills 体系是否能在真实场景下正确触发、正确路由、并沿着预期流程推进。
+这份文档用于验证当前 MDC skills 体系是否能在真实场景下正确触发、正确路由，并沿着预期流程推进。
 
 重点不是测“能不能回答”，而是测：
 
-- 是否先命中 `sdd-workflow-starter`
+- 是否先命中 `mdc-workflow-starter`
 - 是否被正确路由到当前阶段 skill
-- 是否会跳过应有门禁
+- 是否会跳过应有 review / gate
 - handoff 到下一 skill 时是否清晰
 
 ## 使用方式
@@ -38,9 +38,6 @@
 
 项目根目录下不存在：
 
-- `workflow-state.json`
-- `change-request.json`
-- `hotfix-request.json`
 - 已批准规格文档
 - 已批准设计文档
 - 已批准任务计划
@@ -53,8 +50,8 @@
 
 ### 期望命中
 
-- 首先命中：`sdd-workflow-starter`
-- 然后路由到：`sdd-work-specify`
+- 首先命中：`mdc-workflow-starter`
+- 然后路由到：`mdc-specify`
 
 ### 期望行为
 
@@ -66,7 +63,7 @@
 
 - 直接输出系统架构方案
 - 直接开始写数据库表或接口
-- 不说明当前为什么进入 `work-specify`
+- 不说明当前为什么进入 `mdc-specify`
 
 ---
 
@@ -85,8 +82,6 @@
 不存在：
 
 - 已批准设计文档
-- `change-request.json`
-- `hotfix-request.json`
 
 ### 用户 Prompt
 
@@ -96,8 +91,8 @@
 
 ### 期望命中
 
-- 首先命中：`sdd-workflow-starter`
-- 然后路由到：`sdd-work-design`
+- 首先命中：`mdc-workflow-starter`
+- 然后路由到：`mdc-design`
 
 ### 期望行为
 
@@ -126,12 +121,7 @@
 
 可选：
 
-- `workflow-state.json` 中 `phase` 标记为 `implement`
-
-不存在：
-
-- `change-request.json`
-- `hotfix-request.json`
+- `task-progress.md` 或等价进度记录中，当前活动任务已指向实现阶段
 
 ### 用户 Prompt
 
@@ -141,8 +131,8 @@
 
 ### 期望命中
 
-- 首先命中：`sdd-workflow-starter`
-- 然后路由到：`sdd-work-implement`
+- 首先命中：`mdc-workflow-starter`
+- 然后路由到：`mdc-implement`
 
 ### 期望行为
 
@@ -150,7 +140,7 @@
 - 强调一次只处理一个 active task
 - 先读取 task plan / progress / spec / design 中与当前任务有关的部分
 - 实现后按顺序进入：
-  `sdd-test-review -> sdd-code-review -> sdd-regression-gate -> sdd-completion-gate`
+  `mdc-bug-patterns -> mdc-test-review -> mdc-code-review -> mdc-traceability-review -> mdc-regression-gate -> mdc-completion-gate`
 
 ### 失败信号
 
@@ -171,19 +161,9 @@
 - design doc
 - task plan
 
-且项目根目录新增：
+且项目中存在明确的变更证据，例如：
 
-- `change-request.json`
-
-建议内容类似：
-
-```json
-{
-  "reason": "增加需求",
-  "change_type": "new-requirement",
-  "summary": "审批通过后，需要自动抄送项目经理"
-}
-```
+- 产品说明、变更单、需求补充说明，明确写出“审批通过后，需要自动抄送项目经理”
 
 ### 用户 Prompt
 
@@ -193,19 +173,19 @@
 
 ### 期望命中
 
-- 首先命中：`sdd-workflow-starter`
-- 然后路由到：`sdd-work-increment`
+- 首先命中：`mdc-workflow-starter`
+- 然后路由到：`mdc-increment`
 
 ### 期望行为
 
-- 先读 change request 和现有 spec / design / task plan
+- 先读变更说明和现有 spec / design / task plan
 - 做 impact analysis
 - 明确哪些工件需要更新
-- 把下一步路由回 `sdd-spec-review`、`sdd-design-review` 或 `sdd-tasks-review`
+- 把下一步路由回 `mdc-spec-review`、`mdc-design-review` 或 `mdc-tasks-review`
 
 ### 失败信号
 
-- 直接进 `sdd-work-implement`
+- 直接进 `mdc-implement`
 - 只改任务计划，不回写 spec
 - 默认认为旧批准仍然有效
 
@@ -215,21 +195,10 @@
 
 ### 前置工件
 
-主链工件已存在，项目根目录新增：
+主链工件已存在，且当前请求或缺陷记录明确表明：
 
-- `hotfix-request.json`
-
-建议内容类似：
-
-```json
-{
-  "severity": "critical",
-  "summary": "审批通过后没有发送通知",
-  "expected_behavior": "审批通过立即通知申请人",
-  "actual_behavior": "审批通过成功，但没有通知消息",
-  "impact": "影响发布流转"
-}
-```
+- 审批通过后没有发送通知
+- 这是需要优先修复的线上问题
 
 ### 用户 Prompt
 
@@ -239,8 +208,8 @@
 
 ### 期望命中
 
-- 首先命中：`sdd-workflow-starter`
-- 然后路由到：`sdd-work-hotfix`
+- 首先命中：`mdc-workflow-starter`
+- 然后路由到：`mdc-hotfix`
 
 ### 期望行为
 
@@ -264,12 +233,12 @@
 ### 近似误触发 A：用户只问概念，不该进入完整主链
 
 ```text
-你解释一下什么是规范驱动开发，别开始给我做项目。
+你解释一下什么是模型驱动协作，别开始给我做项目。
 ```
 
 观察点：
 
-- 不应该强行进入 `work-specify`
+- 不应该强行进入 `mdc-specify`
 - 更不应该开始生成交付件
 
 ### 近似误触发 B：用户明确要求只做 review
@@ -280,8 +249,8 @@
 
 观察点：
 
-- 应该尽量直接进入 `sdd-design-review`
-- 不应重复走 `work-design`
+- 应该尽量直接进入 `mdc-design-review`
+- 不应重复走 `mdc-design`
 
 ---
 
@@ -307,10 +276,10 @@
 
 这套 prompt 演练的最低通过标准是：
 
-- 5 个主场景里，至少 4 个能先命中 `sdd-workflow-starter`
+- 5 个主场景里，至少 4 个能先命中 `mdc-workflow-starter`
 - 5 个主场景里，至少 4 个能正确路由到目标 skill
 - 不出现“直接跳到实现”这种严重越权
-- 主链场景中，`work-implement` 之后能明确说出 review/gate 顺序
+- 主链场景中，`mdc-implement` 之后能明确说出完整的质量链顺序
 
 如果你后面想继续，我建议下一步直接把这份文档再扩成：
 

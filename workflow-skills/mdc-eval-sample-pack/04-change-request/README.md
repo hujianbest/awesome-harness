@@ -2,7 +2,7 @@
 
 ## 目的
 
-验证在主链工件已存在且根目录存在 `change-request.json` 时，是否优先路由到 `sdd-work-increment`。
+验证在主链工件已存在且有明确变更证据时，是否优先路由到 `mdc-increment`。
 
 ## 用户 Prompt
 
@@ -12,7 +12,7 @@
 
 ## 期望
 
-- 先命中 `sdd-workflow-starter`
-- 优先识别 `change-request.json`
-- 路由到 `sdd-work-increment`
+- 先命中 `mdc-workflow-starter`
+- 优先识别变更说明或等价证据
+- 路由到 `mdc-increment`
 - 做 impact analysis，而不是直接进入实现

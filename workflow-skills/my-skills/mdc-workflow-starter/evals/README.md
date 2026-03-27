@@ -1,6 +1,6 @@
-# SDD Workflow Starter Evals
+# MDC Workflow Starter Evals
 
-This directory contains eval prompts for `sdd-workflow-starter`.
+This directory contains eval prompts for `mdc-workflow-starter`.
 
 ## Purpose
 
@@ -10,7 +10,7 @@ They check whether the starter skill:
 
 - triggers first
 - reads the right routing evidence
-- chooses the correct downstream SDD skill
+- chooses the correct downstream MDC skill
 - avoids phase skipping
 
 ## Important
@@ -19,7 +19,7 @@ Several evals depend on project state, not just the prompt text.
 
 Before running an eval, prepare the required artifact situation described in:
 
-- `workflow-skills/sdd-skills-eval-prompts.md`
+- `workflow-skills/mdc-skills-eval-prompts.md`
 
 Examples:
 
@@ -41,7 +41,7 @@ If the preconditions are missing, the routing result may be different for the ri
 
 When grading these evals, check:
 
-1. Was `sdd-workflow-starter` used first?
+1. Was `mdc-workflow-starter` used first?
 2. Did the answer cite routing evidence?
 3. Was the downstream skill correct?
 4. Did the answer avoid premature design, tasks, or code work?

@@ -2,18 +2,15 @@
 
 ## 目的
 
-验证在没有任何已批准工件时，是否会先路由到 `sdd-work-specify`。
+验证在没有任何已批准工件时，是否会先路由到 `mdc-specify`。
 
 ## 这个场景为什么几乎是空的
 
 这是故意设计的。这个目录不提供：
 
-- `workflow-state.json`
 - 已批准 spec
 - 已批准 design
 - 已批准 task plan
-- `change-request.json`
-- `hotfix-request.json`
 
 因为它要模拟一个真正的“从 0 开始”的项目起点。
 
@@ -25,6 +22,6 @@
 
 ## 期望
 
-- 先命中 `sdd-workflow-starter`
-- 然后路由到 `sdd-work-specify`
+- 先命中 `mdc-workflow-starter`
+- 然后路由到 `mdc-specify`
 - 不直接进入 design、tasks 或 implementation
