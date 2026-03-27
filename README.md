@@ -28,14 +28,14 @@ awesome-harness-engineering/
 
 | 目录 | 用途 |
 |------|------|
-| [daily-skills/docx](daily-skills/docx) | Word（.docx）创建、编辑、审阅与 XML 级操作 |
-| [daily-skills/xlsx](daily-skills/xlsx) | Excel（.xlsx / .xlsm 等）读写、建模与表格规范 |
-| [daily-skills/pptx](daily-skills/pptx) | PowerPoint（.pptx）创建、编辑与内容提取 |
-| [daily-skills/pdf](daily-skills/pdf) | PDF 合并、拆分、表单、OCR 等处理流程 |
-| [daily-skills/mcp-builder](daily-skills/mcp-builder) | 使用 Python（FastMCP）或 Node/TypeScript 搭建 MCP 服务 |
-| [daily-skills/skill-creator](daily-skills/skill-creator) | 编写新技能、迭代与评估技能效果 |
-| [daily-skills/tdd-cpp](daily-skills/tdd-cpp) | C++ 测试驱动开发（GoogleTest + CMake） |
-| [daily-skills/test-driven-development](daily-skills/test-driven-development) | 测试驱动开发（通用，先写失败测试再实现） |
+| [daily-skills/docx](skills/daily/docx) | Word（.docx）创建、编辑、审阅与 XML 级操作 |
+| [daily-skills/xlsx](skills/daily/xlsx) | Excel（.xlsx / .xlsm 等）读写、建模与表格规范 |
+| [daily-skills/pptx](skills/daily/pptx) | PowerPoint（.pptx）创建、编辑与内容提取 |
+| [daily-skills/pdf](skills/daily/pdf) | PDF 合并、拆分、表单、OCR 等处理流程 |
+| [daily-skills/mcp-builder](skills/daily/mcp-builder) | 使用 Python（FastMCP）或 Node/TypeScript 搭建 MCP 服务 |
+| [daily-skills/skill-creator](skills/daily/skill-creator) | 编写新技能、迭代与评估技能效果 |
+| [daily-skills/tdd-cpp](skills/daily/tdd-cpp) | C++ 测试驱动开发（GoogleTest + CMake） |
+| [daily-skills/test-driven-development](skills/daily/test-driven-development) | 测试驱动开发（通用，先写失败测试再实现） |
 
 ## 使用方式
 
