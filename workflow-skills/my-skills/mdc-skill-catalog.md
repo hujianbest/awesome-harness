@@ -22,7 +22,7 @@
 | `mdc-design-review`    | `sdd-design-review`    | `mdc-design-review`    | 负责审核实现设计是否覆盖需求、架构一致、接口清晰，并足以支撑任务拆解。                      |
 | `mdc-tasks`            | `sdd-work-tasks`       | `mdc-tasks`            | 将已批准的设计拆解成可执行任务计划，明确里程碑、依赖、完成条件和验证方式。                    |
 | `mdc-tasks-review`     | `sdd-tasks-review`     | `mdc-tasks-review`     | 负责审核任务计划是否粒度合适、顺序合理、依赖正确、可验证，并可进入实现阶段。                   |
-| `mdc-implement`        | `sdd-work-implement`   | `mdc-implement`        | 按已批准任务计划逐项实现，遵循一次一个任务、TDD、评审与验证闭环，不得跳步。                  |
+| `mdc-implement`        | `sdd-work-implement`   | `mdc-implement`        | 按已批准任务计划逐项实现，遵循一次一个任务，并通过 `mdc-test-driven-dev` 执行 TDD、评审与验证闭环，不得跳步。 |
 | `mdc-bug-patterns`     |                        | `mdc-bug-patterns`     | 负责基于团队历史错误案例和常见缺陷模式，对当前实现进行专项排查，补充风险防护与针对性验证。         |
 | `mdc-test-review`      | `sdd-test-review`      | `mdc-test-review`      | 负责审核当前任务相关测试是否真正验证行为、是否体现 fail-first、覆盖是否有意义。            |
 | `mdc-code-review`      | `sdd-code-review`      | `mdc-code-review`      | 负责审核当前任务实现代码的正确性、可维护性、错误处理与设计一致性。                        |
