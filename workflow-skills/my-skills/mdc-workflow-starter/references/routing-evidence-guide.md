@@ -1,75 +1,78 @@
-# MDC Routing Evidence Guide
+# MDC 路由证据指南
 
-Use this guide when a project adopts the MDC skills set but has not yet standardized its artifact layout or routing evidence.
+当项目已采用 MDC skills，但尚未统一工件布局或路由证据时，可使用本指南。
 
-## Recommended Artifact Layout
+## 推荐工件布局
 
-Use these paths by default unless the project already has approved equivalents:
+除非项目已有已批准的等价路径，否则默认使用以下布局：
 
-| Logical Artifact | Recommended Path | Notes |
+| 逻辑工件 | 推荐路径 | 说明 |
 |---|---|---|
-| Requirement spec | `docs/specs/YYYY-MM-DD-<topic>-srs.md` | Defines WHAT |
-| Design doc | `docs/designs/YYYY-MM-DD-<topic>-design.md` | Defines HOW |
-| Task plan | `docs/tasks/YYYY-MM-DD-<topic>-tasks.md` | Defines execution order |
-| Progress log | `task-progress.md` | Cross-session continuity |
-| Release notes | `RELEASE_NOTES.md` | User-visible changes |
-| Review records | `docs/reviews/` | Optional but recommended |
-| Verification records | `docs/verification/` | Optional but recommended |
+| 需求规格 | `docs/specs/YYYY-MM-DD-<topic>-srs.md` | 定义做什么 |
+| 设计文档 | `docs/designs/YYYY-MM-DD-<topic>-design.md` | 定义怎么做 |
+| 任务计划 | `docs/tasks/YYYY-MM-DD-<topic>-tasks.md` | 定义执行顺序 |
+| 进度记录 | `task-progress.md` | 支撑跨会话连续推进 |
+| 发布说明 | `RELEASE_NOTES.md` | 面向用户的变更说明 |
+| 评审记录 | `docs/reviews/` | 可选但建议提供 |
+| 验证记录 | `docs/verification/` | 可选但建议提供 |
 
-## Minimum Routing Evidence
+## 最小路由证据
 
-Prefer existing project artifacts over introducing dedicated root-level JSON signal files.
+优先使用项目已有工件，不要额外依赖根目录 JSON 信号文件。
 
-Recommended routing evidence:
+推荐的路由证据包括：
 
-- requirement spec, design doc, and task plan approval state
-- progress log such as `task-progress.md`
-- review records under `docs/reviews/`
-- verification records under `docs/verification/`
-- explicit user request indicating a change request or hotfix
+- 需求规格、设计文档、任务计划的批准状态
+- `task-progress.md` 这类进度记录
+- `docs/reviews/` 下的评审记录
+- `docs/verification/` 下的验证记录
+- 用户明确提出的变更请求或热修复请求
 
-## Recommended Routing Inputs
+## 推荐路由输入
 
-At session start, `sdd-workflow-starter` should inspect only:
+在会话开始时，`mdc-workflow-starter` 应优先只检查：
 
-1. the MDC contract
-2. the existence and approval state of spec/design/task artifacts
-3. progress, review, and verification records
-4. the user's current request
+1. MDC 合同
+2. 规格 / 设计 / 任务工件的存在情况和批准状态
+3. 进度、评审和验证记录
+4. 用户当前请求
 
-Avoid broad code exploration before phase routing is complete.
+在完成阶段路由前，避免大范围代码探索。
 
-## Approval Signals
+## 批准信号
 
-Prefer explicit approval markers such as:
+优先寻找显式批准标记，例如：
 
 - `Status: Approved`
-- a review section with a pass verdict
-- a phase marker in a progress or verification record
+- `状态: 已批准`
+- 带有 `PASS` 结论的评审章节
+- 进度或验证记录中的阶段标记
 
-If approval is ambiguous, route to the upstream review skill rather than assuming approval.
+如果批准状态不明确，应回路由到上游评审 skill，而不是直接假设已批准。
 
-## Mainline Flow
+## 主链流程
 
 ```text
-workflow-starter
--> sdd-work-specify
--> sdd-spec-review
--> sdd-work-design
--> sdd-design-review
--> sdd-work-tasks
--> sdd-tasks-review
--> sdd-work-implement
--> sdd-test-review
--> sdd-code-review
--> sdd-regression-gate
--> sdd-completion-gate
--> sdd-work-finalize
+mdc-workflow-starter
+-> mdc-specify
+-> mdc-spec-review
+-> mdc-design
+-> mdc-design-review
+-> mdc-tasks
+-> mdc-tasks-review
+-> mdc-implement
+-> mdc-bug-patterns
+-> mdc-test-review
+-> mdc-code-review
+-> mdc-traceability-review
+-> mdc-regression-gate
+-> mdc-completion-gate
+-> mdc-finalize
 ```
 
-## Side Flows
+## 支线流程
 
-- explicit change request -> `mdc-increment`
-- explicit hotfix request -> `mdc-hotfix`
+- 明确的变更请求 -> `mdc-increment`
+- 明确的热修复请求 -> `mdc-hotfix`
 
-Both side flows must return the project to the correct review or implementation phase instead of bypassing the mainline discipline.
+两条支线都必须把项目带回正确的评审或实现阶段，不能绕过主链纪律。

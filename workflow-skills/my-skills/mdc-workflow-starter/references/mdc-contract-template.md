@@ -1,60 +1,61 @@
-# MDC Contract Template
+# MDC 合同模板
 
-Use this file when a project needs an explicit mapping between MDC logical artifacts and the team's existing deliverables.
+当项目需要把 MDC 逻辑工件与团队现有交付物做显式映射时，可使用此模板。
 
 ```markdown
-# MDC Contract
+# MDC 合同
 
-## Project
+## 项目
 
-- Name: <project-name>
-- Status: Draft | Active
-- Owner: <team-or-person>
+- 名称: <项目名称>
+- 状态: 草稿 | 进行中
+- 负责人: <团队或责任人>
 
-## Artifact Mapping
+## 工件映射
 
-| Logical Artifact | Actual Path | Approval Signal | Required |
+| 逻辑工件 | 实际路径 | 批准信号 | 是否必需 |
 |---|---|---|---|
-| Requirement spec | `docs/specs/<file>.md` | `Status: Approved` | Yes |
-| Design doc | `docs/designs/<file>.md` | `Status: Approved` | Yes |
-| Task plan | `docs/tasks/<file>.md` | `Status: Approved` or tasks-review PASS | Yes |
-| Progress log | `task-progress.md` | N/A | Yes |
-| Release notes | `RELEASE_NOTES.md` | N/A | Recommended |
-| Review records | `docs/reviews/` | PASS / REVISE / BLOCKED | Recommended |
-| Verification records | `docs/verification/` | command output summary | Recommended |
+| 需求规格 | `docs/specs/<file>.md` | `Status: Approved` 或 `状态: 已批准` | 是 |
+| 设计文档 | `docs/designs/<file>.md` | `Status: Approved` 或 `状态: 已批准` | 是 |
+| 任务计划 | `docs/tasks/<file>.md` | `Status: Approved`、`状态: 已批准` 或 tasks-review PASS | 是 |
+| 进度记录 | `task-progress.md` | 无 | 是 |
+| 发布说明 | `RELEASE_NOTES.md` | 无 | 建议 |
+| 评审记录 | `docs/reviews/` | PASS / REVISE / BLOCKED | 建议 |
+| 验证记录 | `docs/verification/` | 命令输出摘要或验证结论 | 建议 |
 
-## Routing Evidence
+## 路由证据
 
-| Purpose | Path | Notes |
+| 用途 | 路径 | 说明 |
 |---|---|---|
-| Progress / current status | `task-progress.md` or equivalent | Main routing evidence source |
-| Review records | `docs/reviews/` | Phase approval evidence |
-| Verification records | `docs/verification/` | Regression / completion evidence |
-| Release notes | `RELEASE_NOTES.md` | User-visible completion evidence |
+| 进度 / 当前状态 | `task-progress.md` 或等价文件 | 主路由证据来源 |
+| 评审记录 | `docs/reviews/` | 阶段批准证据 |
+| 验证记录 | `docs/verification/` | 回归 / 完成验证证据 |
+| 发布说明 | `RELEASE_NOTES.md` | 面向用户的完成证据 |
 
-## Phase Rules
+## 阶段规则
 
-1. No design before approved requirement spec
-2. No task planning before approved design
-3. No implementation before approved task plan
-4. No completion claim without regression and completion gates
+1. 没有已批准需求规格前，不进入设计
+2. 没有已批准设计前，不进入任务规划
+3. 没有已批准任务计划前，不进入实现
+4. 没有回归门禁和完成门禁证据前，不宣称完成
 
-## Approved Means
+## 什么叫“已批准”
 
-Use these signals in this project:
+在本项目中，可将以下信号视为批准证据：
 
 - `Status: Approved`
-- review record with `PASS`
-- progress or verification record phase marker
+- `状态: 已批准`
+- 带有 `PASS` 结论的评审记录
+- 进度或验证记录中的阶段标记
 
-## Notes
+## 备注
 
-- List any project-specific exceptions here
-- Document any artifact naming deviations here
+- 在这里列出项目特有的例外规则
+- 在这里记录工件命名偏差
 ```
 
-## Usage Notes
+## 使用说明
 
-- Keep the contract short and stable
-- Update it only when artifact paths or approval rules change
-- Prefer mapping existing documents over introducing duplicate deliverables
+- 合同应尽量简短、稳定
+- 仅在工件路径或批准规则变化时更新
+- 优先映射现有文档，而不是引入重复交付物
