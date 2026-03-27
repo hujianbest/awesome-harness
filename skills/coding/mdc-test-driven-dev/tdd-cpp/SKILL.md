@@ -1,5 +1,5 @@
 ---
-name: tdd-cpp
+name: mdc-test-driven-dev
 description: 使用 GoogleTest 进行 C++ 测试驱动开发。当用户要编写 C++ 代码、实现新功能、修复 Bug、重构 C++ 项目时，请务必使用此技能——即使用户没有明确提到 TDD 或测试。只要涉及 C++ 实现代码的编写，就应先写测试再写实现。同样适用于用户提到 gtest、gmock、ctest、CMake 测试、C++ 单元测试等场景。
 ---
 
