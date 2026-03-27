@@ -1,9 +1,9 @@
 ---
-name: sdd-work-hotfix
-description: Handle urgent bug fixes in an SDD-governed project without abandoning verification discipline. Use when a hotfix-request.json exists, when the user asks for an urgent fix, or when a defect must be repaired quickly while still requiring reproduction, minimal change, regression checks, and completion gating.
+name: mdc-hotfix
+description: Handle urgent bug fixes in an MDC-governed project without abandoning verification discipline. Use when a hotfix-request.json exists, when the user asks for an urgent fix, or when a defect must be repaired quickly while still requiring reproduction, minimal change, regression checks, and completion gating.
 ---
 
-# SDD Work Hotfix
+# MDC Hotfix
 
 Process an urgent defect without bypassing engineering discipline.
 
@@ -62,10 +62,10 @@ Avoid opportunistic refactors unless they are necessary to complete the fix safe
 After the fix:
 
 1. verify the reproduction now passes
-2. use `sdd-test-review` if tests changed
-3. use `sdd-code-review`
-4. use `sdd-regression-gate`
-5. use `sdd-completion-gate`
+2. use `mdc-test-review` if tests changed
+3. use `mdc-code-review`
+4. use `mdc-regression-gate`
+5. use `mdc-completion-gate`
 
 ### 5. Sync Artifacts If Needed
 
@@ -90,7 +90,7 @@ Use this exact structure:
 
 ## Next Step
 
-`sdd-code-review` | `sdd-regression-gate` | `sdd-completion-gate` | `sdd-work-implement`
+`mdc-code-review` | `mdc-regression-gate` | `mdc-completion-gate` | `mdc-implement`
 ```
 
 ## Anti-Patterns

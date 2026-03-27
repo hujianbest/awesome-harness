@@ -1,9 +1,9 @@
 ---
-name: sdd-spec-review
-description: Review an SDD requirement specification before design begins. Use when a requirement spec draft exists and must be checked for completeness, scope clarity, ambiguity, acceptance criteria, and readiness to become the approved input to design.
+name: mdc-spec-review
+description: Review an MDC requirement specification before design begins. Use when a requirement spec draft exists and must be checked for completeness, scope clarity, ambiguity, acceptance criteria, and readiness to become the approved input to design.
 ---
 
-# SDD Spec Review
+# MDC Spec Review
 
 Review the requirement specification and decide whether it is ready to be approved for design.
 
@@ -15,7 +15,7 @@ If the spec is weak, design will drift. If the spec is approved too early, imple
 
 ## Hard Gate
 
-Do not move to `sdd-work-design` until the spec passes review or the user explicitly accepts known gaps.
+Do not move to `mdc-design` until the spec passes review or the user explicitly accepts known gaps.
 
 ## Review Method
 
@@ -70,7 +70,7 @@ PASS | REVISE | BLOCKED
 
 ## Next Step
 
-`sdd-work-design` | `sdd-work-specify`
+`mdc-design` | `mdc-specify`
 ```
 
 Severity guidance:
@@ -104,7 +104,7 @@ Return `BLOCKED` if:
 
 If the spec passes, explicitly say it is ready to become the approved design input.
 
-If it does not pass, send it back to `sdd-work-specify` with concrete revision points.
+If it does not pass, send it back to `mdc-specify` with concrete revision points.
 
 ## Anti-Patterns
 

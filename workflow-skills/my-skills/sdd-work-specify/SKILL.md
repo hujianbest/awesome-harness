@@ -1,9 +1,9 @@
 ---
-name: sdd-work-specify
-description: Produce an approved requirement specification for SDD-governed software work. Use when no approved spec exists, when a project is still at the requirements/specification stage, or when the user wants to define scope, requirements, acceptance criteria, constraints, or out-of-scope items before design or implementation.
+name: mdc-specify
+description: Produce an approved requirement specification for MDC-governed software work. Use when no approved spec exists, when a project is still at the requirements/specification stage, or when the user wants to define scope, requirements, acceptance criteria, constraints, or out-of-scope items before design or implementation.
 ---
 
-# SDD Work Specify
+# MDC Specify
 
 Create a requirement specification that defines WHAT must be built.
 
@@ -105,14 +105,14 @@ Before handing off, verify:
 
 ### 5. Handoff To Review
 
-When the draft is ready, hand off to `sdd-spec-review`.
+When the draft is ready, hand off to `mdc-spec-review`.
 
 Your output should say:
 
 ```markdown
 Requirement spec drafted and ready for review.
 
-Next skill: `sdd-spec-review`
+Next skill: `mdc-spec-review`
 ```
 
 ## Anti-Patterns
@@ -125,4 +125,4 @@ Next skill: `sdd-spec-review`
 
 ## Success Condition
 
-This skill is complete only when a reviewable requirement spec draft exists and is ready for `sdd-spec-review`.
+This skill is complete only when a reviewable requirement spec draft exists and is ready for `mdc-spec-review`.

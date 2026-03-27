@@ -1,17 +1,17 @@
 ---
-name: sdd-workflow-starter
-description: Route SDD-governed software work to the correct phase before any other action. Use at the start of any software delivery request involving requirements, specs, design, task planning, implementation, changes, bug fixes, or when the user says continue/start/推进/继续开发 in a project following SDD.
+name: mdc-workflow-starter
+description: Route MDC-governed software work to the correct phase before any other action. Use at the start of any software delivery request involving requirements, specs, design, task planning, implementation, changes, bug fixes, or when the user says continue/start/推进/继续开发 in a project following MDC.
 ---
 
-# SDD Workflow Starter
+# MDC Workflow Starter
 
-Use this skill before any SDD phase work.
+Use this skill before any MDC phase work.
 
 ## Purpose
 
 Your job is not to implement. Your job is to determine the current phase, identify the correct next skill, and prevent out-of-order work.
 
-This skill is the entry gate for an SDD workflow:
+This skill is the entry gate for an MDC workflow:
 
 `work-specify -> spec-review -> work-design -> design-review -> work-tasks -> work-implement -> test/code/regression/completion gates`
 
@@ -30,14 +30,14 @@ Read only the minimum needed to route:
 1. `workflow-state.json` if it exists
 2. `change-request.json` if it exists
 3. `hotfix-request.json` if it exists
-4. The mapped artifact locations from the project's SDD contract, if present
+4. The mapped artifact locations from the project's MDC contract, if present
 5. Existing approved spec/design/task artifacts only as needed to determine whether they exist and whether they are approved
 
 Do not start broad codebase exploration during routing.
 
 ## Additional Resources
 
-Read these references when the project has no established SDD contract yet, or when signal/state file formats are unclear:
+Read these references when the project has no established MDC contract yet, or when signal/state file formats are unclear:
 
 - `references/sdd-entry-guide.md`
 - `references/sdd-contract-template.md`
@@ -49,14 +49,14 @@ Use them to standardize artifact locations and state files before the workflow g
 
 Check in this exact order:
 
-1. If `hotfix-request.json` exists -> route to `sdd-work-hotfix`
-2. Else if `change-request.json` exists -> route to `sdd-work-increment`
-3. Else if there is no approved requirement spec -> route to `sdd-work-specify`
-4. Else if there is no approved implementation design -> route to `sdd-work-design`
-5. Else if there is no approved task plan -> route to `sdd-work-tasks`
-6. Else if there are unfinished planned tasks -> route to `sdd-work-implement`
-7. Else if implementation exists but lacks fresh verification evidence -> route to `sdd-completion-gate`
-8. Else route to `sdd-work-finalize`
+1. If `hotfix-request.json` exists -> route to `mdc-hotfix`
+2. Else if `change-request.json` exists -> route to `mdc-increment`
+3. Else if there is no approved requirement spec -> route to `mdc-specify`
+4. Else if there is no approved implementation design -> route to `mdc-design`
+5. Else if there is no approved task plan -> route to `mdc-tasks`
+6. Else if there are unfinished planned tasks -> route to `mdc-implement`
+7. Else if implementation exists but lacks fresh verification evidence -> route to `mdc-completion-gate`
+8. Else route to `mdc-finalize`
 
 ## Approved Means
 
@@ -86,7 +86,7 @@ Evidence:
 - No approved requirement spec found
 - No change or hotfix signal file found
 
-Next skill: `sdd-work-specify`
+Next skill: `mdc-specify`
 ```
 
 ## Red Flags

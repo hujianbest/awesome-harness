@@ -1,15 +1,15 @@
 ---
-name: sdd-design-review
-description: Review an SDD implementation design before task planning begins. Use when a design document draft exists and must be checked for architectural completeness, requirement coverage, interface clarity, technical fit, and readiness for task decomposition.
+name: mdc-design-review
+description: Review an MDC implementation design before task planning begins. Use when a design document draft exists and must be checked for architectural completeness, requirement coverage, interface clarity, technical fit, and readiness for task decomposition.
 ---
 
-# SDD Design Review
+# MDC Design Review
 
 Review the design document and decide whether it is ready to become the approved input to task planning.
 
 ## Hard Gate
 
-Do not move to `sdd-work-tasks` until the design passes review or the user explicitly accepts known gaps.
+Do not move to `mdc-tasks` until the design passes review or the user explicitly accepts known gaps.
 
 ## Purpose
 
@@ -74,7 +74,7 @@ PASS | REVISE | BLOCKED
 
 ## Next Step
 
-`sdd-work-tasks` | `sdd-work-design`
+`mdc-tasks` | `mdc-design`
 ```
 
 ## Decision Rules

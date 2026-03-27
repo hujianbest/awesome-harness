@@ -1,9 +1,9 @@
 ---
-name: sdd-work-design
-description: Produce a software implementation design from an approved SDD requirement specification. Use when the requirement spec has passed review and the project needs architecture, module boundaries, interfaces, data flow, technical decisions, and a design document before task planning or coding.
+name: mdc-design
+description: Produce a software implementation design from an approved MDC requirement specification. Use when the requirement spec has passed review and the project needs architecture, module boundaries, interfaces, data flow, technical decisions, and a design document before task planning or coding.
 ---
 
-# SDD Work Design
+# MDC Design
 
 Create the design document that defines HOW the approved spec will be implemented.
 
@@ -18,7 +18,7 @@ Use this skill only when:
 - a requirement spec exists
 - the spec has passed review or is explicitly approved
 
-If the spec is still draft or under revision, go back to `sdd-spec-review` or `sdd-work-specify`.
+If the spec is still draft or under revision, go back to `mdc-spec-review` or `mdc-specify`.
 
 ## Goals
 
@@ -115,14 +115,14 @@ Verify:
 
 ### 6. Handoff To Review
 
-When ready, hand off to `sdd-design-review`.
+When ready, hand off to `mdc-design-review`.
 
 Use:
 
 ```markdown
 Design document drafted and ready for review.
 
-Next skill: `sdd-design-review`
+Next skill: `mdc-design-review`
 ```
 
 ## Anti-Patterns
@@ -135,4 +135,4 @@ Next skill: `sdd-design-review`
 
 ## Success Condition
 
-This skill is complete only when a reviewable design document exists and is ready for `sdd-design-review`.
+This skill is complete only when a reviewable design document exists and is ready for `mdc-design-review`.

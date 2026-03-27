@@ -1,11 +1,11 @@
 ---
-name: sdd-work-increment
-description: Handle requirement changes in an SDD-governed project without bypassing specification and design discipline. Use when a change-request.json exists, when the user asks to add or modify requirements in an existing workflow, or when approved scope must be updated before implementation continues.
+name: mdc-increment
+description: Handle requirement changes in an MDC-governed project without bypassing specification and design discipline. Use when a change-request.json exists, when the user asks to add or modify requirements in an existing workflow, or when approved scope must be updated before implementation continues.
 ---
 
-# SDD Work Increment
+# MDC Increment
 
-Process a requirement change without corrupting the main SDD flow.
+Process a requirement change without corrupting the main MDC flow.
 
 ## Purpose
 
@@ -79,9 +79,9 @@ Rules:
 
 After the update:
 
-- if the spec changed materially and needs re-review -> `sdd-spec-review`
-- if the design changed materially and needs re-review -> `sdd-design-review`
-- if only task sequencing changed -> `sdd-tasks-review`
+- if the spec changed materially and needs re-review -> `mdc-spec-review`
+- if the design changed materially and needs re-review -> `mdc-design-review`
+- if only task sequencing changed -> `mdc-tasks-review`
 - if all relevant docs remain approved -> return to the appropriate implementation phase
 
 ## Output Format
@@ -103,7 +103,7 @@ Use this exact structure:
 
 ## Next Step
 
-`sdd-spec-review` | `sdd-design-review` | `sdd-tasks-review` | `sdd-work-implement`
+`mdc-spec-review` | `mdc-design-review` | `mdc-tasks-review` | `mdc-implement`
 ```
 
 ## Anti-Patterns

@@ -1,9 +1,9 @@
 ---
-name: sdd-work-implement
-description: Execute an approved SDD task plan and implement code in a controlled way. Use when the task plan has passed review and implementation should proceed task by task with TDD, verification, review, and no skipping ahead.
+name: mdc-implement
+description: Execute an approved MDC task plan and implement code in a controlled way. Use when the task plan has passed review and implementation should proceed task by task with TDD, verification, review, and no skipping ahead.
 ---
 
-# SDD Work Implement
+# MDC Implement
 
 Implement the approved task plan one task at a time.
 
@@ -55,10 +55,10 @@ Before claiming task completion:
 
 After implementation of the current task:
 
-1. use `sdd-test-review`
-2. then use `sdd-code-review`
-3. then use `sdd-regression-gate`
-4. then use `sdd-completion-gate`
+1. use `mdc-test-review`
+2. then use `mdc-code-review`
+3. then use `mdc-regression-gate`
+4. then use `mdc-completion-gate`
 
 That order is mandatory.
 

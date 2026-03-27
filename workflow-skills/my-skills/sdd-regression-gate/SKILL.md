@@ -1,9 +1,9 @@
 ---
-name: sdd-regression-gate
-description: Run the regression gate for an implemented SDD task after code review and before final completion claims. Use when the current task appears implemented and reviewed, and you need to verify that related behavior, broader tests, builds, or checks were not broken by the change.
+name: mdc-regression-gate
+description: Run the regression gate for an implemented MDC task after code review and before final completion claims. Use when the current task appears implemented and reviewed, and you need to verify that related behavior, broader tests, builds, or checks were not broken by the change.
 ---
 
-# SDD Regression Gate
+# MDC Regression Gate
 
 Run the minimum regression evidence required before the task can be considered complete.
 
@@ -48,9 +48,9 @@ Check:
 
 ### 4. Decide The Gate Result
 
-If the regression surface is still healthy, the next step is `sdd-completion-gate`.
+If the regression surface is still healthy, the next step is `mdc-completion-gate`.
 
-If not, the next step is `sdd-work-implement`.
+If not, the next step is `mdc-implement`.
 
 ## Output Format
 
@@ -71,7 +71,7 @@ PASS | REVISE | BLOCKED
 
 ## Next Step
 
-`sdd-completion-gate` | `sdd-work-implement`
+`mdc-completion-gate` | `mdc-implement`
 ```
 
 ## Decision Rules

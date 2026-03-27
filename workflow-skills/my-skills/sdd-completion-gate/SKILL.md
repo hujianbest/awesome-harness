@@ -1,9 +1,9 @@
 ---
-name: sdd-completion-gate
-description: Enforce the final completion gate for an implemented SDD task using fresh verification evidence. Use when a task has passed test review, code review, and regression checks, and the agent is about to claim completion, update status, commit progress, or move to the next task.
+name: mdc-completion-gate
+description: Enforce the final completion gate for an implemented MDC task using fresh verification evidence. Use when a task has passed test review, code review, and regression checks, and the agent is about to claim completion, update status, commit progress, or move to the next task.
 ---
 
-# SDD Completion Gate
+# MDC Completion Gate
 
 Enforce evidence before completion claims.
 
@@ -52,7 +52,7 @@ Check:
 ### 5. Gate The Claim
 
 - If the evidence supports the claim, allow completion
-- If not, report actual status and route back to `sdd-work-implement`
+- If not, report actual status and route back to `mdc-implement`
 
 ## Output Format
 
@@ -73,7 +73,7 @@ PASS | REVISE | BLOCKED
 
 ## Next Step
 
-`done-for-current-task` | `sdd-work-implement`
+`done-for-current-task` | `mdc-implement`
 ```
 
 ## Decision Rules

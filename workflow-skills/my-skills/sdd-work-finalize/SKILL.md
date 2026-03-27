@@ -1,11 +1,11 @@
 ---
-name: sdd-work-finalize
-description: Finalize an SDD work cycle after implementation and completion gating have passed. Use when the current work item is complete and you need to update progress records, release notes, review evidence, and prepare a clean handoff to the next task or session.
+name: mdc-finalize
+description: Finalize an MDC work cycle after implementation and completion gating have passed. Use when the current work item is complete and you need to update progress records, release notes, review evidence, and prepare a clean handoff to the next task or session.
 ---
 
-# SDD Work Finalize
+# MDC Finalize
 
-Close out the current SDD work cycle cleanly.
+Close out the current MDC work cycle cleanly.
 
 ## Purpose
 
@@ -78,7 +78,7 @@ Use this exact structure:
 
 ## Next Step
 
-`sdd-work-implement` | `sdd-work-increment` | `sdd-work-hotfix` | `workflow-complete`
+`mdc-implement` | `mdc-increment` | `mdc-hotfix` | `workflow-complete`
 ```
 
 ## Anti-Patterns

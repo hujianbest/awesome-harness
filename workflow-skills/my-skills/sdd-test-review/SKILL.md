@@ -1,9 +1,9 @@
 ---
-name: sdd-test-review
-description: Review tests for an implemented SDD task before code review and completion gating. Use when a task implementation includes new or changed tests and those tests must be checked for meaningful failure-first behavior, behavioral coverage, and usefulness.
+name: mdc-test-review
+description: Review tests for an implemented MDC task before code review and completion gating. Use when a task implementation includes new or changed tests and those tests must be checked for meaningful failure-first behavior, behavioral coverage, and usefulness.
 ---
 
-# SDD Test Review
+# MDC Test Review
 
 Review the tests for the current implemented task.
 
@@ -54,7 +54,7 @@ PASS | REVISE
 
 ## Next Step
 
-`sdd-code-review` | `sdd-work-implement`
+`mdc-code-review` | `mdc-implement`
 ```
 
 ## Decision Rules

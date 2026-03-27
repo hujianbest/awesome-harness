@@ -1,9 +1,9 @@
 ---
-name: sdd-code-review
-description: Review code for an implemented SDD task after test review and before regression and completion gates. Use when implementation changes are ready to be checked for correctness, readability, error handling, design alignment, and local code quality.
+name: mdc-code-review
+description: Review code for an implemented MDC task after test review and before regression and completion gates. Use when implementation changes are ready to be checked for correctness, readability, error handling, design alignment, and local code quality.
 ---
 
-# SDD Code Review
+# MDC Code Review
 
 Review the code for the current implemented task.
 
@@ -55,7 +55,7 @@ PASS | REVISE
 
 ## Next Step
 
-`sdd-regression-gate` | `sdd-work-implement`
+`mdc-regression-gate` | `mdc-implement`
 ```
 
 ## Decision Rules

@@ -1,9 +1,9 @@
 ---
-name: sdd-work-tasks
-description: Turn an approved SDD design into an executable task plan and task breakdown. Use when the design has passed review and the project needs milestones, task ordering, dependencies, definition of done, and implementation-ready work items before coding starts.
+name: mdc-tasks
+description: Turn an approved MDC design into an executable task plan and task breakdown. Use when the design has passed review and the project needs milestones, task ordering, dependencies, definition of done, and implementation-ready work items before coding starts.
 ---
 
-# SDD Work Tasks
+# MDC Tasks
 
 Create the task plan that translates the approved design into executable work.
 
@@ -18,7 +18,7 @@ Use this skill only when:
 - the requirement spec is approved
 - the design is approved
 
-If design is still draft or under revision, go back to `sdd-design-review` or `sdd-work-design`.
+If design is still draft or under revision, go back to `mdc-design-review` or `mdc-design`.
 
 ## Goals
 
@@ -111,14 +111,14 @@ Use this structure unless the project requires another template:
 
 ### 6. Handoff To Review
 
-When the plan is ready, hand off to `sdd-tasks-review`.
+When the plan is ready, hand off to `mdc-tasks-review`.
 
 Use:
 
 ```markdown
 Task plan drafted and ready for review.
 
-Next skill: `sdd-tasks-review`
+Next skill: `mdc-tasks-review`
 ```
 
 ## Anti-Patterns
@@ -131,4 +131,4 @@ Next skill: `sdd-tasks-review`
 
 ## Success Condition
 
-This skill is complete only when a reviewable task plan exists and is ready for `sdd-tasks-review`.
+This skill is complete only when a reviewable task plan exists and is ready for `mdc-tasks-review`.

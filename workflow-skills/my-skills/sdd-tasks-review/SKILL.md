@@ -1,15 +1,15 @@
 ---
-name: sdd-tasks-review
-description: Review an SDD task plan before implementation begins. Use when a task plan draft exists and must be checked for granularity, sequencing, dependency correctness, verifiability, and readiness to guide implementation.
+name: mdc-tasks-review
+description: Review an MDC task plan before implementation begins. Use when a task plan draft exists and must be checked for granularity, sequencing, dependency correctness, verifiability, and readiness to guide implementation.
 ---
 
-# SDD Tasks Review
+# MDC Tasks Review
 
 Review the task plan and decide whether implementation can begin.
 
 ## Hard Gate
 
-Do not move to `sdd-work-implement` until the task plan passes review or the user explicitly accepts known gaps.
+Do not move to `mdc-implement` until the task plan passes review or the user explicitly accepts known gaps.
 
 ## Purpose
 
@@ -58,7 +58,7 @@ PASS | REVISE | BLOCKED
 
 ## Next Step
 
-`sdd-work-implement` | `sdd-work-tasks`
+`mdc-implement` | `mdc-tasks`
 ```
 
 ## Decision Rules
