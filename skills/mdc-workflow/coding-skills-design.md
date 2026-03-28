@@ -58,7 +58,7 @@
 
 ## 4. 总体设计原则
 
-1. **先路由，后执行**：每次会话由 `mdc-workflow-starter` 先判断当前阶段，再决定进入哪个 skill。
+1. **workflow 推进统一先经 starter 编排**：当你需要判断当前阶段、恢复主链/支线推进、决定下一步 skill，或处理 review / gate 请求时，都先进入 `mdc-workflow-starter`，由它统一决定当前应进入哪个节点以及后续如何衔接。
 2. **规格先于设计，设计先于任务，任务先于实现**：任何跳步都必须被视为违规。
 3. **工件驱动，不靠记忆**：状态必须落在仓库文件中，而不是停留在对话里。
 4. **强门禁而非软建议**：关键阶段用必须、禁止、仅允许下游等表述，减少 Agent 自由发挥空间。
@@ -133,7 +133,7 @@ flowchart TD
 
 它相当于 `using-superpowers` 和 `using-long-task` 的组合版，但目标更聚焦于这套作业体系的流程约束。
 
-### 5.2 第二层：任务执行流
+### 5.2 第二层：任务执行与阶段编排流
 
 这是实际产生交付件的主链与支线：
 
@@ -144,6 +144,12 @@ flowchart TD
 - `mdc-increment`
 - `mdc-hotfix`
 - `mdc-finalize`
+
+其中：
+
+- `mdc-specify`、`mdc-design`、`mdc-tasks` 以产出阶段主工件为主
+- `mdc-implement` 属于**执行型 / 阶段编排型**：它既执行当前活跃任务，也负责把实现阶段串到后续质量链
+- `mdc-increment`、`mdc-hotfix`、`mdc-finalize` 负责支线或收尾阶段内的受控推进，而不是承担顶层会话路由
 
 ### 5.3 第三层：质量防护层
 
@@ -171,7 +177,7 @@ flowchart TD
 
 质量与变更相关的配套模板可统一从以下索引进入：
 
-- `my-skills/quality-reference-index.md`
+- `skills/mdc-workflow/README.md`
 
 ### 6.1 为什么需要“逻辑工件”和“实际文件路径”分离
 
@@ -331,6 +337,12 @@ flowchart TD
 
 ### `mdc-implement`
 
+**角色定位**
+
+执行型 / 阶段编排型。
+
+它不是顶层路由器，不负责像 `mdc-workflow-starter` 那样判断当前会话处于哪个阶段；它负责在“已经确认进入实现阶段”之后，围绕唯一活跃任务执行实现，并把结果受控地交给后续质量层。
+
 **目标**
 
 按任务计划执行代码实现。
@@ -367,7 +379,7 @@ flowchart TD
 
 **建议配套资料**
 
-- `my-skills/mdc-increment/references/change-impact-sync-record-template.md`
+- `skills/mdc-workflow/mdc-increment/references/change-impact-sync-record-template.md`
 
 **借鉴来源**
 
@@ -394,7 +406,7 @@ flowchart TD
 
 **建议配套资料**
 
-- `my-skills/mdc-hotfix/references/hotfix-repro-and-sync-record-template.md`
+- `skills/mdc-workflow/mdc-hotfix/references/hotfix-repro-and-sync-record-template.md`
 
 **借鉴来源**
 
@@ -487,7 +499,7 @@ flowchart TD
 
 **建议配套资料**
 
-- `my-skills/mdc-bug-patterns/references/bug-pattern-catalog-template.md`
+- `skills/mdc-workflow/mdc-bug-patterns/references/bug-pattern-catalog-template.md`
 
 **检查维度**
 
@@ -537,7 +549,7 @@ flowchart TD
 
 **建议配套资料**
 
-- `my-skills/mdc-traceability-review/references/traceability-review-record-template.md`
+- `skills/mdc-workflow/mdc-traceability-review/references/traceability-review-record-template.md`
 
 **检查维度**
 
