@@ -10,7 +10,7 @@
 
 - Current Stage:
 - Current Active Task:
-- Next Skill:
+- Next Action Or Recommended Skill:
 - Last Updated:
 
 ## Approved Artifacts
@@ -40,4 +40,4 @@
 - Summary:
 - Updated Files:
 - Evidence:
-- Next Suggested Action:
+- Next Suggested Action Or Skill:

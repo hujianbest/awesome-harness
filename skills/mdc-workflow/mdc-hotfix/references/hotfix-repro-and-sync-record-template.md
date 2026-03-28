@@ -6,7 +6,7 @@
 - 修复做了什么最小改动
 - 如何验证修复已经生效
 - 哪些工件需要同步刷新
-- 下一步应该进入哪个质量门或实现阶段
+- 下一步应该进入哪个质量动作或实现阶段
 
 ## 使用原则
 
@@ -67,7 +67,7 @@
 
 ## 下一步
 
-`mdc-bug-patterns` | `mdc-test-review` | `mdc-code-review` | `mdc-traceability-review` | `mdc-regression-gate` | `mdc-completion-gate` | `mdc-implement`
+`进入后续质量检查` | `进入后续验证` | `进入最终完成判断` | `回到实现修订`
 ```
 
 ## 简化版模板
@@ -98,7 +98,7 @@
 
 ## 下一步
 
-`mdc-regression-gate` | `mdc-completion-gate` | `mdc-implement`
+`进入后续验证` | `进入最终完成判断` | `回到实现修订`
 ```
 
 ## 评审提示

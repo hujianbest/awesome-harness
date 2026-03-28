@@ -77,7 +77,7 @@
 
 ## 下一步
 
-`mdc-regression-gate` | `mdc-implement`
+`进入后续验证` | `回到实现修订`
 ```
 
 ## 简化版模板
@@ -105,7 +105,7 @@
 
 ## 下一步
 
-`mdc-regression-gate` | `mdc-implement`
+`进入后续验证` | `回到实现修订`
 ```
 
 ## 评审提示

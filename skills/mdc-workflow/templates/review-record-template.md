@@ -22,7 +22,7 @@
 ## Conclusion
 
 - Conclusion: `通过` | `需修改` | `阻塞`
-- Recommended Next Skill:
+- Recommended Next Action Or Skill:
 
 ## Findings
 
