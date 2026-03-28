@@ -745,69 +745,6 @@ flowchart TD
 
 如果没有这类等价工件，建议直接采用 `templates/task-progress-template.md`。
 
-## 当前实现状态
-
-目前仓库里的 `mdc` 已经不是纯设计稿，而是有一套可工作的实现：
-
-- `mdc-workflow-starter` 已成为系列统一入口门
-- 主链和两条支线已落地
-- `task-progress` / review / verification 模板已补齐
-- 质量层已统一到记录路径、模板引用和状态语义
-- `mdc-implement -> mdc-test-driven-dev` 的入口依赖已闭合
-- 主链关键节点已有一轮基础 eval 文件
-
-但仍有几个已知边界：
-
-- `mdc-test-driven-dev` 当前具体实现主要覆盖 C++ / GoogleTest 场景
-- eval 文件已补到关键节点，但还未形成完整“运行并迭代”的闭环
-- 当前没有引入 `feature-list.json` 那种重型中央状态文件
-
-## 目录说明
-
-`skills/mdc-workflow/` 下当前主要内容可按功能理解为：
-
-- `mdc-*/SKILL.md`
-  - 各个 workflow skill 的主体定义
-- `mdc-workflow-starter/references/`
-  - 路由证据、最小工件契约等参考资料
-- `templates/`
-  - `task-progress`、review、verification 的推荐模板
-- `*/evals/`
-  - 部分关键 skill 的基础评测用例
-- `coding-skills-design.md`
-  - 这套体系的原始设计蓝图与设计依据
-
-## 建议阅读顺序
-
-如果你是第一次接触这套体系，推荐按以下顺序阅读：
-
-1. `README.md`
-2. `coding-skills-design.md`
-3. `mdc-workflow-starter/SKILL.md`
-4. `mdc-specify` / `mdc-design` / `mdc-tasks` / `mdc-implement`
-5. 质量层相关 `mdc-*-review` 与 `mdc-*-gate`
-6. `templates/` 与 `references/`
-
-如果你是准备实际使用，优先读：
-
-1. `mdc-workflow-starter/SKILL.md`
-2. `mdc-workflow-starter/references/mdc-contract-template.md`
-3. `templates/task-progress-template.md`
-
-## 与设计稿的关系
-
-`coding-skills-design.md` 是这套体系的设计蓝图。
-
-本 README 的角色不同：
-
-- 设计稿回答“为什么要这样设计”
-- README 回答“这套 skills 现在是什么、怎么用、边界在哪”
-
-也就是说：
-
-- 设计稿偏架构与原则
-- README 偏入口与使用说明
-
 ## 常见误用 / FAQ
 
 ### 1. 用户只说“继续”，为什么不能直接进入 `mdc-implement`？
