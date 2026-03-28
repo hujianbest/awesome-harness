@@ -177,28 +177,360 @@ flowchart TD
 | `mdc-hotfix` | 执行层支线 | 处理紧急缺陷修复，并要求先复现再修 | 用户提出紧急缺陷修复，或现有证据表明处于热修复场景 |
 | `mdc-finalize` | 执行层 | 收尾当前工作周期，更新状态、发布说明和证据索引 | 完成门禁通过后，准备结束当前周期时 |
 
+## 各 Skill 详细说明
+
+这一节补充每个 `mdc-*` skill 的目标、典型输入输出与关键约束。README 不重复 `SKILL.md` 的全部细节，但会说明每个 skill 在整条链路中的位置与边界。
+
+### 编排层
+
+#### `mdc-workflow-starter`
+
+目标：
+
+- 先读取阶段证据，再决定当前会话唯一正确的下一步 skill
+
+典型输入：
+
+- 当前用户请求
+- `mdc-contract` 或等价工件映射
+- 规格、设计、任务、review、verification、`task-progress.md`、`RELEASE_NOTES.md`
+
+典型输出：
+
+- 当前阶段判断
+- 下游 skill 路由结论
+- 本轮 checklist / todo 初始化
+
+关键规则：
+
+- 先路由再回答，不能因为用户说“继续”就直接开始实现
+- 若关键工件缺失或审批证据不完整，必须回到更保守的上游阶段
+- 当检测到变更请求或热修复信号时，优先路由到支线流程
+
+### 执行层
+
+#### `mdc-specify`
+
+目标：
+
+- 产出可提交评审的需求规格草稿，明确范围、非范围、约束和验收标准
+
+典型输入：
+
+- 用户目标、业务上下文、现有系统情况、约束条件
+
+典型输出：
+
+- 规格草稿
+- 供 `mdc-spec-review` 使用的问题清单与待确认点
+
+关键规则：
+
+- 先澄清 WHAT，再谈 HOW
+- 不把设计决策混入规格
+- 规格未冻结前，不进入实现
+
+#### `mdc-design`
+
+目标：
+
+- 基于已批准规格产出可提交评审的实现设计草稿
+
+典型输入：
+
+- 已批准规格
+- 技术约束、接口边界、NFR、现有架构上下文
+
+典型输出：
+
+- 设计草稿
+- 方案比较与取舍说明
+- 供 `mdc-design-review` 和真人确认使用的风险点
+
+关键规则：
+
+- 至少比较 2 个方案，再说明为何选当前方案
+- 设计要覆盖模块、数据流、接口、测试策略和依赖选择
+- 设计未批准前，不进入任务拆分或编码
+
+#### `mdc-tasks`
+
+目标：
+
+- 把规格与设计翻译为可执行、可验证、可回退的任务计划
+
+典型输入：
+
+- 已批准规格
+- 已批准设计
+- 当前里程碑与依赖关系
+
+典型输出：
+
+- 任务计划草稿
+- 每个任务的 DoD、验证方式、依赖关系
+
+关键规则：
+
+- 任务粒度以“能独立验证、能独立关闭”为标准，而不是按文件粗拆
+- 明确任务优先级、里程碑和前置依赖
+- 任务计划完成后，先过 `mdc-tasks-review`，再进入实现
+
+#### `mdc-implement`
+
+目标：
+
+- 在任务计划约束下执行当前唯一活跃任务，并串起 TDD、评审和验证链
+
+典型输入：
+
+- 已批准任务计划
+- 当前活动任务
+- 代码仓库现状与测试上下文
+
+典型输出：
+
+- 实现代码
+- 测试代码与验证结果
+- 当前任务进度更新
+
+关键规则：
+
+- 先输出测试用例设计并与真人确认，再进入 TDD
+- 没有失败测试，不写生产代码
+- 完成当前任务后必须继续经过 `mdc-bug-patterns`、`mdc-test-review`、`mdc-code-review`、`mdc-traceability-review`、`mdc-regression-gate` 和 `mdc-completion-gate`
+
+#### `mdc-increment`
+
+目标：
+
+- 处理需求追加、删改、范围调整，并把影响同步回主链工件
+
+典型输入：
+
+- 现有规格、设计、任务计划
+- 新的变更请求或范围变化证据
+
+典型输出：
+
+- 变更影响分析
+- 已同步更新的规格、设计、任务计划、验证策略和状态记录
+
+关键规则：
+
+- 先做影响分析，再决定回流到哪个主链节点
+- 不能只改任务或代码而不回写上游工件
+- 变更流是主链的受控回流，不是绕过门禁的捷径
+
+#### `mdc-hotfix`
+
+目标：
+
+- 处理高优先级线上或交付前缺陷，以最小修复恢复正确行为
+
+典型输入：
+
+- 缺陷描述、复现线索、线上反馈或失败验证证据
+
+典型输出：
+
+- 失败复现测试
+- 最小修复实现
+- 同步刷新的规格、设计、任务、验证与发布记录
+
+关键规则：
+
+- 先复现再修复
+- 优先最小修复，避免借热修之名做范围扩张
+- 修复后仍要进入质量层和门禁，不能“修完就算完成”
+
+#### `mdc-finalize`
+
+目标：
+
+- 完成当前工作周期的收尾，而不是继续扩展功能
+
+典型输入：
+
+- 已通过的完成门禁
+- 最新 review 记录、verification 证据、任务状态
+
+典型输出：
+
+- 更新后的 `task-progress.md`
+- 更新后的 `RELEASE_NOTES.md`
+- 完整的交付摘要和下一步建议
+
+关键规则：
+
+- 只在 `mdc-completion-gate` 通过后进入
+- 收尾时要补齐状态、证据索引和用户可见变更说明
+- finalize 的目标是闭环，不是继续插入新实现
+
+### 质量防护层
+
+#### `mdc-spec-review`
+
+作用：
+
+- 审查规格是否完整、无歧义、可验证、边界清晰，并为真人确认提供依据
+
+检查重点：
+
+- 范围是否明确
+- 是否混入设计决策
+- 是否存在验收标准缺口、模糊词和负向场景遗漏
+
+路由结果：
+
+- `通过` 后进入规格真人确认
+- `需修改` / `阻塞` 后回到 `mdc-specify`
+
+#### `mdc-design-review`
+
+作用：
+
+- 审查设计是否覆盖规格、考虑约束与 NFR，并具备可实现性
+
+检查重点：
+
+- 是否覆盖规格
+- 是否给出方案选择与理由
+- 是否明确技术依赖、测试策略和关键风险
+
+路由结果：
+
+- `通过` 后进入设计真人确认
+- `需修改` / `阻塞` 后回到 `mdc-design`
+
+#### `mdc-tasks-review`
+
+作用：
+
+- 审查任务计划是否真正可执行，而不是粗粒度待办列表
+
+检查重点：
+
+- 任务粒度是否过大
+- 依赖顺序是否合理
+- 每个任务是否有明确 DoD 与验证安排
+
+#### `mdc-bug-patterns`
+
+作用：
+
+- 在常规测试评审和代码评审前，对当前改动命中的已知缺陷模式做专项排查
+
+检查重点：
+
+- 是否命中团队历史高频错误模式
+- 是否覆盖边界、空值、状态、时序、幂等等典型风险
+- 是否通过测试、防护代码或约束手段真正消除同类问题
+
+#### `mdc-test-review`
+
+作用：
+
+- 审查测试是否真的验证行为，而不是装饰性测试
+
+检查重点：
+
+- 测试是否先失败过
+- 是否只测 happy path
+- 是否过度依赖 mock
+- 是否覆盖边界与错误路径
+
+#### `mdc-code-review`
+
+作用：
+
+- 审查实现质量，而不是代替规格评审或设计评审
+
+检查重点：
+
+- 正确性
+- 可读性
+- 边界和错误处理
+- 是否偏离设计
+
+#### `mdc-traceability-review`
+
+作用：
+
+- 在进入回归前检查规格、设计、任务、实现、测试、验证之间是否仍能互相对齐
+
+检查重点：
+
+- 当前实现是否符合已批准规格与设计
+- 任务完成项能否回指到需求或设计片段
+- 测试和验证证据是否覆盖被宣称完成的行为
+
+#### `mdc-regression-gate`
+
+作用：
+
+- 在任务级实现完成后，确认改动没有破坏已有能力
+
+检查重点：
+
+- 相关测试集
+- 全量测试或受影响测试
+- 构建、类型检查、静态检查等回归信号
+
+#### `mdc-completion-gate`
+
+作用：
+
+- 作为末端硬门禁，决定当前任务或阶段是否允许宣称完成
+
+关键规则：
+
+- 在宣称“完成”、切换下一个任务、准备 PR 或交付说明前必须执行
+- 必须基于 fresh verification evidence，而不是主观判断
+- 只根据实际命令输出陈述状态，不能把“应该通过”当作“已经通过”
+
 ## 主链工作流
 
 默认主链如下：
 
-```text
-mdc-workflow-starter
--> mdc-specify
--> mdc-spec-review
--> 规格真人确认
--> mdc-design
--> mdc-design-review
--> 设计真人确认
--> mdc-tasks
--> mdc-tasks-review
--> mdc-implement
--> mdc-bug-patterns
--> mdc-test-review
--> mdc-code-review
--> mdc-traceability-review
--> mdc-regression-gate
--> mdc-completion-gate
--> mdc-finalize
+```mermaid
+flowchart TD
+    starter[mdc-workflow-starter]
+    specify[mdc-specify]
+    specReview[mdc-spec-review]
+    specConfirm[规格真人确认]
+    design[mdc-design]
+    designReview[mdc-design-review]
+    designConfirm[设计真人确认]
+    tasks[mdc-tasks]
+    tasksReview[mdc-tasks-review]
+    implement[mdc-implement]
+    bugPatterns[mdc-bug-patterns]
+    testReview[mdc-test-review]
+    codeReview[mdc-code-review]
+    traceabilityReview[mdc-traceability-review]
+    regressionGate[mdc-regression-gate]
+    completionGate[mdc-completion-gate]
+    finalize[mdc-finalize]
+
+    starter --> specify
+    specify --> specReview
+    specReview -->|通过| specConfirm
+    specReview -->|需修改/阻塞| specify
+    specConfirm --> design
+    design --> designReview
+    designReview -->|通过| designConfirm
+    designReview -->|需修改/阻塞| design
+    designConfirm --> tasks
+    tasks --> tasksReview
+    tasksReview --> implement
+    implement --> bugPatterns
+    bugPatterns --> testReview
+    testReview --> codeReview
+    codeReview --> traceabilityReview
+    traceabilityReview --> regressionGate
+    regressionGate --> completionGate
+    completionGate --> finalize
 ```
 
 这条链路体现了 `mdc` 最核心的约束：
@@ -214,22 +546,40 @@ mdc-workflow-starter
 
 当已有规格、设计、任务已经存在，但用户提出新增、删改或范围调整时：
 
-```text
-mdc-workflow-starter
--> mdc-increment
--> 回流到 mdc-tasks / mdc-implement / 相关 review
+```mermaid
+flowchart TD
+    starter[mdc-workflow-starter]
+    changeReq[变更请求]
+    increment[mdc-increment]
+    tasks[mdc-tasks]
+    implement[mdc-implement]
+    reviews[相关 review / gate]
+
+    starter --> changeReq
+    changeReq --> increment
+    increment --> tasks
+    increment --> implement
+    increment --> reviews
 ```
 
 ### 热修复
 
 当出现紧急缺陷修复场景时：
 
-```text
-mdc-workflow-starter
--> mdc-hotfix
--> mdc-implement
--> 质量层
--> mdc-finalize
+```mermaid
+flowchart TD
+    starter[mdc-workflow-starter]
+    hotfixReq[热修复请求]
+    hotfix[mdc-hotfix]
+    implement[mdc-implement]
+    quality[质量层与门禁]
+    finalize[mdc-finalize]
+
+    starter --> hotfixReq
+    hotfixReq --> hotfix
+    hotfix --> implement
+    implement --> quality
+    quality --> finalize
 ```
 
 热修复不是“先改再补流程”，而是走一条压缩但仍受约束的支线。
