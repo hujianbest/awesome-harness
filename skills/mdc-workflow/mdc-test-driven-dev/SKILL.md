@@ -402,30 +402,9 @@ $ cd build && cmake --build . && ctest --output-on-failure
 **REFACTOR**
 如果有多个字段需要非空校验，提取通用验证函数。
 
-## 项目搭建
+## 构建与运行测试：
 
-使用 CMake + FetchContent 引入 GoogleTest 是目前最主流的方式。
-详细配置参见 @references/cmake-setup.md。
-
-快速参考：
-
-```cmake
-# CMakeLists.txt (项目根目录)
-cmake_minimum_required(VERSION 3.14)
-project(my_project LANGUAGES CXX)
-set(CMAKE_CXX_STANDARD 17)
-
-enable_testing()
-add_subdirectory(src)
-add_subdirectory(tests)
-```
-
-构建与运行测试：
-```bash
-cmake -B build -DCMAKE_BUILD_TYPE=Debug
-cmake --build build
-cd build && ctest --output-on-failure
-```
+如果你不清楚如何运行HDT用例，查看 Agents.md 中关于编译构建的相关信息。
 
 ## 验证清单
 
