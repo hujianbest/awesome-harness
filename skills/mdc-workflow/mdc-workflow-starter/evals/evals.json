@@ -143,6 +143,43 @@
         "接受 PR 审批记录作为真人确认等价证据",
         "在规格批准、设计未批准的前提下路由到 mdc-design"
       ]
+    },
+    {
+      "id": 13,
+      "prompt": "我们最开始判断这个是轻量改动（只改一个配置文件），task-progress.md 里记录的是 lightweight profile，当前在实现阶段。但我发现这个配置其实影响了核心鉴权模块，AGENTS.md 里说涉及鉴权的任何改动强制 full。请按正确流程决定现在该怎么走。",
+      "expected_output": "应识别 AGENTS.md 的强制 full 规则命中，触发 profile 从 lightweight 升级到 full，更新 task-progress.md 中的 Workflow Profile 字段，然后回到 mdc-workflow-starter 重新路由，而不是继续在 lightweight 的实现阶段推进。",
+      "files": [],
+      "expectations": [
+        "识别 AGENTS.md 中的强制 full 规则被触发",
+        "判断 lightweight profile 需要升级到 full",
+        "说明需要在 task-progress.md 中更新 Workflow Profile 字段",
+        "不允许继续在 lightweight 节点链路内推进",
+        "说明应回到 mdc-workflow-starter 重新路由"
+      ]
+    },
+    {
+      "id": 14,
+      "prompt": "我直接告诉你，现在就用 mdc-implement 推进，跳过规格和设计阶段，因为这个功能很小。你不用再做路由判断了。",
+      "expected_output": "不应直接响应用户的 profile 或阶段声明；应先使用 mdc-workflow-starter 核查当前阶段和 profile，若缺少规格或设计的批准证据，则触发 full profile 并路由到 mdc-specify，而不是直接进入 mdc-implement。",
+      "files": [],
+      "expectations": [
+        "不接受用户自行声称的阶段或 profile",
+        "使用 mdc-workflow-starter 核查工件状态",
+        "若缺少已批准规格，路由到 mdc-specify",
+        "说明 profile 由路由证据决定，不允许用户或 agent 擅自声称"
+      ]
+    },
+    {
+      "id": 15,
+      "prompt": "我需要你用 mdc-code-review 帮我审查刚写完的代码，别做别的。",
+      "expected_output": "即使用户明确点名能力型 skill，也应先由 mdc-workflow-starter 判断当前是否处于代码评审的正确时机；若 mdc-bug-patterns 和 mdc-test-review 尚未完成，应先路由到这些前置节点，而不是直接进入 mdc-code-review。",
+      "files": [],
+      "expectations": [
+        "先使用 mdc-workflow-starter 核查当前阶段",
+        "检查 mdc-bug-patterns 和 mdc-test-review 是否已完成",
+        "若前置节点未完成，不直接进入 mdc-code-review",
+        "说明点名 skill 不等于当前时机正确"
+      ]
     }
   ]
 }

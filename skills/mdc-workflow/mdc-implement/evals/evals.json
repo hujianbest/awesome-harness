@@ -48,6 +48,30 @@
         "说明后续验证命令顺序为 `pnpm test:unit` 再 `pnpm test:integration`",
         "避免在集成测试策略中默认允许 mock repository 层"
       ]
+    },
+    {
+      "id": 5,
+      "prompt": "task-progress.md 上写着继续实现当前任务，但我刚想起来任务计划里那个任务的 DoD 和验证方式写的是空的。你按正确流程处理这个情况。",
+      "expected_output": "应识别任务 DoD 和验证方式缺失是上游工件不完整的信号；不能继续在 mdc-implement 内推进，应暂停并回到 mdc-tasks 补齐 DoD 和验证方式，然后经过 mdc-tasks-review 后再进入实现。",
+      "files": [],
+      "expectations": [
+        "识别 DoD 和验证方式缺失属于上游任务工件不完整",
+        "不继续推进实现",
+        "说明需要回到 mdc-tasks 补齐缺失内容",
+        "补齐后仍需经过 mdc-tasks-review 再进入实现"
+      ]
+    },
+    {
+      "id": 6,
+      "prompt": "旧的测试结果是绿色的，之前那次跑的证明这个模块没问题。现在的改动很小，直接跳过测试设计确认，进入实现就行。",
+      "expected_output": "应拒绝使用旧的测试结果作为当前任务的验证证据；测试设计确认是每次任务实现前的必经步骤，不能因为之前曾经绿色过就跳过；仍需先输出测试设计并等待真人确认。",
+      "files": [],
+      "expectations": [
+        "明确旧测试结果不能作为当前任务的 fresh verification evidence",
+        "不因为旧结果绿色就跳过测试设计确认",
+        "仍需输出当前任务的测试设计",
+        "等待真人确认测试设计后再进入 mdc-test-driven-dev"
+      ]
     }
   ]
 }
