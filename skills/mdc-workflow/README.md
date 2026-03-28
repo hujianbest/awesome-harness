@@ -2,7 +2,7 @@
 
 ## 简介
 
-`skills/coding/` 下的 `mdc-*` 系列是一套面向软件交付流程的 workflow skills。
+`skills/mdc-workflow/` 下的 `mdc-*` 系列是一套面向软件交付流程的 workflow skills。
 
 它的目标不是让 Agent “更自由地写代码”，而是让 Agent 在软件开发任务里先按正确顺序工作：
 
@@ -764,7 +764,7 @@ flowchart TD
 
 ## 目录说明
 
-`skills/coding/` 下当前主要内容可按功能理解为：
+`skills/mdc-workflow/` 下当前主要内容可按功能理解为：
 
 - `mdc-*/SKILL.md`
   - 各个 workflow skill 的主体定义

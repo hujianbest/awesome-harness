@@ -39,7 +39,7 @@ description: 在代码评审之后、最终完成宣告之前，对已实现的 
 
 若项目尚未形成固定 verification 记录格式，默认使用：
 
-- `skills/coding/templates/verification-record-template.md`
+- `skills/mdc-workflow/templates/verification-record-template.md`
 
 如果结论为 `通过`，应同步更新：
 
@@ -58,7 +58,7 @@ description: 在代码评审之后、最终完成宣告之前，对已实现的 
 
 若项目尚未形成固定进度记录格式，默认使用：
 
-- `skills/coding/templates/task-progress-template.md`
+- `skills/mdc-workflow/templates/task-progress-template.md`
 
 ## 工作流
 

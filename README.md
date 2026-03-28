@@ -34,7 +34,7 @@ awesome-harness-engineering/
 | [daily-skills/pdf](skills/daily/pdf) | PDF 合并、拆分、表单、OCR 等处理流程 |
 | [daily-skills/mcp-builder](skills/daily/mcp-builder) | 使用 Python（FastMCP）或 Node/TypeScript 搭建 MCP 服务 |
 | [daily-skills/skill-creator](skills/daily/skill-creator) | 编写新技能、迭代与评估技能效果 |
-| [daily-skills/tdd-cpp](skills/coding/mdc-test-driven-dev/tdd-cpp) | C++ 测试驱动开发（GoogleTest + CMake） |
+| [daily-skills/tdd-cpp](skills/mdc-workflow/mdc-test-driven-dev/tdd-cpp) | C++ 测试驱动开发（GoogleTest + CMake） |
 | [daily-skills/test-driven-development](skills/daily/test-driven-development) | 测试驱动开发（通用，先写失败测试再实现） |
 
 ## 使用方式

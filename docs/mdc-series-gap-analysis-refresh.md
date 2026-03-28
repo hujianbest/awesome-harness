@@ -6,7 +6,7 @@
 
 - `superpowers`
 - `longtaskforagent`
-- 当前 `skills/coding/` 下的 `mdc-*` 系列
+- 当前 `skills/mdc-workflow/` 下的 `mdc-*` 系列
 
 本次评估基于 `mdc` 在方案 B 第一轮落地和第二轮质量层一致性清理之后的当前状态，而不是早期版本。
 
