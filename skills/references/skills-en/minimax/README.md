@@ -1,6 +1,6 @@
 # MiniMax Skills
 
-[中文版](./README_zh.md)
+[中文版](README_zh.md)
 
 > **Beta** — This project is under active development. Skills, APIs, and configuration formats may change without notice. We welcome feedback and contributions.
 

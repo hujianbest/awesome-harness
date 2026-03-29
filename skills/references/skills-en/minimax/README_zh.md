@@ -1,6 +1,6 @@
 # MiniMax Skills
 
-[English](./README.md)
+[English](README.md)
 
 > **Beta** — 本项目正在积极开发中。技能内容、API 和配置格式可能会在不另行通知的情况下变更。欢迎反馈和贡献。
 
