@@ -86,7 +86,7 @@ flowchart TD
         workSpecify[mdc-specify]
         workDesign[mdc-design]
         workTasks[mdc-tasks]
-        workImplement[mdc-implement]
+        workImplement[mdc-test-driven-dev]
         workIncrement[mdc-increment]
         workHotfix[mdc-hotfix]
         workFinalize[mdc-finalize]
@@ -157,7 +157,7 @@ flowchart TD
 
 ### 3. 执行型 / 阶段编排型
 
-- `mdc-implement`
+- `mdc-test-driven-dev`
 - `mdc-increment`
 - `mdc-hotfix`
 - `mdc-finalize`
@@ -200,8 +200,7 @@ flowchart TD
 | `mdc-design-review` | 能力型质量层 | 审查设计是否覆盖规格并具备可实现性 | 设计草稿已完成，准备进入真人确认前 |
 | `mdc-tasks` | 执行型 | 将设计翻译为可执行任务计划 | 设计已批准，但任务计划尚未批准 |
 | `mdc-tasks-review` | 能力型质量层 | 审查任务计划粒度、依赖、DoD 与验证安排 | 任务计划草稿已完成，准备进入实现前 |
-| `mdc-implement` | 执行型 / 阶段编排型 | 按唯一活跃任务执行实现，并把实现结果交给后续质量能力 | 任务计划已批准，且仍有未完成任务 |
-| `mdc-test-driven-dev` | 执行型 | 作为统一 TDD 入口，按语言或项目类型路由具体 TDD 实现 | `mdc-implement` 或 `mdc-hotfix` 进入 TDD 时 |
+| `mdc-test-driven-dev` | 执行型 / 阶段编排型 | 作为唯一实现入口，按唯一活跃任务推进实现、执行 TDD，并把结果交给后续质量能力 | 任务计划已批准且仍有未完成任务，或 `mdc-hotfix` 进入受控修复 |
 | `mdc-bug-patterns` | 能力型质量层 | 对当前改动做缺陷模式专项排查 | 高风险改动专项排查，或 workflow 中实现后的首个质量检查 |
 | `mdc-test-review` | 能力型质量层 | 审查测试是否真正验证行为 | 需要独立评审测试质量，或 workflow 中进入正式评审链时 |
 | `mdc-code-review` | 能力型质量层 | 审查实现正确性、可维护性与设计一致性 | 需要独立评审实现质量，或 workflow 中进入后续验证前 |
@@ -313,12 +312,12 @@ flowchart TD
 
 ### 执行型 / 阶段编排型
 
-#### `mdc-implement`
+#### `mdc-test-driven-dev`
 
 目标：
 
-- 在任务计划约束下执行当前唯一活跃任务，并串起 TDD、评审和验证链
-- 它不是顶层路由器，而是“已进入实现阶段后的阶段编排器”
+- 在任务计划约束下执行当前唯一活跃任务，并串起测试设计确认、TDD、评审和验证链
+- 它不是顶层路由器，而是“已进入实现阶段后的统一执行入口”
 
 典型输入：
 
@@ -541,7 +540,7 @@ flowchart TD
 |---------|---------|---------|
 | **full** | 新功能、架构变更、高风险模块、跨模块重构、无已批准规格或设计 | 全部主链节点（18 个） |
 | **standard** | 中等功能、已有规格+设计的功能扩展、非高风险 bugfix | `mdc-tasks` → 完整质量层 → `mdc-finalize`（12 个） |
-| **lightweight** | 纯文档/配置/样式变更、低风险 bugfix | `mdc-implement` → `mdc-regression-gate` → `mdc-completion-gate` → `mdc-finalize`（4 个） |
+| **lightweight** | 纯文档/配置/样式变更、低风险 bugfix | `mdc-test-driven-dev` → `mdc-regression-gate` → `mdc-completion-gate` → `mdc-finalize`（4 个） |
 
 Profile 由 `mdc-workflow-starter` 在路由阶段决定，不允许用户自行声称。选择依据包括工件状态、改动范围、`AGENTS.md` 中的团队规则等信号。
 
@@ -575,7 +574,7 @@ flowchart TD
     designConfirm[设计真人确认]
     tasks[mdc-tasks]
     tasksReview[mdc-tasks-review]
-    implement[mdc-implement]
+    implement[mdc-test-driven-dev]
     bugPatterns[mdc-bug-patterns]
     testReview[mdc-test-review]
     codeReview[mdc-code-review]
@@ -616,7 +615,7 @@ flowchart TD
 当已有已批准规格+设计时，可从任务拆分开始：
 
 ```text
-mdc-workflow-starter → mdc-tasks → mdc-tasks-review → mdc-implement
+mdc-workflow-starter → mdc-tasks → mdc-tasks-review → mdc-test-driven-dev
 → mdc-bug-patterns → mdc-test-review → mdc-code-review
 → mdc-traceability-review → mdc-regression-gate → mdc-completion-gate
 → mdc-finalize
@@ -627,7 +626,7 @@ mdc-workflow-starter → mdc-tasks → mdc-tasks-review → mdc-implement
 当改动不涉及功能行为变化或为低风险修复时：
 
 ```text
-mdc-workflow-starter → mdc-implement
+mdc-workflow-starter → mdc-test-driven-dev
 → mdc-regression-gate → mdc-completion-gate
 → mdc-finalize
 ```
@@ -644,7 +643,7 @@ flowchart TD
     changeReq[变更请求]
     increment[mdc-increment]
     tasks[mdc-tasks]
-    implement[mdc-implement]
+    implement[mdc-test-driven-dev]
     reviews[相关 review / gate]
 
     starter --> changeReq
@@ -663,7 +662,7 @@ flowchart TD
     starter[mdc-workflow-starter]
     hotfixReq[热修复请求]
     hotfix[mdc-hotfix]
-    implement[mdc-implement]
+    implement[mdc-test-driven-dev]
     quality[质量层与门禁]
     finalize[mdc-finalize]
 
@@ -730,7 +729,7 @@ flowchart TD
 
 ### 3. TDD 是实现流内部的一部分
 
-`mdc-implement` 不允许把测试放到实现之后“顺手补”。
+`mdc-test-driven-dev` 不允许把测试放到实现之后“顺手补”。
 
 默认顺序是：
 
@@ -777,7 +776,7 @@ flowchart TD
 4. 真人确认规格后，进入 `mdc-design`
 5. 设计草稿完成后，进入 `mdc-design-review`
 6. 真人确认设计后，进入 `mdc-tasks`
-7. 任务计划通过 `mdc-tasks-review` 后，进入 `mdc-implement`
+7. 任务计划通过 `mdc-tasks-review` 后，进入 `mdc-test-driven-dev`
 8. 实现完成后，按顺序走质量层和门禁
 9. 最后进入 `mdc-finalize`
 
@@ -804,7 +803,7 @@ flowchart TD
 2. 检查规格、设计、任务是否已批准
 3. 检查 `task-progress.md`
 4. 检查是否还缺 review / gate 证据
-5. 根据证据决定下一步是 `mdc-implement`、某个 review skill、某个 gate，还是 `mdc-finalize`
+5. 根据证据决定下一步是 `mdc-test-driven-dev`、某个 review skill、某个 gate，还是 `mdc-finalize`
 
 ### 场景 3：修一个紧急缺陷
 
@@ -838,7 +837,7 @@ flowchart TD
 
 ## 常见误用 / FAQ
 
-### 1. 用户只说“继续”，为什么不能直接进入 `mdc-implement`？
+### 1. 用户只说“继续”，为什么不能直接进入 `mdc-test-driven-dev`？
 
 因为“继续”不是阶段证据。
 
@@ -850,7 +849,7 @@ flowchart TD
 - 当前任务是否真的还在实现阶段
 - 是否还缺 review / gate
 
-所以“继续”默认先进入 `mdc-workflow-starter`，而不是默认进入 `mdc-implement`。
+所以“继续”默认先进入 `mdc-workflow-starter`，而不是默认进入 `mdc-test-driven-dev`。
 
 ### 2. 什么时候必须有 `task-progress.md`？
 

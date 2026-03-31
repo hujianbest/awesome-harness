@@ -8,7 +8,7 @@
 
 - 只认最新验证证据
 - 拒绝没有 fresh verification evidence 的完成宣告
-- 在证据不足时回到 `mdc-implement`
+- 在证据不足时回到 `mdc-test-driven-dev`
 
 ## 建议评分关注点
 

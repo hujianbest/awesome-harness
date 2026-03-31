@@ -86,7 +86,7 @@
 |---------|------|---------|---------|
 | **full** | 完整流程 | 新功能、架构变更、高风险模块、跨模块重构、无已批准规格或设计 | 全部 18 节点主链 |
 | **standard** | 标准流程 | 中等功能、已有规格+设计的功能扩展、非高风险 bugfix | 从 `mdc-tasks` 开始，保留完整质量层（共 12 节点） |
-| **lightweight** | 轻量流程 | 纯文档/配置/样式变更、低风险 bugfix（单文件、无接口变化） | `mdc-implement` → `mdc-regression-gate` → `mdc-completion-gate` → `mdc-finalize`（共 4 节点） |
+| **lightweight** | 轻量流程 | 纯文档/配置/样式变更、低风险 bugfix（单文件、无接口变化） | `mdc-test-driven-dev` → `mdc-regression-gate` → `mdc-completion-gate` → `mdc-finalize`（共 4 节点） |
 
 ### Profile 选择机制
 
@@ -125,7 +125,7 @@ flowchart TD
         workSpecify[mdc-specify]
         workDesign[mdc-design]
         workTasks[mdc-tasks]
-        workImplement[mdc-implement]
+        workImplement[mdc-test-driven-dev]
         workIncrement[mdc-increment]
         workHotfix[mdc-hotfix]
         workFinalize[mdc-finalize]
@@ -187,7 +187,7 @@ flowchart TD
 - `mdc-specify`
 - `mdc-design`
 - `mdc-tasks`
-- `mdc-implement`
+- `mdc-test-driven-dev`
 - `mdc-increment`
 - `mdc-hotfix`
 - `mdc-finalize`
@@ -195,7 +195,7 @@ flowchart TD
 其中：
 
 - `mdc-specify`、`mdc-design`、`mdc-tasks` 以产出阶段主工件为主
-- `mdc-implement` 属于**执行型 / 阶段编排型**：它既执行当前活跃任务，也负责把实现阶段串到后续质量链
+- `mdc-test-driven-dev` 属于**执行型 / 阶段编排型**：它既执行当前活跃任务，也负责把实现阶段串到后续质量链
 - `mdc-increment`、`mdc-hotfix`、`mdc-finalize` 负责支线或收尾阶段内的受控推进，而不是承担顶层会话路由
 
 ### 5.3 第三层：质量防护层
@@ -382,7 +382,7 @@ flowchart TD
 - 运行通过
 - 更新进度与记录
 
-### `mdc-implement`
+### `mdc-test-driven-dev`
 
 **角色定位**
 
@@ -654,7 +654,7 @@ flowchart TD
     designConfirm[设计真人确认]
     tasks[mdc-tasks]
     tasksReview[mdc-tasks-review]
-    implement[mdc-implement]
+    implement[mdc-test-driven-dev]
     bugPatterns[mdc-bug-patterns]
     testReview[mdc-test-review]
     codeReview[mdc-code-review]
@@ -693,7 +693,7 @@ flowchart TD
     increment[mdc-increment]
     hotfix[mdc-hotfix]
     tasks[mdc-tasks]
-    implement[mdc-implement]
+    implement[mdc-test-driven-dev]
     regressionGate[mdc-regression-gate]
 
     starter --> changeReq
@@ -714,7 +714,7 @@ flowchart TD
 3. 若没有已批准规格，进入 `mdc-specify`
 4. 若规格已批准但无已批准设计，进入 `mdc-design`
 5. 若设计已批准但无任务计划，进入 `mdc-tasks`
-6. 若任务计划存在且仍有未完成任务，进入 `mdc-implement`
+6. 若任务计划存在且仍有未完成任务，进入 `mdc-test-driven-dev`
 7. 若当前任务已实现但尚未完成缺陷模式排查，进入 `mdc-bug-patterns`
 8. 若当前任务缺测试、代码或追溯性评审，依次进入 `mdc-test-review`、`mdc-code-review`、`mdc-traceability-review`
 9. 若实现已完成但缺回归或完成验证证据，进入 `mdc-regression-gate` / `mdc-completion-gate`
@@ -760,7 +760,7 @@ flowchart TD
 | `mdc-specify` | 规格文档、规格审查记录 |
 | `mdc-design` | 设计文档、设计审查记录 |
 | `mdc-tasks` | 任务计划、任务审查记录 |
-| `mdc-implement` | 代码、测试、进度日志、当前任务上下文 |
+| `mdc-test-driven-dev` | 代码、测试、进度日志、当前任务上下文 |
 | `mdc-bug-patterns` | 缺陷模式命中记录、补充测试或防护说明 |
 | `mdc-test-review` / `mdc-code-review` | 审查记录、问题清单 |
 | `mdc-traceability-review` | 规格/设计/任务/实现/验证一致性记录 |
@@ -785,7 +785,7 @@ flowchart TD
 你原始设想是：
 
 - 第一层：`mdc-workflow-starter`
-- 第二层：`mdc-specify`、`mdc-design`、`mdc-tasks`、`mdc-implement`
+- 第二层：`mdc-specify`、`mdc-design`、`mdc-tasks`、`mdc-test-driven-dev`
 - 第三层：`mdc-design-review`、`mdc-code-review`、`mdc-test-review`
 
 补全后的建议版本是：
@@ -799,7 +799,7 @@ flowchart TD
 - `mdc-specify`
 - `mdc-design`
 - `mdc-tasks`
-- `mdc-implement`
+- `mdc-test-driven-dev`
 - `mdc-increment`
 - `mdc-hotfix`
 - `mdc-finalize`
@@ -843,7 +843,7 @@ flowchart TD
   mdc-design-review/
   mdc-tasks/
   mdc-tasks-review/
-  mdc-implement/
+  mdc-test-driven-dev/
   mdc-bug-patterns/
   mdc-test-review/
   mdc-code-review/
@@ -861,7 +861,7 @@ flowchart TD
 2. `mdc-specify` + `mdc-spec-review`
 3. `mdc-design` + `mdc-design-review`
 4. `mdc-tasks` + `mdc-tasks-review`
-5. `mdc-implement` + `mdc-bug-patterns` + `mdc-test-review`
+5. `mdc-test-driven-dev` + `mdc-bug-patterns` + `mdc-test-review`
 6. `mdc-code-review` + `mdc-traceability-review`
 7. `mdc-regression-gate` + `mdc-completion-gate`
 8. `mdc-increment` + `mdc-hotfix` + `mdc-finalize`

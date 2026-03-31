@@ -66,8 +66,8 @@ profile 控制的是当前工作需要走哪些节点，而不是降低门禁强
 | Profile | 适用场景 | 节点链路 |
 |---------|---------|---------|
 | **full** | 新功能、架构变更、高风险模块、跨模块重构、无已批准规格或设计 | 全部主链节点 |
-| **standard** | 中等功能、已有规格+设计的功能扩展、非高风险 bugfix | `mdc-tasks` → `mdc-tasks-review` → `mdc-implement` → 完整质量层 → `mdc-finalize` |
-| **lightweight** | 纯文档/配置/样式变更、低风险 bugfix（单文件、无接口变化） | `mdc-implement` → `mdc-regression-gate` → `mdc-completion-gate` → `mdc-finalize` |
+| **standard** | 中等功能、已有规格+设计的功能扩展、非高风险 bugfix | `mdc-tasks` → `mdc-tasks-review` → `mdc-test-driven-dev` → 完整质量层 → `mdc-finalize` |
+| **lightweight** | 纯文档/配置/样式变更、低风险 bugfix（单文件、无接口变化） | `mdc-test-driven-dev` → `mdc-regression-gate` → `mdc-completion-gate` → `mdc-finalize` |
 
 ### Profile 选择规则
 
@@ -124,7 +124,7 @@ full profile 主链推荐节点：
 - 设计真人确认
 - `mdc-tasks`
 - `mdc-tasks-review`
-- `mdc-implement`
+- `mdc-test-driven-dev`
 - `mdc-bug-patterns`
 - `mdc-test-review`
 - `mdc-code-review`
@@ -137,7 +137,7 @@ standard profile 主链推荐节点：
 
 - `mdc-tasks`
 - `mdc-tasks-review`
-- `mdc-implement`
+- `mdc-test-driven-dev`
 - `mdc-bug-patterns`
 - `mdc-test-review`
 - `mdc-code-review`
@@ -148,7 +148,7 @@ standard profile 主链推荐节点：
 
 lightweight profile 主链推荐节点：
 
-- `mdc-implement`
+- `mdc-test-driven-dev`
 - `mdc-regression-gate`
 - `mdc-completion-gate`
 - `mdc-finalize`
@@ -193,7 +193,7 @@ lightweight profile 主链推荐节点：
 
 1. **规格真人确认**：`mdc-spec-review` 结论为"通过"后，必须向用户展示评审结论并等待用户明确批准
 2. **设计真人确认**：`mdc-design-review` 结论为"通过"后，必须向用户展示评审结论并等待用户明确批准
-3. **测试用例设计确认**：`mdc-implement` 进入 TDD 前，必须向用户展示测试用例设计并等待用户确认
+3. **测试用例设计确认**：`mdc-test-driven-dev` 在进入 Red-Green-Refactor 前，必须向用户展示测试用例设计并等待用户确认
 4. **证据冲突需澄清**：工件状态互相矛盾，且无法用保守原则自动解决时
 5. **review / gate 结论为"需修改"或"阻塞"且修订方向不明确**：需要与用户讨论修订方案
 
@@ -294,7 +294,7 @@ lightweight profile 主链推荐节点：
 7. 若没有已批准需求规格，进入 `mdc-specify`（仅 full；若 standard / lightweight 检测到缺少规格依据，触发 profile 升级）
 8. 若没有已批准实现设计，进入 `mdc-design`（仅 full；若 standard / lightweight 检测到缺少设计依据，触发 profile 升级）
 9. 若没有已批准任务计划，进入 `mdc-tasks`（full / standard）
-10. 若仍有未完成计划任务，进入 `mdc-implement`
+10. 若仍有未完成计划任务，进入 `mdc-test-driven-dev`
 11. 若当前任务已实现，但缺少缺陷模式排查证据，进入 `mdc-bug-patterns`（full / standard；lightweight 跳过）
 12. 若当前任务缺少测试、代码或追溯性评审结论，依次进入 `mdc-test-review`、`mdc-code-review`、`mdc-traceability-review`（full / standard；lightweight 跳过）
 13. 若当前任务缺少回归或完成验证证据，进入 `mdc-regression-gate` 或 `mdc-completion-gate`
@@ -309,7 +309,7 @@ lightweight profile 主链推荐节点：
 - 若需求规格存在，但仍是草稿、评审未通过，或评审虽通过但缺少真人确认，仍进入 `mdc-specify`
 - 若设计文档存在，但仍是草稿、评审未通过，或评审虽通过但缺少真人确认，仍进入 `mdc-design`
 - 若任务计划存在，但批准状态不清楚，或与 `task-progress.md` 中的当前阶段冲突，按未批准处理，回到 `mdc-tasks`
-- 若 `task-progress.md` 指向实现，但规格 / 设计 / 任务任一工件没有明确批准证据，优先相信上游工件状态，不能直接进入 `mdc-implement`
+- 若 `task-progress.md` 指向实现，但规格 / 设计 / 任务任一工件没有明确批准证据，优先相信上游工件状态，不能直接进入 `mdc-test-driven-dev`
 - 若用户请求与工件状态冲突，先报告冲突，再选择保守的上游阶段
 - 不把"评审通过但尚未真人确认"误判成"已批准"
 - 若用户点名某个能力型 skill，但当前证据显示仍缺更上游工件或前置 review / gate，优先回到缺失的上游阶段，而不是机械执行点名 skill
@@ -339,49 +339,49 @@ lightweight profile 主链推荐节点：
 | `mdc-design-review` | `需修改` / `阻塞` | `mdc-design` |
 | 设计真人确认 | 确认通过 | `mdc-tasks` |
 | 设计真人确认 | 要求修改 / 未确认 | `mdc-design` |
-| `mdc-tasks-review` | `通过` | `mdc-implement` |
+| `mdc-tasks-review` | `通过` | `mdc-test-driven-dev` |
 | `mdc-tasks-review` | `需修改` / `阻塞` | `mdc-tasks` |
 | `mdc-bug-patterns` | `通过` | `mdc-test-review` |
-| `mdc-bug-patterns` | `需修改` / `阻塞` | `mdc-implement` |
+| `mdc-bug-patterns` | `需修改` / `阻塞` | `mdc-test-driven-dev` |
 | `mdc-test-review` | `通过` | `mdc-code-review` |
-| `mdc-test-review` | `需修改` / `阻塞` | `mdc-implement` |
+| `mdc-test-review` | `需修改` / `阻塞` | `mdc-test-driven-dev` |
 | `mdc-code-review` | `通过` | `mdc-traceability-review` |
-| `mdc-code-review` | `需修改` / `阻塞` | `mdc-implement` |
+| `mdc-code-review` | `需修改` / `阻塞` | `mdc-test-driven-dev` |
 | `mdc-traceability-review` | `通过` | `mdc-regression-gate` |
-| `mdc-traceability-review` | `需修改` / `阻塞` | `mdc-implement` |
+| `mdc-traceability-review` | `需修改` / `阻塞` | `mdc-test-driven-dev` |
 | `mdc-regression-gate` | `通过` | `mdc-completion-gate` |
-| `mdc-regression-gate` | `需修改` / `阻塞` | `mdc-implement` |
+| `mdc-regression-gate` | `需修改` / `阻塞` | `mdc-test-driven-dev` |
 | `mdc-completion-gate` | `通过` | `mdc-finalize` |
-| `mdc-completion-gate` | `需修改` / `阻塞` | `mdc-implement` |
+| `mdc-completion-gate` | `需修改` / `阻塞` | `mdc-test-driven-dev` |
 
 ### standard profile 迁移表
 
 | 当前节点 | 结论 | 下一推荐节点 |
 |---|---|---|
-| `mdc-tasks-review` | `通过` | `mdc-implement` |
+| `mdc-tasks-review` | `通过` | `mdc-test-driven-dev` |
 | `mdc-tasks-review` | `需修改` / `阻塞` | `mdc-tasks` |
 | `mdc-bug-patterns` | `通过` | `mdc-test-review` |
-| `mdc-bug-patterns` | `需修改` / `阻塞` | `mdc-implement` |
+| `mdc-bug-patterns` | `需修改` / `阻塞` | `mdc-test-driven-dev` |
 | `mdc-test-review` | `通过` | `mdc-code-review` |
-| `mdc-test-review` | `需修改` / `阻塞` | `mdc-implement` |
+| `mdc-test-review` | `需修改` / `阻塞` | `mdc-test-driven-dev` |
 | `mdc-code-review` | `通过` | `mdc-traceability-review` |
-| `mdc-code-review` | `需修改` / `阻塞` | `mdc-implement` |
+| `mdc-code-review` | `需修改` / `阻塞` | `mdc-test-driven-dev` |
 | `mdc-traceability-review` | `通过` | `mdc-regression-gate` |
-| `mdc-traceability-review` | `需修改` / `阻塞` | `mdc-implement` |
+| `mdc-traceability-review` | `需修改` / `阻塞` | `mdc-test-driven-dev` |
 | `mdc-regression-gate` | `通过` | `mdc-completion-gate` |
-| `mdc-regression-gate` | `需修改` / `阻塞` | `mdc-implement` |
+| `mdc-regression-gate` | `需修改` / `阻塞` | `mdc-test-driven-dev` |
 | `mdc-completion-gate` | `通过` | `mdc-finalize` |
-| `mdc-completion-gate` | `需修改` / `阻塞` | `mdc-implement` |
+| `mdc-completion-gate` | `需修改` / `阻塞` | `mdc-test-driven-dev` |
 
 ### lightweight profile 迁移表
 
 | 当前节点 | 结论 | 下一推荐节点 |
 |---|---|---|
-| `mdc-implement` | 实现完成 | `mdc-regression-gate` |
+| `mdc-test-driven-dev` | 实现完成 | `mdc-regression-gate` |
 | `mdc-regression-gate` | `通过` | `mdc-completion-gate` |
-| `mdc-regression-gate` | `需修改` / `阻塞` | `mdc-implement` |
+| `mdc-regression-gate` | `需修改` / `阻塞` | `mdc-test-driven-dev` |
 | `mdc-completion-gate` | `通过` | `mdc-finalize` |
-| `mdc-completion-gate` | `需修改` / `阻塞` | `mdc-implement` |
+| `mdc-completion-gate` | `需修改` / `阻塞` | `mdc-test-driven-dev` |
 
 如果某个下游 skill 给出的结论无法映射到当前 profile 迁移表中的唯一下一推荐节点，则说明编排信息还不完整，应回到本 skill 重新判断，而不是自行补脑推进。
 
@@ -436,7 +436,7 @@ lightweight profile 主链推荐节点：
 
 > 路由：full profile → `mdc-specify`（无已批准规格）
 
-> 路由：lightweight profile → `mdc-implement`（纯配置调整）
+> 路由：lightweight profile → `mdc-test-driven-dev`（纯配置调整）
 
 > 路由：standard profile，`mdc-code-review` 通过 → 进入 `mdc-traceability-review`
 

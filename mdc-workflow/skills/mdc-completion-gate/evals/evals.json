@@ -10,7 +10,7 @@
         "先明确要宣告的结论",
         "指出当前缺少 fresh verification evidence",
         "不直接返回通过",
-        "下一步回到 mdc-implement 或要求补验证"
+        "下一步回到 mdc-test-driven-dev 或要求补验证"
       ]
     },
     {

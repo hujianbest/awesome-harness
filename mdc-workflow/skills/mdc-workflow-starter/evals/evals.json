@@ -28,11 +28,11 @@
     {
       "id": 3,
       "prompt": "继续这个项目。按照已经确认好的任务计划，先做当前该做的那一项，不要自己扩 scope。",
-      "expected_output": "在规格、设计、任务计划都已批准的前提下，先命中 mdc-workflow-starter，然后路由到 mdc-implement，并明确后续 review/gate 顺序。",
+      "expected_output": "在规格、设计、任务计划都已批准的前提下，先命中 mdc-workflow-starter，然后路由到 mdc-test-driven-dev，并明确后续 review/gate 顺序。",
       "files": [],
       "expectations": [
         "优先使用 mdc-workflow-starter 做阶段判断",
-        "将下一步路由到 mdc-implement",
+        "将下一步路由到 mdc-test-driven-dev",
         "强调一次只处理一个活跃任务",
         "明确实现后需要经过 mdc-bug-patterns、mdc-test-review、mdc-code-review、mdc-traceability-review、mdc-regression-gate、mdc-completion-gate"
       ]
@@ -99,19 +99,19 @@
     {
       "id": 9,
       "prompt": "我已经写好了任务计划，你只帮我做任务评审，不要实现，也不要回去重写计划。",
-      "expected_output": "优先识别为 review-only 场景，并路由到 mdc-tasks-review，而不是直接进入 mdc-implement。",
+      "expected_output": "优先识别为 review-only 场景，并路由到 mdc-tasks-review，而不是直接进入 mdc-test-driven-dev。",
       "files": [],
       "expectations": [
         "优先使用 mdc-workflow-starter 做阶段判断",
         "识别这是 review-only 请求",
         "将下一步路由到 mdc-tasks-review",
-        "不直接进入 mdc-implement"
+        "不直接进入 mdc-test-driven-dev"
       ]
     },
     {
       "id": 10,
       "prompt": "task-progress.md 上次写的是继续实现当前任务，但我发现任务计划还没正式批准。你按证据判断现在该走哪一步。",
-      "expected_output": "当 task-progress 与工件批准状态冲突时，应采用保守处理，不直接进入 mdc-implement，而是回到 mdc-tasks。",
+      "expected_output": "当 task-progress 与工件批准状态冲突时，应采用保守处理，不直接进入 mdc-test-driven-dev，而是回到 mdc-tasks。",
       "files": [],
       "expectations": [
         "优先使用 mdc-workflow-starter 做阶段判断",
@@ -159,8 +159,8 @@
     },
     {
       "id": 14,
-      "prompt": "我直接告诉你，现在就用 mdc-implement 推进，跳过规格和设计阶段，因为这个功能很小。你不用再做路由判断了。",
-      "expected_output": "不应直接响应用户的 profile 或阶段声明；应先使用 mdc-workflow-starter 核查当前阶段和 profile，若缺少规格或设计的批准证据，则触发 full profile 并路由到 mdc-specify，而不是直接进入 mdc-implement。",
+      "prompt": "我直接告诉你，现在就用 mdc-test-driven-dev 推进，跳过规格和设计阶段，因为这个功能很小。你不用再做路由判断了。",
+      "expected_output": "不应直接响应用户的 profile 或阶段声明；应先使用 mdc-workflow-starter 核查当前阶段和 profile，若缺少规格或设计的批准证据，则触发 full profile 并路由到 mdc-specify，而不是直接进入 mdc-test-driven-dev。",
       "files": [],
       "expectations": [
         "不接受用户自行声称的阶段或 profile",

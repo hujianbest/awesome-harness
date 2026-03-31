@@ -82,7 +82,7 @@
 
 ## 下一步
 
-`mdc-spec-review` | `mdc-design-review` | `mdc-tasks-review` | `mdc-implement`
+`mdc-spec-review` | `mdc-design-review` | `mdc-tasks-review` | `mdc-test-driven-dev`
 ```
 
 ## 简化版模板
@@ -108,7 +108,7 @@
 
 ## 下一步
 
-`mdc-spec-review` | `mdc-design-review` | `mdc-tasks-review` | `mdc-implement`
+`mdc-spec-review` | `mdc-design-review` | `mdc-tasks-review` | `mdc-test-driven-dev`
 ```
 
 ## 评审提示

@@ -33,7 +33,7 @@
       "expectations": [
         "任务形态体现写失败测试、确认失败、最小实现、验证通过",
         "验证预期落在任务级",
-        "计划可直接支撑 mdc-implement",
+        "计划可直接支撑 mdc-test-driven-dev",
         "下一步为 mdc-tasks-review"
       ]
     },

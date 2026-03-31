@@ -188,5 +188,5 @@
 
 ## 下一步
 
-`mdc-implement`
+`mdc-test-driven-dev`
 ```
