@@ -19,7 +19,8 @@ def validate_skill(skill_path):
         return False, "SKILL.md not found"
 
     # Read and validate frontmatter
-    content = skill_md.read_text()
+    # SKILL.md files are stored as UTF-8 across platforms.
+    content = skill_md.read_text(encoding="utf-8-sig")
     if not content.startswith('---'):
         return False, "No YAML frontmatter found"
 
