@@ -4,17 +4,17 @@
 
 > 如果你想为团队搭一套可长期演进的 harness engineering，这个框架到底提供了哪些值得借鉴的工程机制？
 
-我通读的重点对象包括：
+说明：下面列出的路径均指被分析项目 `get-shit-done-main` 内部的路径，不代表当前 `ahe` 仓库的目录结构；我通读的重点对象包括：
 
-- `references/get-shit-done-main/README.md`
-- `references/get-shit-done-main/docs/ARCHITECTURE.md`
-- `references/get-shit-done-main/docs/AGENTS.md`
-- `references/get-shit-done-main/bin/install.js`
-- `references/get-shit-done-main/get-shit-done/bin/gsd-tools.cjs`
-- `references/get-shit-done-main/get-shit-done/workflows/*.md`
-- `references/get-shit-done-main/hooks/*.js`
-- `references/get-shit-done-main/tests/*.test.cjs`
-- `references/get-shit-done-main/sdk/src/*.ts`
+- `README.md`
+- `docs/ARCHITECTURE.md`
+- `docs/AGENTS.md`
+- `bin/install.js`
+- `get-shit-done/bin/gsd-tools.cjs`
+- `get-shit-done/workflows/*.md`
+- `hooks/*.js`
+- `tests/*.test.cjs`
+- `sdk/src/*.ts`
 
 结论先行：`get-shit-done`（后文简称 GSD）本质上不是“一个命令包”或“一个提示词仓库”，而是一套围绕 **上下文工程、阶段化工作流、多 agent 编排、文件态状态管理、验证闭环、多 runtime 适配** 构建出来的 Agent 交付系统。
 

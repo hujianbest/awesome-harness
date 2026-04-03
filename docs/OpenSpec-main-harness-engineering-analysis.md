@@ -1,8 +1,10 @@
 # OpenSpec-main 源码分析报告：面向团队搭建 Harness Engineering 框架的参考
 
-这份报告的目标不是介绍 `references/OpenSpec-main/` 的命令清单，而是回答一个更关键的问题：
+这份报告的目标不是介绍外部项目 `OpenSpec-main` 的命令清单，而是回答一个更关键的问题：
 
 **如果团队后续要把 Agent 使用方式工程化，OpenSpec 的源码里有哪些结构、机制和边界，值得被吸收进一套团队级 harness engineering 框架。**
+
+说明：本文中出现的路径均指被分析项目 `OpenSpec-main` 内部的路径，不代表当前 `ahe` 仓库的目录结构。
 
 ---
 
@@ -30,7 +32,7 @@
 
 ## 二、分析范围
 
-本报告基于对 `references/OpenSpec-main/` 的源码级阅读，重点关注以下资产：
+本报告基于对外部项目 `OpenSpec-main` 的源码级阅读，重点关注以下资产：
 
 - 入口与定位：`README.md`、`bin/openspec.js`、`src/cli/index.ts`
 - 核心工作流：`docs/concepts.md`、`docs/workflows.md`

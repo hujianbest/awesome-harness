@@ -1,8 +1,10 @@
 # longtaskforagent-main 源码分析报告：用于指导团队搭建 Harness Engineering
 
-这份报告不是为了介绍 `references/longtaskforagent-main/` 有多少 skill，而是为了回答一个更实用的问题：
+这份报告不是为了介绍外部项目 `longtaskforagent-main` 有多少 skill，而是为了回答一个更实用的问题：
 
 > 如果你的团队要把 Agent 从“单轮能写点代码”，提升到“能跨会话、可治理、可验证、可持续交付”，`longtaskforagent-main` 这套框架到底提供了哪些值得借鉴的工程机制？
+
+说明：下面列出的路径均指被分析项目 `longtaskforagent-main` 内部的路径，不代表当前 `ahe` 仓库的目录结构。
 
 这份分析聚焦它的实际源码与入口文件，尤其关注：
 

@@ -1,8 +1,10 @@
 # superpowers-main 源码分析报告：面向团队搭建 Harness Engineering 的落地参考
 
-这份报告的目标不是简单介绍 `references/superpowers-main/` 有哪些技能，而是回答一个更实际的问题：
+这份报告的目标不是简单介绍外部项目 `superpowers-main` 有哪些技能，而是回答一个更实际的问题：
 
 **如果你的团队要把 Agent 使用方式工程化，如何从 `superpowers-main` 里提炼出一套可复用、可迁移、可验证、可演进的 harness engineering 骨架。**
+
+说明：本文中出现的路径均指被分析项目 `superpowers-main` 内部的路径，不代表当前 `ahe` 仓库的目录结构。
 
 ---
 
@@ -30,7 +32,7 @@
 
 ## 二、分析范围与方法
 
-本报告基于对 `references/superpowers-main/` 的源码级阅读，重点关注以下资产：
+本报告基于对外部项目 `superpowers-main` 的源码级阅读，重点关注以下资产：
 
 - 根入口：`README.md`、`package.json`
 - 平台适配：`.cursor-plugin/`、`.claude-plugin/`、`.opencode/`、`.codex/`、`gemini-extension.json`

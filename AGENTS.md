@@ -1,80 +1,54 @@
-# Awesome Harness Engineering — Agent 指引
+# awesome-harness-engineering (AHE) — Agent 指引
 
 ## 仓库定位
 
-这是 **Agent Harness Engineering** 资源库：以可安装 **Skills**、**MCP** 实践、**TDD** 与 **技能评测** 为主，不是单一业务应用。主资产在 `daily-skills/<技能名>/`，入口一般为 `SKILL.md`。项目内已接入的 Cursor 技能可能在 `.cursor/skills/`。
+这是 `awesome-harness-engineering`（`ahe`）个人工作台，用于维护可复用的 harness 资产、skills、模板、规则草案和研究文档。它不再承载旧的 `mdc` workflow 体系，也不再假定历史目录结构仍然存在。
 
 ## 工作方式
 
-1. **任务映射到资产**：用户提到 Word / Excel / PPT / PDF、MCP 开发、编写或评测技能、TDD 等主题时，先打开对应目录下的 `SKILL.md`（或 `.cursor/skills/` 中的副本），再执行具体操作。
-2. **始终从入口读起**：除非用户指定文件，否则从该技能的 `SKILL.md` 开始，再按需阅读子文档、`reference/`、`scripts/`。
-3. **尊重许可证**：`docx`、`xlsx`、`pptx`、`pdf`、`mcp-builder` 等目录常含 `LICENSE.txt`；复制、分发或商用前以各目录许可证为准。
-4. **控制改动范围**：只修改用户点名的技能、文档或目录；不要为「统一整理」而批量改写无关技能内容。
-5. **Harness 扩展目录**：`playbooks/` 用于流程与清单，`templates/` 用于可复用脚手架；若为空则不必臆造内容，除非用户要求撰写。
-
-## MDC Workflow 扩展协议
-
-当仓库或下游项目采用 `skills/mdc-workflow/` 时，`AGENTS.md` 也是该工作流的**唯一扩展入口**。
-
-1. **先读 `AGENTS.md`，再读具体 skill**：进入任一 `mdc-*` skill 前，先查找这里是否声明了 `mdc-workflow` 相关约定。
-2. **由 `AGENTS.md` 统一承载映射与规范**：包括工件路径映射、审批状态别名、真人确认等价证据、模板覆盖路径、编码规范、设计规范、测试规范、例外规则与多产品命名空间。
-3. **skill 本体只保留流程内核**：`skills/mdc-workflow/` 负责阶段顺序、门禁、证据优先级与交接格式，不再额外引入平行的映射契约。
-4. **未声明时才回落默认值**：若 `AGENTS.md` 没有给出某项映射或规范，`mdc-workflow` 才使用默认路径、默认模板和默认状态词。
-5. **避免双源配置**：新方案下不要再新增任何与 `AGENTS.md` 并行的映射源；`mdc-workflow` 的路径映射、审批别名、模板覆盖和团队规范都应直接写在 `AGENTS.md` 中。
-
-推荐至少在 `AGENTS.md` 中覆盖以下 `mdc-workflow` 信息：
-
-- 工件路径：spec、design、tasks、reviews、verification、progress、release notes
-- 审批与评审状态：approved、pass、revise、blocked 的项目别名
-- 真人确认证据：人工批注、审批记录、PR 审批、工单状态等可接受来源
-- 模板覆盖：spec/design/tasks/review/verification 模板位置
-- 团队规范：coding/design/testing 约束、常用命令、mock 边界、覆盖率门槛、允许例外
+1. **先看当前入口**：默认从 `README.md`、`AGENTS.md` 或用户明确指定的文件开始，而不是假设存在历史入口。
+2. **以实际目录为准**：只引用当前仓库中真实存在的路径，不要继续使用 `daily-skills/`、`skills/mdc-workflow/`、`playbooks/` 等已移除或不存在的目录。
+3. **从局部入口继续深入**：查看 skill 时从 `skills/<skill-name>/SKILL.md` 开始；查看模板时从 `templates/` 开始；查看长文资料时从 `docs/` 开始。
+4. **控制改动范围**：只修改当前任务涉及的目录与文档，不为了“统一整理”去批量改写无关分析资料。
+5. **保持资产可复用**：模板保持通用、说明保持简洁、路径保持稳定，不重新引入 `mdc-*` 这类已废弃依赖。
 
 ## 路径速查
 
 | 路径 | 用途 |
-|------|------|
-| `daily-skills/docx/` | .docx 文档 |
-| `daily-skills/xlsx/` | 电子表格 |
-| `daily-skills/pptx/` | 演示文稿 |
-| `daily-skills/pdf/` | PDF 处理 |
-| `daily-skills/mcp-builder/` | MCP 服务端开发 |
-| `daily-skills/skill-creator/` | 技能的创建与评估 |
-| `daily-skills/tdd-cpp/` | C++ TDD（GoogleTest + CMake） |
-| `daily-skills/test-driven-development/` | TDD 流程（通用） |
-| `skills/mdc-workflow/` | 面向软件交付的强约束 workflow skills |
-| `.cursor/skills/` | 仓库内 Cursor 已链接的技能 |
-| `playbooks/` | Harness 流程与检查清单（按需） |
-| `templates/` | 新项目/新技能模板（按需） |
+| --- | --- |
+| `README.md` | 仓库总览与使用入口 |
+| `AGENTS.md` | 仓库级 agent 约定 |
+| `docs/` | 分析、设计说明与研究记录 |
+| `skills/` | 仓库自有 skills 与设计规则 |
+| `templates/` | 通用模板 |
+| `agents/` | 角色化 agent 说明占位目录 |
+| `rules/` | 常驻规则占位目录 |
+| `hooks/` | hooks 说明或辅助脚本占位目录 |
+| `.cursor/skills/skill-creator/` | skill 校验、打包、评测辅助脚本 |
 
-人类可读的总览与协作说明见根目录 [README.md](README.md)。
+## Cursor / 脚本说明
 
-## Cursor Cloud specific instructions
-
-本仓库是知识/技能集合（Markdown + Python 辅助脚本），没有后端服务、数据库或构建产物。
+本仓库主要由 Markdown 资产和少量 Python 辅助脚本组成，没有业务应用构建链路。
 
 ### 运行时依赖
 
-- **Python 3.12+**（系统自带）
-- **PyYAML**（`pip install PyYAML`，由 update script 自动安装）
+- `Python 3.12+`
+- `PyYAML`（按需安装）
 
-### 关键可执行脚本
+### 常用脚本
 
-所有脚本在 `.cursor/skills/skill-creator/` 下，需以该目录为 `cwd` 运行：
+以下脚本都应在 `.cursor/skills/skill-creator/` 下执行：
 
 | 命令 | 用途 |
-|------|------|
-| `python3 -m scripts.quick_validate <skill-dir>` | 验证 SKILL.md 的 frontmatter 格式 |
-| `python3 -m scripts.package_skill <skill-dir> [output-dir]` | 将技能打包为 `.skill` 文件 |
-| `python3 -m scripts.aggregate_benchmark <benchmark-dir>` | 汇总 benchmark 统计 |
-| `python3 -m scripts.generate_report <json-input> [-o output.html]` | 生成 HTML 优化报告 |
-| `python3 -m scripts.run_eval ...` | 触发评测（依赖 `claude` CLI） |
-| `python3 -m scripts.run_loop ...` | 评测+改进循环（依赖 `claude` CLI） |
-
-> `run_eval` 和 `run_loop` 依赖 `claude` CLI 工具，Cloud 环境中通常不可用，属于预期限制。
+| --- | --- |
+| `python -m scripts.quick_validate <skill-dir>` | 校验 `SKILL.md` frontmatter |
+| `python -m scripts.package_skill <skill-dir> [output-dir]` | 打包 skill |
+| `python -m scripts.aggregate_benchmark <benchmark-dir>` | 汇总 benchmark |
+| `python -m scripts.generate_report <json-input> [-o output.html]` | 生成 HTML 报告 |
+| `python -m scripts.run_eval ...` | 触发评测，依赖 `claude` CLI |
+| `python -m scripts.run_loop ...` | 评测改进循环，依赖 `claude` CLI |
 
 ### 注意事项
 
-- `references/` 目录内为第三方项目快照（只读参考），不需要安装其依赖或运行其服务。
-- `skills-cn/` 为中文翻译的技能集合，同样是文档资产。
-- 没有 lint 配置、CI 流水线或自动化测试套件需要运行——核心验证方式是上述 Python 脚本。
+- `references/` 类型目录若存在，默认视为参考资料，不强行安装或运行其依赖。
+- 本仓库当前没有统一 lint、CI 或自动化测试套件；核心验证方式是路径检查和上述 skill 脚本。
