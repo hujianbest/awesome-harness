@@ -9,20 +9,29 @@
 - `skills/<skill-name>/SKILL.md`：单个 skill 的入口文件
 - `skills/<skill-name>/references/`：该 skill 的补充说明、模板或参考资料
 
-## 当前状态
+## AHE workflow skills（`ahe-*`）
 
-旧的 `mdc-*` workflow skills 已移除。当前 `skills/` 目录保留为通用 skill 工作区，后续新增内容应直接遵循当前结构，不再依赖历史命名或已删除路径。
+工作流类能力以 **扁平** 目录 `skills/ahe-*` 维护，作为原 `mdc-*` workflow skills 在 AHE 品牌下的延续（命名迁移为 `ahe-*`，不再使用 `mdc-*` 目录名）。每个目录一个 skill，入口仍为该目录下的 `SKILL.md`。
+
+当前工作区已包含的 workflow 成员包括：
+
+- `skills/ahe-workflow-starter/` — 工作流入口与路由
+- `skills/ahe-specify/`、`skills/ahe-design/`、`skills/ahe-tasks/` — 主链产出
+- `skills/ahe-spec-review/`、`skills/ahe-design-review/`、`skills/ahe-tasks-review/` — 上游评审
+- `skills/ahe-test-driven-dev/`、`skills/ahe-hotfix/`、`skills/ahe-increment/`、`skills/ahe-finalize/` — 执行与支线闭环
+- `skills/ahe-bug-patterns/`、`skills/ahe-test-review/`、`skills/ahe-code-review/`、`skills/ahe-traceability-review/`、`skills/ahe-regression-gate/`、`skills/ahe-completion-gate/` — 质量与门禁
+
+查阅时从对应目录的 `SKILL.md` 开始；与任务进度、评审、验证配套的文档骨架见 `templates/`（如 `task-progress-template.md`、`review-record-template.md`、`verification-record-template.md`）。
 
 ## 新增 skill 时的建议
 
 1. 先明确 skill 只解决一个清晰问题。
-2. 入口统一放在 `skills/<skill-name>/SKILL.md`。
+2. 入口统一放在 `skills/<skill-name>/SKILL.md`；workflow 族优先使用 `ahe-*` 前缀并与现有家族命名一致。
 3. 大段参考资料、模板和案例放到同目录下的 `references/`。
 4. 文档中的路径始终引用当前仓库真实存在的位置。
 5. 如果需要校验或打包，使用 `.cursor/skills/skill-creator/` 下的脚本，而不是在本目录重复造工具。
 
-## 不再使用的历史约束
+## 命名与路径约定
 
-- 不再引用 `skills/mdc-workflow/...`
-- 不再要求 `mdc-workflow-starter`
-- 不再默认存在 `daily-skills/`、`playbooks/` 或其他旧结构
+- **Workflow 族**：使用 `skills/ahe-*`，不要使用已废弃的 `mdc-*` 目录名。
+- **旧结构**：不要引用 `skills/mdc-workflow/...`、`daily-skills/`、`playbooks/` 等已移除路径；若文档中仍出现，应改为当前扁平 `skills/ahe-*` 或真实存在的路径。
