@@ -37,7 +37,7 @@
 
 ## 结论
 
-通过 | 需修改
+通过 | 需修改 | 阻塞
 
 ## 链路检查
 
@@ -77,7 +77,7 @@
 
 ## 下一步
 
-`进入 ahe-regression-gate` | `回到 ahe-test-driven-dev`
+从以下值中选择一个：`ahe-regression-gate` | `ahe-test-driven-dev`
 ```
 
 ## 简化版模板
@@ -91,7 +91,7 @@
 
 ## 结论
 
-通过 | 需修改
+通过 | 需修改 | 阻塞
 
 ## 关键链路
 
@@ -105,7 +105,7 @@
 
 ## 下一步
 
-`进入 ahe-regression-gate` | `回到 ahe-test-driven-dev`
+从以下值中选择一个：`ahe-regression-gate` | `ahe-test-driven-dev`
 ```
 
 ## 评审提示
