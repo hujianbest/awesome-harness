@@ -55,6 +55,22 @@ description: 在 workflow 场景中先判断当前阶段，再把软件工作路
 
 如果你发现自己在没有重新经过本 skill 的情况下，就直接把会话从一个节点切到另一个节点，这通常说明你已经绕开了状态机。
 
+## 决策分类
+
+为避免在边界场景里凭感觉路由，先判断当前属于哪类决策：
+
+- **机械决策**：工件状态、review / gate 结论和当前 profile 足以唯一决定下一节点，直接路由
+- **保守决策**：证据冲突、批准状态不清或工件彼此矛盾，回到更上游阶段或更重 profile
+- **暂停决策**：命中明确 pause point，必须等待用户输入
+- **挑战决策**：用户请求与当前工件证据冲突，先指出冲突，再按保守原则路由
+
+优先顺序：
+
+1. 先识别是否命中支线信号（`ahe-hotfix` / `ahe-increment`）
+2. 再判断当前 profile 与合法节点集合
+3. 再根据工件批准状态和 review / gate 结论做机械或保守决策
+4. 只有命中 pause point 时才暂停，其他情况继续执行
+
 ## Workflow Profiles
 
 本 skill 在路由时同时决定当前工作应使用哪个 workflow profile。
@@ -78,6 +94,12 @@ Profile 由本 skill 在路由阶段决定，不允许用户自行声称或 agen
 1. 若 `AGENTS.md` 声明了强制 profile 规则（如"涉及支付的任何改动强制 full"），优先执行。
 2. 若 `task-progress.md` 中已记录 Workflow Profile 且仍在同一工作周期内，沿用该 profile。
 3. 否则根据以下信号判断。
+
+这里的“同一工作周期”至少要求以下条件仍成立：
+
+- 当前目标没有切换到新的需求 / 新的热修 / 新的增量
+- 已批准上游工件集合没有变化
+- 没有出现需要升级 profile 的新证据
 
 选择信号：
 
@@ -162,6 +184,34 @@ lightweight profile 主链推荐节点：
 
 如果某个用户请求、口头描述或局部记录暗示跳到当前 profile 合法集合之外，按无效迁移处理，回到最近一个有证据支撑的上游节点，或触发 profile 升级。
 
+## Canonical Route Map
+
+把下列主骨架视为默认路由图；任何实际迁移都必须同时满足 profile 合法集合、批准证据和迁移表规则：
+
+```text
+full:
+  ahe-specify -> ahe-spec-review -> 规格真人确认
+  -> ahe-design -> ahe-design-review -> 设计真人确认
+  -> ahe-tasks -> ahe-tasks-review -> ahe-test-driven-dev
+  -> ahe-bug-patterns -> ahe-test-review -> ahe-code-review
+  -> ahe-traceability-review -> ahe-regression-gate
+  -> ahe-completion-gate -> ahe-finalize
+
+standard:
+  ahe-tasks -> ahe-tasks-review -> ahe-test-driven-dev
+  -> ahe-bug-patterns -> ahe-test-review -> ahe-code-review
+  -> ahe-traceability-review -> ahe-regression-gate
+  -> ahe-completion-gate -> ahe-finalize
+
+lightweight:
+  ahe-tasks -> ahe-tasks-review -> ahe-test-driven-dev
+  -> ahe-regression-gate -> ahe-completion-gate -> ahe-finalize
+
+branches:
+  increment -> ahe-increment -> return via starter
+  hotfix -> ahe-hotfix -> return via starter
+```
+
 ## 状态转移来源
 
 本 skill 只能依据以下四类输入决定迁移：
@@ -196,8 +246,9 @@ lightweight profile 主链推荐节点：
 1. **规格真人确认**：`ahe-spec-review` 结论为"通过"后，必须向用户展示评审结论并等待用户明确批准
 2. **设计真人确认**：`ahe-design-review` 结论为"通过"后，必须向用户展示评审结论并等待用户明确批准
 3. **测试用例设计确认**：`ahe-test-driven-dev` 在进入 Red-Green-Refactor 前，必须向用户展示测试用例设计并等待用户确认
-4. **证据冲突需澄清**：工件状态互相矛盾，且无法用保守原则自动解决时
-5. **review / gate 结论为"需修改"或"阻塞"且修订方向不明确**：需要与用户讨论修订方案
+4. **规格评审 / 设计评审未通过**：`ahe-spec-review` 或 `ahe-design-review` 返回 `需修改` / `阻塞` 时，必须先向用户展示评审结论和修订重点，再回到相应上游修订 skill
+5. **证据冲突需澄清**：工件状态互相矛盾，且无法用保守原则自动解决时
+6. **其他 review / gate 结论为"需修改"或"阻塞"且修订方向不明确**：需要与用户讨论修订方案
 
 ### 非暂停点
 
@@ -206,7 +257,7 @@ lightweight profile 主链推荐节点：
 - 路由完成后进入目标 skill
 - 执行型 skill 完成后进入下一个能力型 skill（如 `ahe-specify` 完成 → `ahe-spec-review`）
 - review / gate 结论为"通过"后进入迁移表中的下一个节点（真人确认节点除外）
-- review / gate 结论为"需修改"且修订方向明确时，自动回到上游 skill 继续修订
+- 除 `ahe-spec-review` / `ahe-design-review` 外，review / gate 结论为"需修改"且修订方向明确时，自动回到上游 skill 继续修订
 - 恢复编排协议判断出唯一下一推荐节点时
 
 ### 连续执行的红旗信号
@@ -279,6 +330,31 @@ lightweight profile 主链推荐节点：
 
 路由分两步：先决定 profile，再决定当前阶段。
 
+### 路由优先级原则
+
+当多个信号同时出现时，按以下优先级解释：
+
+1. 支线信号优先于主链普通推进
+2. 明确的 review / gate 恢复优先于“继续做点实现”
+3. 缺失上游已批准工件优先于进入下游能力
+4. 若证据冲突，优先选择更保守的上游阶段或更重 profile
+
+如果 `ahe-hotfix`、`ahe-increment` 或 `ahe-test-driven-dev` 已经在工件中写回了明确的 `Next Action Or Recommended Skill`，且该下一步与最新证据不冲突、也在当前 profile 的合法节点集合内，则优先尊重这个显式交接，而不是重新根据旧支线信号或默认主链顺序回卷。
+
+### 显式交接值规范
+
+把 `Next Action Or Recommended Skill` 视为一个受控字段，而不是自由文本：
+
+- 首选写法：直接写规范 skill ID，例如 `ahe-spec-review`、`ahe-design-review`、`ahe-tasks-review`、`ahe-test-driven-dev`、`ahe-code-review`
+- 保留节点 `规格真人确认`、`设计真人确认` 仍然是合法值
+- 若读到旧写法或自然语言标签，先按下列映射归一化后再参与路由判断：
+  - `重新进入规格评审` -> `ahe-spec-review`
+  - `重新进入设计评审` -> `ahe-design-review`
+  - `重新进入任务评审` -> `ahe-tasks-review`
+  - `回到实现阶段` -> `ahe-test-driven-dev`
+- 若某个值无法唯一归一化为当前 profile 中的合法节点，则把它视为无效显式交接，回退到迁移表和工件证据继续判断
+- 若显式交接与最新 evidence 冲突，即使值本身合法，也优先相信更上游、更保守的证据
+
 ### 第一步：决定 Workflow Profile
 
 按 Workflow Profiles 章节的选择规则确定 profile。若已在 `task-progress.md` 中记录且仍在同一工作周期，沿用。
@@ -287,21 +363,22 @@ lightweight profile 主链推荐节点：
 
 严格按以下顺序检查，但只路由到当前 profile 包含的节点：
 
-1. 若用户明确提出紧急缺陷修复，或现有工件清楚表明当前处于热修复场景，优先进入 `ahe-hotfix`
-2. 否则若用户明确提出需求变更、范围调整、验收标准变化，进入 `ahe-increment`
-3. 若用户明确要求规格评审，且当前证据支持此时应评审规格，进入 `ahe-spec-review`（仅 full）
-4. 若用户明确要求设计评审，且当前证据支持此时应评审设计，进入 `ahe-design-review`（仅 full）
-5. 若用户明确要求任务评审，且当前证据支持此时应评审任务计划，进入 `ahe-tasks-review`（full / standard / lightweight）
-6. 若用户明确要求测试评审 / 代码评审 / 追溯性评审 / 回归门禁 / 完成门禁，且当前证据支持此时应进入该能力，则进入对应 skill（需在当前 profile 节点链路内）
-7. 若没有已批准需求规格，进入 `ahe-specify`（仅 full；若 standard / lightweight 检测到缺少规格依据，触发 profile 升级）
-8. 若没有已批准实现设计，进入 `ahe-design`（仅 full；若 standard / lightweight 检测到缺少设计依据，触发 profile 升级）
-9. 若没有已批准任务计划，进入 `ahe-tasks`（full / standard / lightweight）
-10. 若仍有未完成计划任务，进入 `ahe-test-driven-dev`
-11. 若当前任务已实现，但缺少缺陷模式排查证据，进入 `ahe-bug-patterns`（full / standard；lightweight 跳过）
-12. 若当前任务缺少测试、代码或追溯性评审结论，依次进入 `ahe-test-review`、`ahe-code-review`、`ahe-traceability-review`（full / standard；lightweight 跳过）
-13. 若当前任务缺少回归验证证据，进入 `ahe-regression-gate`
-14. 若当前任务缺少完成验证证据，进入 `ahe-completion-gate`
-15. 否则进入 `ahe-finalize`
+1. 若当前工件已经记录了合法、可归一化且仍然有效的 `Next Action Or Recommended Skill`，优先进入该显式下一节点
+2. 否则若用户明确提出紧急缺陷修复，或现有工件清楚表明当前处于热修复场景，优先进入 `ahe-hotfix`
+3. 否则若用户明确提出需求变更、范围调整、验收标准变化，进入 `ahe-increment`
+4. 若用户明确要求规格评审，且当前证据支持此时应评审规格，进入 `ahe-spec-review`（仅 full）
+5. 若用户明确要求设计评审，且当前证据支持此时应评审设计，进入 `ahe-design-review`（仅 full）
+6. 若用户明确要求任务评审，且当前证据支持此时应评审任务计划，进入 `ahe-tasks-review`（full / standard / lightweight）
+7. 若用户明确要求测试评审 / 代码评审 / 追溯性评审 / 回归门禁 / 完成门禁，且当前证据支持此时应进入该能力，则进入对应 skill（需在当前 profile 节点链路内）
+8. 若没有已批准需求规格，进入 `ahe-specify`（仅 full；若 standard / lightweight 检测到缺少规格依据，触发 profile 升级）
+9. 若没有已批准实现设计，进入 `ahe-design`（仅 full；若 standard / lightweight 检测到缺少设计依据，触发 profile 升级）
+10. 若没有已批准任务计划，进入 `ahe-tasks`（full / standard / lightweight）
+11. 若仍有未完成计划任务，进入 `ahe-test-driven-dev`
+12. 若当前任务已实现，但缺少缺陷模式排查证据，进入 `ahe-bug-patterns`（full / standard；lightweight 跳过）
+13. 若当前任务缺少测试、代码或追溯性评审结论，依次进入 `ahe-test-review`、`ahe-code-review`、`ahe-traceability-review`（full / standard；lightweight 跳过）
+14. 若当前任务缺少回归验证证据，进入 `ahe-regression-gate`
+15. 若当前任务缺少完成验证证据，进入 `ahe-completion-gate`
+16. 否则进入 `ahe-finalize`
 
 ### Profile 感知的自动升级
 
@@ -344,6 +421,7 @@ lightweight profile 主链推荐节点：
 | 设计真人确认 | 要求修改 / 未确认 | `ahe-design` |
 | `ahe-tasks-review` | `通过` | `ahe-test-driven-dev` |
 | `ahe-tasks-review` | `需修改` / `阻塞` | `ahe-tasks` |
+| `ahe-test-driven-dev` | 实现完成 | `ahe-bug-patterns` |
 | `ahe-bug-patterns` | `通过` | `ahe-test-review` |
 | `ahe-bug-patterns` | `需修改` / `阻塞` | `ahe-test-driven-dev` |
 | `ahe-test-review` | `通过` | `ahe-code-review` |
@@ -363,6 +441,7 @@ lightweight profile 主链推荐节点：
 |---|---|---|
 | `ahe-tasks-review` | `通过` | `ahe-test-driven-dev` |
 | `ahe-tasks-review` | `需修改` / `阻塞` | `ahe-tasks` |
+| `ahe-test-driven-dev` | 实现完成 | `ahe-bug-patterns` |
 | `ahe-bug-patterns` | `通过` | `ahe-test-review` |
 | `ahe-bug-patterns` | `需修改` / `阻塞` | `ahe-test-driven-dev` |
 | `ahe-test-review` | `通过` | `ahe-code-review` |
@@ -380,6 +459,8 @@ lightweight profile 主链推荐节点：
 
 | 当前节点 | 结论 | 下一推荐节点 |
 |---|---|---|
+| `ahe-tasks-review` | `通过` | `ahe-test-driven-dev` |
+| `ahe-tasks-review` | `需修改` / `阻塞` | `ahe-tasks` |
 | `ahe-test-driven-dev` | 实现完成 | `ahe-regression-gate` |
 | `ahe-regression-gate` | `通过` | `ahe-completion-gate` |
 | `ahe-regression-gate` | `需修改` / `阻塞` | `ahe-test-driven-dev` |
@@ -394,15 +475,28 @@ lightweight profile 主链推荐节点：
 
 1. 读取该节点的最新结论
 2. 确认当前 workflow profile（从 `task-progress.md` 读取）
-3. 检查该结论对应的上游 / 下游迁移是否在当前 profile 迁移表中有明确规则
-4. 根据当前会话上下文判断用户是否已经提出了新范围、新缺陷或新阻塞（基于已有信息判断，不主动询问用户）
-5. 若有范围变化，优先判断是否切到 `ahe-increment`
-6. 若有紧急缺陷，优先判断是否切到 `ahe-hotfix`
-7. 若没有新的支线信号，则按当前 profile 迁移表进入唯一下一推荐节点
+3. 若 `task-progress.md` 或等价工件已经写入合法或可归一化的 `Next Action Or Recommended Skill`，且它来自上一个已完成节点并与最新证据不冲突，优先采用这个显式下一步
+4. 否则检查该结论对应的上游 / 下游迁移是否在当前 profile 迁移表中有明确规则
+5. 根据当前会话上下文判断用户是否已经提出了新范围、新缺陷或新阻塞（基于已有信息判断，不主动询问用户）
+6. 若有范围变化，优先判断是否切到 `ahe-increment`
+7. 若有紧急缺陷，优先判断是否切到 `ahe-hotfix`
+8. 若没有新的支线信号，则按当前 profile 迁移表进入唯一下一推荐节点
 
 不要跳过第 2 步、第 3 步和第 4 步。
 
 恢复编排完成后，若下一推荐节点不是暂停点（见"连续执行原则"），立刻在同一轮中进入该节点，不等待用户确认。
+
+## 路由失败模式与恢复
+
+如果出现以下情况，不要继续凭感觉推进：
+
+- **证据冲突**：不同工件指向不同阶段时，先报告冲突，再按保守原则回到更上游节点
+- **路由抖动**：同一轮里在两个节点之间来回切换但没有新证据时，停止切换，明确说明缺少哪个决定性证据
+- **迁移表缺口**：若某结论无法映射到唯一下一推荐节点，回到本入口重编排，而不是自行补脑
+- **profile 不稳**：若新证据触发 upgrade 条件，先升级 profile 并写明原因，再继续路由
+- **显式交接不可解析**：若 `Next Action Or Recommended Skill` 是自由文本、无法唯一归一化，明确忽略该值并按迁移表 + 工件证据继续编排
+
+如果你已经连续两次因为同一类证据缺口而无法稳定路由，应明确把它报告为当前阻塞，而不是继续重复解释同一状态机判断。
 
 ## 什么叫"已批准"
 
