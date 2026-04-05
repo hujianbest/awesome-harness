@@ -159,9 +159,9 @@ standard profile 在质量层上与 full profile 共享以下 core nodes：
 
 以下属于 extension：
 
-- setup / install 文档
-- hook / plugin 示例
-- packaging 辅助层
+- setup / install 文档（当前 defer；见 `docs/ahe-p2-optional-setup-packaging-decision.md`）
+- hook / plugin 示例（当前 defer；见 `docs/ahe-p2-optional-setup-packaging-decision.md`）
+- packaging 辅助层（当前 defer；见 `docs/ahe-p2-optional-setup-packaging-decision.md`）
 
 这些都不影响 AHE 本身的 workflow contract 是否成立。
 
@@ -244,4 +244,5 @@ standard profile 在质量层上与 full profile 共享以下 core nodes：
 - `docs/ahe-workflow-externalization-guide.md`
 - `docs/ahe-path-mapping-guide.md`
 - `docs/ahe-p1-optional-assets-decision.md`
+- `docs/ahe-p2-optional-setup-packaging-decision.md`
 - `docs/ahe-workflow-shared-conventions.md`
