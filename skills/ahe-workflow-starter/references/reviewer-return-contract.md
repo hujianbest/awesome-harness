@@ -68,11 +68,10 @@
 
 它必须是一个唯一的 canonical 值，不得把多个候选动作拼成一个字符串。
 
-迁移兼容规则：
+命名规则：
 
-- 新协议与新文档统一使用 `next_action_or_recommended_skill`
-- 现阶段 live reviewer skills 仍可能输出旧字段 `next_action`；在 `P0-5` 完成前，父会话必须兼容这一旧写法
-- 若父会话读到旧版 reviewer 摘要中的 `next_action`，应先把它归一化为 `next_action_or_recommended_skill` 再参与路由判断
+- live reviewer skills 与相关文档统一使用 `next_action_or_recommended_skill`
+- reviewer 摘要必须直接返回该字段，不再使用旧字段别名
 
 ### `needs_human_confirmation`
 

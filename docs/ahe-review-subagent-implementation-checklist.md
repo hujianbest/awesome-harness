@@ -110,7 +110,7 @@
 补充约定：
 
 - `needs_human_confirmation=true` 主要用于 `ahe-spec-review`、`ahe-design-review`、`ahe-tasks-review`
-- 兼容期内若 reviewer 仍返回旧字段 `next_action`，父会话应先归一化为 `next_action_or_recommended_skill`
+- reviewer 摘要统一返回 `next_action_or_recommended_skill`
 - `reroute_via_starter=true` 用于 reviewer 发现当前不是简单回修，而是需要重新编排的情况
 
 ### 4. 职责边界协议
