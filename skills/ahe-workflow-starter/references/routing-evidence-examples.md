@@ -16,19 +16,52 @@
 
 ### 进度记录示例
 
+优先使用 canonical progress schema，而不是 `phase`、`next skill` 这类自由字段。
+
+下例中的前四个 section 是 canonical core；最后的 `Approved Artifacts` 是可选扩展块，用来补充批准状态证据，不是强制固定 section：
+
 ```markdown
-## 当前阶段
+## Goal
 
-- phase: implement
-- 活跃任务: TASK-003
-- next skill: ahe-bug-patterns
+- Goal: 修复默认排序方向并完成最小验证
+- Owner:
+- Status: In Progress
+- Last Updated:
 
-## 已批准工件
+## Current Workflow State
 
-- 需求规格: 已批准
-- 设计文档: 已批准
-- 任务计划: 已批准
+- Current Stage: ahe-test-driven-dev
+- Workflow Profile: standard
+- Current Active Task: TASK-003
+- Pending Reviews And Gates: ahe-bug-patterns, ahe-test-review, ahe-code-review, ahe-traceability-review, ahe-regression-gate, ahe-completion-gate
+- Relevant Files:
+- Constraints:
+
+## Progress Notes
+
+- What Changed:
+- Evidence Paths:
+- Session Log:
+- Open Risks:
+
+## Next Step
+
+- Next Action Or Recommended Skill: ahe-bug-patterns
+- Blockers:
+- Notes:
+
+## Approved Artifacts
+
+- Requirement Spec: 已批准
+- Design Doc: 已批准
+- Task Plan: 已批准
 ```
+
+旧字段兼容提醒：
+
+- `phase` -> `Current Stage`
+- `活跃任务` / `Current Task` -> `Current Active Task`
+- `next skill` / `Next Action` -> `Next Action Or Recommended Skill`
 
 ### 变更请求示例
 

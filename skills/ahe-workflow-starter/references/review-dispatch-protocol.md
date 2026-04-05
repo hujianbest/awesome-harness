@@ -13,6 +13,8 @@
 5. reviewer subagent 负责写 review 记录并回传结构化摘要。
 6. 父会话消费该摘要，继续主链推进或进入真人确认。
 
+其中 reviewer 摘要里的 canonical handoff 字段应与 family vocabulary 对齐，优先使用 `next_action_or_recommended_skill`。在 `P0-5` 全量 reviewer sweep 完成前，父会话仍需兼容旧字段 `next_action`。
+
 ## 当前适用节点
 
 | Canonical review 节点 | reviewer subagent 调用的 skill |
@@ -55,6 +57,8 @@
 - 消费 reviewer 返回摘要
 - 在需要时发起真人确认
 - 根据摘要继续推进或回流修订
+
+父会话在消费 reviewer 摘要时，应优先读取 `next_action_or_recommended_skill`；若仍收到旧字段 `next_action`，先归一化后再进入迁移判断。
 
 父会话不负责：
 

@@ -12,9 +12,14 @@
 
 | Profile | 节点数 | 核心特征 |
 |---------|--------|---------|
-| **full** | 18 | 从规格开始，经过完整评审链和质量层 |
-| **standard** | 12 | 跳过规格和设计（前提是已有已批准的），从任务拆分开始 |
-| **lightweight** | 4 | 跳过任务拆分和中间评审链，只保留实现、回归、完成和收尾 |
+| **full** | 16 | 从规格开始，经过完整评审链、质量层和收尾 |
+| **standard** | 10 | 跳过规格和设计（前提是已有已批准的），从任务拆分开始，保留完整质量层 |
+| **lightweight** | 6 | 跳过规格、设计和中间质量评审链，但仍保留最小任务计划、任务评审、实现、回归、完成和收尾 |
+
+说明：
+
+- 这里的节点数按 `ahe-workflow-starter` 主文件中的 canonical route map 统计。
+- `lightweight` 不是“直接实现”，而是保留一条最小可审计主链：`ahe-tasks` → `ahe-tasks-review` → `ahe-test-driven-dev` → `ahe-regression-gate` → `ahe-completion-gate` → `ahe-finalize`。
 
 ## 选择信号矩阵
 

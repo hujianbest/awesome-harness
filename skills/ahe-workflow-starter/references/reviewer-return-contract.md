@@ -9,7 +9,7 @@
 ```json
 {
   "conclusion": "通过|需修改|阻塞",
-  "next_action": "推荐下一步 skill 或动作",
+  "next_action_or_recommended_skill": "推荐下一步 canonical skill 或动作",
   "record_path": "实际写入的 review 记录路径",
   "key_findings": [
     "关键发现 1",
@@ -25,7 +25,7 @@
 | 字段 | 说明 |
 | --- | --- |
 | `conclusion` | 当前 review 的正式结论 |
-| `next_action` | reviewer 基于当前结果建议的下一步 |
+| `next_action_or_recommended_skill` | reviewer 基于当前结果建议的下一步 canonical handoff |
 | `record_path` | 已写入的 review 记录路径 |
 | `key_findings` | 父会话需要向用户展示或用于回修的关键发现 |
 | `needs_human_confirmation` | 是否必须由父会话继续发起真人确认 |
@@ -41,7 +41,7 @@
 - `需修改`
 - `阻塞`
 
-### `next_action`
+### `next_action_or_recommended_skill`
 
 优先返回 canonical `ahe-*` skill ID，或保留节点：
 
@@ -62,6 +62,14 @@
 - `ahe-completion-gate`
 - `ahe-finalize`
 - `ahe-workflow-starter`
+
+这个字段是 reviewer 摘要层对仓库 canonical 字段 `Next Action Or Recommended Skill` 的结构化映射。
+
+迁移兼容规则：
+
+- 新协议与新文档统一使用 `next_action_or_recommended_skill`
+- 现阶段 live reviewer skills 仍可能输出旧字段 `next_action`；在 `P0-5` 完成前，父会话必须兼容这一旧写法
+- 若父会话读到旧版 reviewer 摘要中的 `next_action`，应先把它归一化为 `next_action_or_recommended_skill` 再参与路由判断
 
 ### `needs_human_confirmation`
 
@@ -90,8 +98,8 @@
 
 1. 若 `reroute_via_starter=true`，先经 `ahe-workflow-starter` 重编排。
 2. 否则若 `conclusion=通过` 且 `needs_human_confirmation=true`，进入真人确认。
-3. 否则若 `conclusion=通过` 且无需真人确认，进入 `next_action`。
-4. 否则若 `conclusion=需修改` 或 `阻塞`，按 `next_action` 回修或补条件。
+3. 否则若 `conclusion=通过` 且无需真人确认，进入 `next_action_or_recommended_skill`。
+4. 否则若 `conclusion=需修改` 或 `阻塞`，按 `next_action_or_recommended_skill` 回修或补条件。
 
 ## 边界
 
