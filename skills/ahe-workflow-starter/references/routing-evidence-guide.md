@@ -88,6 +88,7 @@
 
 - 规格评审通过但缺少真人确认，不算已批准，应继续按需求阶段处理
 - 设计评审通过但缺少真人确认，不算已批准，应继续按设计阶段处理
+- 任务评审通过但缺少任务真人确认，不算已批准，应继续按任务阶段处理
 
 ## 证据冲突时的保守规则
 
@@ -107,12 +108,14 @@
 
 - 用户明确要求“只做规格评审”：
   - 需求规格草稿存在
+  - 当前 workflow profile 为 `full`，或当前证据要求先升级到 `full`
   - 当前请求仅要求 review
-  - 路由到 `ahe-spec-review`
+  - 路由到 `ahe-spec-review`（若当前不是 `full`，先升级后重编排）
 - 用户明确要求“只做设计评审”：
   - 设计草稿存在
+  - 当前 workflow profile 为 `full`，或当前证据要求先升级到 `full`
   - 当前请求仅要求 review
-  - 路由到 `ahe-design-review`
+  - 路由到 `ahe-design-review`（若当前不是 `full`，先升级后重编排）
 - 用户明确要求“只做任务评审”：
   - 任务计划草稿存在
   - 当前请求仅要求 review
@@ -141,6 +144,7 @@ ahe-workflow-starter
 -> 设计真人确认
 -> ahe-tasks
 -> ahe-tasks-review
+-> 任务真人确认
 -> ahe-test-driven-dev
 -> ahe-bug-patterns
 -> ahe-test-review

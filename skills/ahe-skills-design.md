@@ -9,7 +9,7 @@
 - `superpowers`：借鉴它的强流程控制、`brainstorming` 的前置澄清与设计批准机制、`test-driven-development` 与 `verification-before-completion` 的硬门禁思想。
 - `longtaskforagent`：借鉴它的 phase routing、交付件驱动、跨会话状态管理、质量门与支线流程设计。
 
-同时明确一个边界：**本方案默认不使用 subagent**。所有步骤均由主代理在同一会话内串行执行，但保留评审、回退、再验证等强约束。
+同时明确一个边界：**当前 live workflow 已采用 reviewer subagent 执行 review 节点**。父会话负责编排、派发和消费 return contract；实现、回修和真人确认仍受主链门禁约束。
 
 ## 2. 设计目标与非目标
 
@@ -22,13 +22,13 @@
 3. 让流程与交付件绑定，而不是依赖聊天上下文记忆。
 4. 让质量防护独立成层，而不是“做完后顺便检查一下”。
 5. 让方案兼容既有交付件要求，而不是强迫团队改名或重建文档体系。
-6. 在不引入 subagent 的前提下，仍然保留强门禁、审查、验证闭环与进度可恢复性。
+6. 在引入 reviewer subagent 的前提下，仍然保留强门禁、审查、验证闭环与进度可恢复性。
 
 ### 2.2 非目标
 
 本方案当前不追求：
 
-- 多代理并行编排
+- 大规模多代理并行编排（reviewer subagent 派发除外）
 - 自动生成脚本/模板/校验器
 - 覆盖组织内所有交付流程变体
 - 直接替代 CI/CD、代码托管平台或人工审批制度
@@ -62,7 +62,7 @@
 2. **规格先于设计，设计先于任务，任务先于实现**：任何跳步都必须被视为违规。
 3. **工件驱动，不靠记忆**：状态必须落在仓库文件中，而不是停留在对话里。
 4. **强门禁而非软建议**：关键阶段用必须、禁止、仅允许下游等表述，减少 Agent 自由发挥空间。
-5. **主代理串行执行**：不依赖 subagent；审查也由主代理以“切换检查清单”的方式同步完成。
+5. **父会话编排，review 节点独立执行**：父会话负责 route、派发 reviewer subagent、消费 review return contract；review skill 不在父会话里内联执行。
 6. **证据先于结论**：任何“完成”“通过”“修复成功”都必须绑定 fresh verification evidence。
 7. **兼容现有交付件**：逻辑工件和实际文件名分离，通过映射层适配团队已有规范。
 8. **轻支线，重主线**：变更和热修复可以走支线，但不能破坏主链路的可追溯性。
@@ -74,7 +74,7 @@
 
 ### 动机
 
-主链完整走下来涉及 18 个节点。对改一个配置项或修一个 typo 来说，这条链路过重。但如果为了省事允许随意跳步，又会损坏流程约束力。
+主链完整走下来（含 `ahe-workflow-starter`）涉及 18 个节点。对改一个配置项或修一个 typo 来说，这条链路过重。但如果为了省事允许随意跳步，又会损坏流程约束力。
 
 业界共识（Anthropic 2025、Propel 2026）：流程密度应匹配任务风险——"Start with the simplest pattern that meets your quality bar" 以及 "Risk must be tiered"。
 
@@ -85,8 +85,8 @@
 | Profile | 名称 | 适用场景 | 节点链路 |
 |---------|------|---------|---------|
 | **full** | 完整流程 | 新功能、架构变更、高风险模块、跨模块重构、无已批准规格或设计 | 全部主链节点 |
-| **standard** | 标准流程 | 中等功能、已有规格+设计的功能扩展、非高风险 bugfix | `ahe-tasks` → `ahe-tasks-review` → `ahe-test-driven-dev` → 完整质量层 → `ahe-finalize` |
-| **lightweight** | 轻量流程 | 纯文档/配置/样式变更、低风险 bugfix（单文件、无接口变化） | `ahe-tasks` → `ahe-tasks-review` → `ahe-test-driven-dev` → `ahe-regression-gate` → `ahe-completion-gate` → `ahe-finalize` |
+| **standard** | 标准流程 | 中等功能、已有规格+设计的功能扩展、非高风险 bugfix | `ahe-tasks` → `ahe-tasks-review` → `任务真人确认` → `ahe-test-driven-dev` → 完整质量层 → `ahe-finalize` |
+| **lightweight** | 轻量流程 | 纯文档/配置/样式变更、低风险 bugfix（单文件、无接口变化） | `ahe-tasks` → `ahe-tasks-review` → `任务真人确认` → `ahe-test-driven-dev` → `ahe-regression-gate` → `ahe-completion-gate` → `ahe-finalize` |
 
 ### Profile 选择机制
 
@@ -137,6 +137,7 @@ flowchart TD
         designReview[ahe-design-review]
         designConfirm[设计真人确认]
         tasksReview[ahe-tasks-review]
+        tasksConfirm[任务真人确认]
         bugPatterns[ahe-bug-patterns]
         testReview[ahe-test-review]
         codeReview[ahe-code-review]
@@ -155,7 +156,9 @@ flowchart TD
     designReview -->|需修改/阻塞| workDesign
     designConfirm --> workTasks
     workTasks --> tasksReview
-    tasksReview --> workImplement
+    tasksReview -->|通过| tasksConfirm
+    tasksReview -->|需修改/阻塞| workTasks
+    tasksConfirm --> workImplement
     workImplement --> bugPatterns
     bugPatterns --> testReview
     testReview --> codeReview
@@ -167,6 +170,8 @@ flowchart TD
     starter --> workIncrement
     starter --> workHotfix
 ```
+
+注：这张图只展示默认主链与默认回修方向。若 reviewer 返回 `reroute_via_starter=true`，或把 `next_action_or_recommended_skill` 明确指向 `ahe-workflow-starter`，父会话必须先回 starter 重编排，而不是机械沿图中默认回修箭头推进。
 
 ### 5.1 第一层：`ahe-workflow-starter`
 
@@ -655,6 +660,7 @@ flowchart TD
     designConfirm[设计真人确认]
     tasks[ahe-tasks]
     tasksReview[ahe-tasks-review]
+    tasksConfirm[任务真人确认]
     implement[ahe-test-driven-dev]
     bugPatterns[ahe-bug-patterns]
     testReview[ahe-test-review]
@@ -674,7 +680,9 @@ flowchart TD
     designReview -->|需修改/阻塞| design
     designConfirm --> tasks
     tasks --> tasksReview
-    tasksReview --> implement
+    tasksReview -->|通过| tasksConfirm
+    tasksReview -->|需修改/阻塞| tasks
+    tasksConfirm --> implement
     implement --> bugPatterns
     bugPatterns --> testReview
     testReview --> codeReview
@@ -684,7 +692,9 @@ flowchart TD
     completionGate --> finalize
 ```
 
-注：图中的箭头表示 `ahe-workflow-starter` 根据当前结论恢复出的合法下一节点，不表示当前 skill 在内部直接调用下游 skill。
+注：图中的箭头表示 `ahe-workflow-starter` 根据当前结论恢复出的合法默认下一节点，不表示当前 skill 在内部直接调用下游 skill。
+
+如果 reviewer 返回 `reroute_via_starter=true`，或把 `next_action_or_recommended_skill` 指向 `ahe-workflow-starter`，则该显式重编排信号优先于图中的默认回修箭头。
 
 ## 8.2 支线路由
 
@@ -731,28 +741,29 @@ flowchart TD
 - 对规格和设计，还要能看出真人确认已经完成
 - 进度记录、任务状态或验证记录中的阶段标记
 
-## 10. 无 subagent 约束下的执行策略
+## 10. reviewer subagent 约束下的执行策略
 
-因为本体系不使用 subagent，需要把原本可分发给 reviewer/implementer 的动作改写为**主代理串行模式**。
+因为本体系已经把 review 节点切到 reviewer subagent，需要把“父会话编排”和“reviewer 独立评审”明确拆开，避免重新退回父会话内联审查。
 
 ### 10.1 推荐做法
 
-- 主代理在阶段内执行产出
-- 进入审查层时，切换成“只审查不扩展范围”的工作模式
-- 审查失败则回到上一步修改
-- 审查通过才允许进入下游 skill
+- 父会话在阶段内执行产出与路由判断
+- 进入 review 节点时，由父会话派发独立 reviewer subagent
+- reviewer 只负责评审、落盘和回传结构化摘要
+- 审查失败则按返回契约回到上一步修改或回到 `ahe-workflow-starter`
+- 审查通过且真人确认完成后，才允许进入下游 skill
 
 ### 10.2 实际效果
 
-这不是独立第三方评审，因此客观性弱于多代理方案；但通过固定清单、固定顺序、固定输出格式，仍能显著减少随意跳步。
+这仍然不是大规模多代理并行编排，但 reviewer 使用 fresh context 独立执行，客观性和边界清晰度都强于父会话内联审查。
 
 ### 10.3 需要补的约束
 
-为了弥补没有 subagent 的缺点，建议增加三条规则：
+为了避免 reviewer subagent 被父会话上下文污染，建议增加三条规则：
 
 1. 同一轮审查只允许指出问题，不允许顺手引入新需求
-2. 审查与修复必须分两步陈述
-3. 每次回到下游前必须重新跑相关验证
+2. 审查、回修和真人确认必须分步陈述，不能在一个动作里混写
+3. 每次回到下游前必须重新跑相关验证，并按 return contract 恢复主链
 
 ## 11. 推荐的交付与状态更新规则
 
@@ -819,13 +830,13 @@ flowchart TD
 - `ahe-regression-gate`
 - `ahe-completion-gate`
 
-这是一个比初稿更完整、但仍然可控的体系。它没有引入 subagent，也没有过早引入太多自动化脚本，但已经具备了一条完整的 AHE 主线、两条支线、以及必要的阶段门禁。
+这是一个比初稿更完整、但仍然可控的体系。它已经引入 reviewer subagent，但仍避免了大规模多代理并行和过早脚本化；同时已经具备一条完整的 AHE 主线、两条支线以及必要的阶段门禁。
 
 ## 13. 建议暂不继承的部分
 
 以下内容不建议直接从参考体系搬过来：
 
-1. **`superpowers` 的 subagent-driven-development**：与你“不需要 subagent”的要求冲突。
+1. **`superpowers` 的大规模 subagent-driven-development**：当前只吸收 reviewer subagent 这一层，不直接复制更重的多代理编排模式。
 2. **`longtaskforagent` 的完整 ATS / Feature-ST / System-ST 重流程**：对于你当前要设计的团队 skills 体系来说过重，建议先把测试策略和完成验证吸收到质量层，而不是立即复制完整测试阶段体系。
 3. **过多脚本驱动的初始化器**：当前阶段先把逻辑结构设计清楚，后续实现时再决定哪些步骤需要脚本化。
 
@@ -883,7 +894,7 @@ skills/
 
 ## 15. 结论
 
-这套 skills 作业体系的核心，不是“让 Agent 更会写代码”，而是“让 Agent 先按团队认可的开发节奏工作”。它继承了 `superpowers` 的强约束意识，也吸收了 `longtaskforagent` 的交付件驱动与阶段路由，但刻意去掉了 subagent，以换取更简单、更可控、更适合团队先落地试用的版本。
+这套 skills 作业体系的核心，不是“让 Agent 更会写代码”，而是“让 Agent 先按团队认可的开发节奏工作”。它继承了 `superpowers` 的强约束意识，也吸收了 `longtaskforagent` 的交付件驱动与阶段路由；当前实现选择保留 reviewer subagent 这一层，同时避免更重的大规模多代理编排，以换取更清晰的评审边界和更可控的落地复杂度。
 
 通过自适应 workflow profile 机制，它同时解决了"完整流程过重"和"随意跳步损坏约束"之间的矛盾：简单任务走 lightweight，中等任务走 standard，复杂任务走 full，每个 profile 内的门禁仍然完整执行。
 

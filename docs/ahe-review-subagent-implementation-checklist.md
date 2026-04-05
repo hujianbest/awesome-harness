@@ -96,7 +96,7 @@
 ```json
 {
   "conclusion": "通过|需修改|阻塞",
-  "next_action": "推荐下一步 skill 或动作",
+  "next_action_or_recommended_skill": "推荐下一步 canonical skill 或动作",
   "record_path": "实际写入的记录路径",
   "key_findings": [
     "关键发现 1",
@@ -109,7 +109,8 @@
 
 补充约定：
 
-- `needs_human_confirmation=true` 主要用于 `ahe-spec-review`、`ahe-design-review`
+- `needs_human_confirmation=true` 主要用于 `ahe-spec-review`、`ahe-design-review`、`ahe-tasks-review`
+- 兼容期内若 reviewer 仍返回旧字段 `next_action`，父会话应先归一化为 `next_action_or_recommended_skill`
 - `reroute_via_starter=true` 用于 reviewer 发现当前不是简单回修，而是需要重新编排的情况
 
 ### 4. 职责边界协议
@@ -196,8 +197,8 @@
 
 - 在“路由顺序”或“后续编排规则”中明确：当下一节点是 review 节点时，执行方式不是“父会话内联进入 review skill”，而是“启动 reviewer subagent，并在 subagent 中调用对应 review skill”
 - 增加一段“review dispatch 规则”，说明如何根据节点名映射到 review skill
-- 增加一段“review 结果回收规则”，说明如何消费 `conclusion`、`next_action`、`needs_human_confirmation`、`reroute_via_starter`
-- 在“暂停点”说明中保留 spec/design 的真人确认逻辑，但改成“reviewer 返回通过后，由父会话触发真人确认”
+- 增加一段“review 结果回收规则”，说明如何消费 `conclusion`、`next_action_or_recommended_skill`、`needs_human_confirmation`、`reroute_via_starter`
+- 在“暂停点”说明中保留 spec/design/tasks 的真人确认逻辑，但改成“reviewer 返回通过后，由父会话触发真人确认”
 
 #### 建议新增的小节
 
@@ -277,7 +278,7 @@
 
 - 把“任务计划准备好后，交给 `ahe-tasks-review`”改成“派发 reviewer subagent 执行 `ahe-tasks-review`”
 - 明确 `ahe-tasks` 在 review 返回后如何处理：
-  - `通过` -> 进入 `ahe-test-driven-dev`
+  - `通过` -> 进入 `任务真人确认`
   - `需修改/阻塞` -> 回到任务修订
 - 在 handoff 文案里，区分“推荐 review 节点”与“实际执行方式是 subagent”
 
@@ -498,12 +499,12 @@
 
 如果后续要真的开始改 skill，建议先补两类共享文档，而不是一上来直接 scattered edits。
 
-### 建议新增的共享文档
+### 建议维护的共享文档
 
-- `skills/references/review-dispatch-protocol.md`
-- `skills/references/reviewer-return-contract.md`
+- `skills/ahe-workflow-starter/references/review-dispatch-protocol.md`
+- `skills/ahe-workflow-starter/references/reviewer-return-contract.md`
 
-如果不想放进 `skills/`，也可以先放到 `docs/`，但长期看更适合作为 workflow 家族共享参考资料。
+这两份文档已落在上述路径；后续应继续在这些 canonical 位置维护，而不是再新增平行副本。
 
 ### 这两份文档至少应包含
 
@@ -511,7 +512,7 @@
 - reviewer 输入协议
 - reviewer 输出协议
 - 父会话 / reviewer / review skill 的职责边界
-- spec/design 真人确认归属说明
+- spec/design/tasks 真人确认归属说明
 
 ## 最小验收标准
 
@@ -520,8 +521,8 @@
 1. `ahe-specify` 产出规格后，不在父会话内联执行 spec review，而是派发 reviewer subagent。
 2. `ahe-design` 产出设计后，不在父会话内联执行 design review，而是派发 reviewer subagent。
 3. `ahe-tasks` 产出任务计划后，不在父会话内联执行 tasks review，而是派发 reviewer subagent。
-4. `ahe-spec-review` 和 `ahe-design-review` 通过后，真人确认仍由父会话执行。
-5. reviewer subagent 至少能统一返回 `conclusion`、`next_action`、`record_path`、`key_findings`。
+4. `ahe-spec-review`、`ahe-design-review` 和 `ahe-tasks-review` 通过后，真人确认仍由父会话执行。
+5. reviewer subagent 至少能统一返回 `conclusion`、`next_action_or_recommended_skill`、`record_path`、`key_findings`。
 6. `ahe-workflow-starter` 能识别“review 节点 = 派发 reviewer”而不是“直接进入 review skill”。
 
 ## 推荐的实施顺序

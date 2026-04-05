@@ -86,6 +86,7 @@ reviewer subagent 不负责：
 
 - `ahe-spec-review`
 - `ahe-design-review`
+- `ahe-tasks-review`
 
 ## 失败与重编排
 

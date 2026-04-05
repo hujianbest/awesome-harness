@@ -53,6 +53,7 @@
 - `设计真人确认`
 - `ahe-tasks`
 - `ahe-tasks-review`
+- `任务真人确认`
 - `ahe-test-driven-dev`
 - `ahe-bug-patterns`
 - `ahe-test-review`
@@ -65,6 +66,8 @@
 
 这个字段是 reviewer 摘要层对仓库 canonical 字段 `Next Action Or Recommended Skill` 的结构化映射。
 
+它必须是一个唯一的 canonical 值，不得把多个候选动作拼成一个字符串。
+
 迁移兼容规则：
 
 - 新协议与新文档统一使用 `next_action_or_recommended_skill`
@@ -73,13 +76,17 @@
 
 ### `needs_human_confirmation`
 
-通常按以下约定：
+只在 `conclusion=通过` 且当前 review 节点要求真人确认时，才把这个字段设为 `true`。
 
-| review skill | 默认值 |
+若 `conclusion=需修改` 或 `阻塞`，默认返回 `false`，并由 `next_action_or_recommended_skill` 指向回修或重编排节点。
+
+`conclusion=通过` 时，通常按以下约定：
+
+| review skill | `conclusion=通过` 时默认值 |
 | --- | --- |
 | `ahe-spec-review` | `true` |
 | `ahe-design-review` | `true` |
-| `ahe-tasks-review` | `false` |
+| `ahe-tasks-review` | `true` |
 | `ahe-test-review` | `false` |
 | `ahe-code-review` | `false` |
 | `ahe-traceability-review` | `false` |
