@@ -11,7 +11,7 @@
 3. 父会话要构造 review request，并启动独立 reviewer subagent。
 4. reviewer subagent 在 fresh context 中读取对应 `ahe-*review` skill 与最小必要工件。
 5. reviewer subagent 负责写 review 记录并回传结构化摘要。
-6. 父会话消费该摘要，继续主链推进或进入真人确认。
+6. 父会话消费该摘要，继续主链推进或进入 approval step。
 
 其中 reviewer 摘要里的 canonical handoff 字段应与 family vocabulary 对齐，统一使用 `next_action_or_recommended_skill`。
 
@@ -55,7 +55,7 @@
 - 组装最小 review request
 - 启动 reviewer subagent
 - 消费 reviewer 返回摘要
-- 在需要时发起真人确认
+- 在需要时发起 approval step，或在 `Execution Mode=auto` 下自动落盘批准
 - 根据摘要继续推进或回流修订
 
 父会话在消费 reviewer 摘要时，应直接读取 `next_action_or_recommended_skill` 并进入迁移判断。
@@ -78,15 +78,20 @@ reviewer subagent 负责：
 reviewer subagent 不负责：
 
 - 推进整个 workflow 到下一主链节点
-- 代替父会话做真人确认
+- 代替父会话做 approval step 决策或落盘
 
-## Human confirmation 归属
+## Approval Step 归属
 
-以下场景中，reviewer 只返回“已经达到可确认状态”，真人确认动作仍由父会话执行：
+以下场景中，reviewer 只返回“已经达到可确认状态”，approval step 仍由父会话执行：
 
 - `ahe-spec-review`
 - `ahe-design-review`
 - `ahe-tasks-review`
+
+处理约束：
+
+- `interactive`：父会话等待用户确认
+- `auto`：父会话按 policy 写 approval record 后继续推进
 
 ## 失败与重编排
 

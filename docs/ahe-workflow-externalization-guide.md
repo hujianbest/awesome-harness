@@ -46,7 +46,7 @@
 
 - 草稿
 - review 通过
-- 真人确认完成
+- approval step 完成（`interactive` 下为真人确认，`auto` 下为 approval record）
 - 尚未批准
 
 如果只能看出“有人大概同意过”，而没有可回读证据，`ahe-workflow-router` 仍应按未批准处理。
@@ -57,6 +57,7 @@
 
 - `Current Stage`
 - `Workflow Profile`
+- `Execution Mode`
 - `Current Active Task`
 - `Pending Reviews And Gates`
 - `Next Action Or Recommended Skill`
@@ -73,7 +74,17 @@
 
 如果验证证据只能停留在对话里，AHE 的 gate 和 finalize 就无法诚实工作。
 
-### 5. Controlled handoff surface
+### 5. Approval record surface
+
+对于会命中 approval step 的 workflow，外部仓库还应允许：
+
+- 写入 approval record
+- 记录 `interactive` / `auto` 两种 approval 完成方式
+- 把 review record、artifact path、artifact hash 和下一步显式关联起来
+
+如果 approval 只能停留在聊天里，而不能回读到工件，`auto` 模式就不应继续推进。
+
+### 6. Controlled handoff surface
 
 外部仓库必须允许节点把下一步显式写回状态面，而不是只靠聊天里的“继续”。
 
@@ -94,6 +105,7 @@
 - task plan
 - progress state
 - review records
+- approval records
 - verification records
 - release notes（如适用）
 
@@ -105,6 +117,7 @@
 - task plan
 - progress state
 - review records
+- approval records
 - verification records
 - release notes（如适用）
 
@@ -115,7 +128,7 @@
 - task plan
 - progress state
 - task review records（至少包括 `ahe-tasks-review`）
-- approval evidence（至少能回读 `任务真人确认`）
+- approval evidence（至少能回读 `任务真人确认` 或等价的 auto approval record）
 - verification records
 - release notes（如适用）
 
@@ -141,7 +154,7 @@
 
 ### Meaning
 
-这些点可以换路径、换模板、换状态词别名，但不能删成“聊天里说过一声就算通过”。
+这些点可以换路径、换模板、换状态词别名，也可以在 `auto` 模式下自动落盘解决，但不能删成“聊天里说过一声就算通过”。
 
 ## Direct Invoke Prerequisites In External Repos
 
@@ -154,6 +167,7 @@
 3. 批准状态、profile 和当前阶段没有冲突
 4. 节点所需最小证据已经存在
 5. 调用方理解该节点只完成本地职责，后续编排仍回到父会话 / `ahe-workflow-router`
+6. 若用户显式指定了 `Execution Mode`，该模式与当前仓库 policy 不冲突
 
 若任一条件不满足，先走 `ahe-workflow-router`。
 
@@ -180,6 +194,7 @@
 - review verdict 别名
 - progress schema 映射
 - review / verification / release artifacts 的权威路径
+- `Execution Mode` 默认值、auto 禁止条件与 approval artifact 路径
 - profile 强制条件（如哪些模块必须 `full`）
 
 ## Migration Strategy

@@ -1,6 +1,6 @@
 ---
 name: using-ahe-workflow
-description: Provides the public entrypoint to the AHE workflow family. Use when starting a new AHE workflow session, deciding which `ahe-*` skill to enter, interpreting `/ahe-*` command intent, or when the user wants to continue, review, build, or close out work but the correct node is not yet obvious. Prefer this skill before guessing between direct invoke and workflow routing.
+description: Provides the public entrypoint to the AHE workflow family. Use when starting a new AHE workflow session, deciding which `ahe-*` skill to enter, interpreting `/ahe-*` command intent, or when the user wants to continue, review, build, close out work, or explicitly asks for `auto` 连续执行 but the correct node is not yet obvious. Prefer this skill before guessing between direct invoke and workflow routing.
 ---
 
 # Using AHE Workflow
@@ -29,6 +29,7 @@ description: Provides the public entrypoint to the AHE workflow family. Use when
 - 用户想用 `/ahe-spec`、`/ahe-build`、`/ahe-review`、`/ahe-closeout` 这类命令意图进入 AHE
 - 用户点名某个 `ahe-*` skill，但你需要先判断这是不是合法 direct invoke
 - 你需要快速判断“现在应该直接进 leaf skill，还是先回到 router”
+- 用户明确说“auto mode”“自动执行”“不用等我确认”，但当前还没确定应该把这个模式交给哪个节点消费
 
 不要在这些场景使用：
 
@@ -85,13 +86,33 @@ description: Provides the public entrypoint to the AHE workflow family. Use when
 - hotfix 分析
 - increment 分析
 - closeout / finalize
+- 显式 `Execution Mode` 偏好
 
 这一步的目标不是立刻决定下一节点，而是先判断：
 
 - 当前更像 entry bias
 - 还是更像必须交给 router 的 runtime decision
 
-### 3. 判断是否允许 direct invoke
+### 3. 提取 `Execution Mode` 偏好
+
+如果用户显式说出以下意图：
+
+- `auto mode`
+- 自动执行 / 直接跑完
+- 不用等我确认
+
+则把它视为 `Execution Mode` 偏好，而不是：
+
+- 新的 `Workflow Profile`
+- 可以跳过 approval step 的理由
+- direct invoke 的充分条件
+
+entry 层职责：
+
+- 把显式 `Execution Mode` 偏好一起带入选定的 leaf skill，或交给 `ahe-workflow-router`
+- 不在这里替 router 裁决当前范围是否允许 `auto`
+
+### 4. 判断是否允许 direct invoke
 
 只有当以下条件同时满足时，才 direct invoke 某个 leaf skill：
 
@@ -100,12 +121,13 @@ description: Provides the public entrypoint to the AHE workflow family. Use when
 3. 最少必要工件已经存在且可读
 4. 不存在 route / stage / profile 冲突
 5. 调用方接受“该 skill 只完成本节点职责，后续编排不由它决定”
+6. 若用户显式指定了 `Execution Mode`，该模式要求会被一并传递，而不是在 entry 层被悄悄丢掉
 
 如果任一条件不满足，不要赌 direct invoke，直接把 authoritative 判断交给：
 
 - `ahe-workflow-router`
 
-### 4. 应用 family entry bias
+### 5. 应用 family entry bias
 
 默认偏向如下：
 
@@ -120,7 +142,7 @@ description: Provides the public entrypoint to the AHE workflow family. Use when
 | 范围 / 验收 / 约束变化分析    | `ahe-increment`                        | `ahe-workflow-router` |
 
 
-### 5. 解释 `/ahe-*` 命令时，把命令当作 bias，不当作 authority
+### 6. 解释 `/ahe-*` 命令时，把命令当作 bias，不当作 authority
 
 对命令意图的默认解释：
 
@@ -136,7 +158,7 @@ description: Provides the public entrypoint to the AHE workflow family. Use when
 - 若节点足够明确，可 direct invoke 对应 skill
 - 若节点不明确、证据冲突或 profile 不稳，交给 `ahe-workflow-router`
 
-### 6. 正确结束本 skill
+### 7. 正确结束本 skill
 
 本 skill 的正确输出只有两类：
 
@@ -149,7 +171,7 @@ description: Provides the public entrypoint to the AHE workflow family. Use when
 - 自己决定 review return 之后的恢复编排
 - 自己把 `using-ahe-workflow` 写进 `Next Action Or Recommended Skill`
 
-### 7. clear-case fast path
+### 8. clear-case fast path
 
 当你已经能唯一确定下一步时，优先使用短输出，而不是把整个 family 再解释一遍。
 
@@ -164,6 +186,8 @@ description: Provides the public entrypoint to the AHE workflow family. Use when
 每一项都单独占一行，并保留 `1.` / `2.` / `3.` 的编号。
 
 这里的标签只是当前回复的展示格式，不替代任何 runtime artifact 的 canonical 字段名。
+
+如果用户显式指定了 `Execution Mode`，不要额外加第 4 行；把它作为传给下游节点 / router 的上下文，而不是改写这份 3 行快路径合同。
 
 在这些 clear case 中，不要再：
 
@@ -210,6 +234,19 @@ description: Provides the public entrypoint to the AHE workflow family. Use when
 - `ahe-workflow-router`
 
 不要为了看起来更快，就把 entry skill 变成简化版 router。
+
+### Rule 4. `Execution Mode` 要随 handoff 一起带下去
+
+如果用户显式要求 `interactive` / `auto`：
+
+- direct invoke 时，把该偏好带给目标 leaf skill
+- route-first 时，把该偏好交给 `ahe-workflow-router`
+
+不要在 entry 层：
+
+- 把它重写成 `Workflow Profile`
+- 把它当成跳过 approval step 的理由
+- 因为没有写进 3 行快路径，就假装它不存在
 
 ## Entrypoint Matrix
 
@@ -270,6 +307,7 @@ description: Provides the public entrypoint to the AHE workflow family. Use when
 - 若命中 clear case，你使用了 `1.` / `2.` / `3.` 的编号快路径，而不是无编号等价变体
 - 若节点已明确，你进入了合法 leaf skill
 - 若节点不明确、证据冲突或 profile 不稳，你把 authoritative 判断交给了 `ahe-workflow-router`
+- 若用户显式指定了 `Execution Mode`，你已把该偏好传递给 downstream，而不是在 entry 层丢失
 - 你没有把 `using-ahe-workflow` 写入任何 runtime handoff 字段
 - 你没有在本 skill 中复制或取代 router 的 machine contract
 

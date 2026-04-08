@@ -63,6 +63,14 @@
 
 如果某个用户请求、口头描述或局部记录暗示跳到当前 profile 合法集合之外，按无效迁移处理，回到最近一个有证据支撑的上游节点，或触发 profile 升级。
 
+## Execution Mode Does Not Change The Route Map
+
+`Execution Mode` 只影响 approval step 的解决方式，不改变 profile 的合法节点集合：
+
+- `interactive`：`规格真人确认` / `设计真人确认` / `任务真人确认` 表现为等待用户输入的 approval node
+- `auto`：同样保留这些 approval node，但要求先写 approval record，再解锁下游节点
+- 不允许把 `ahe-spec-review -> ahe-design`、`ahe-design-review -> ahe-tasks`、`ahe-tasks-review -> ahe-test-driven-dev` 直接折叠成“跳过确认节点”
+
 ## Canonical Route Map
 
 把下列主骨架视为默认路由图；任何实际迁移都必须同时满足 profile 合法集合、批准证据和迁移表规则：
@@ -102,18 +110,18 @@ branches:
 | `ahe-spec-review` | `通过` | 规格真人确认 |
 | `ahe-spec-review` | `需修改` / `阻塞` | `ahe-specify` |
 | `ahe-spec-review` | `阻塞`（需重编排） | `ahe-workflow-router` |
-| 规格真人确认 | 确认通过 | `ahe-design` |
-| 规格真人确认 | 要求修改 / 未确认 | `ahe-specify` |
+| 规格真人确认 | approval step 完成 | `ahe-design` |
+| 规格真人确认 | 要求修改 / approval step 未完成 | `ahe-specify` |
 | `ahe-design-review` | `通过` | 设计真人确认 |
 | `ahe-design-review` | `需修改` / `阻塞` | `ahe-design` |
 | `ahe-design-review` | `阻塞`（需重编排） | `ahe-workflow-router` |
-| 设计真人确认 | 确认通过 | `ahe-tasks` |
-| 设计真人确认 | 要求修改 / 未确认 | `ahe-design` |
+| 设计真人确认 | approval step 完成 | `ahe-tasks` |
+| 设计真人确认 | 要求修改 / approval step 未完成 | `ahe-design` |
 | `ahe-tasks-review` | `通过` | 任务真人确认 |
 | `ahe-tasks-review` | `需修改` / `阻塞` | `ahe-tasks` |
 | `ahe-tasks-review` | `阻塞`（需重编排） | `ahe-workflow-router` |
-| 任务真人确认 | 确认通过 | `ahe-test-driven-dev` |
-| 任务真人确认 | 要求修改 / 未确认 | `ahe-tasks` |
+| 任务真人确认 | approval step 完成 | `ahe-test-driven-dev` |
+| 任务真人确认 | 要求修改 / approval step 未完成 | `ahe-tasks` |
 | `ahe-test-driven-dev` | 实现完成 | `ahe-bug-patterns` |
 | `ahe-bug-patterns` | `通过` | `ahe-test-review` |
 | `ahe-bug-patterns` | `需修改` / `阻塞` | `ahe-test-driven-dev` |
@@ -135,8 +143,8 @@ branches:
 | `ahe-tasks-review` | `通过` | 任务真人确认 |
 | `ahe-tasks-review` | `需修改` / `阻塞` | `ahe-tasks` |
 | `ahe-tasks-review` | `阻塞`（需重编排） | `ahe-workflow-router` |
-| 任务真人确认 | 确认通过 | `ahe-test-driven-dev` |
-| 任务真人确认 | 要求修改 / 未确认 | `ahe-tasks` |
+| 任务真人确认 | approval step 完成 | `ahe-test-driven-dev` |
+| 任务真人确认 | 要求修改 / approval step 未完成 | `ahe-tasks` |
 | `ahe-test-driven-dev` | 实现完成 | `ahe-bug-patterns` |
 | `ahe-bug-patterns` | `通过` | `ahe-test-review` |
 | `ahe-bug-patterns` | `需修改` / `阻塞` | `ahe-test-driven-dev` |
@@ -158,8 +166,8 @@ branches:
 | `ahe-tasks-review` | `通过` | 任务真人确认 |
 | `ahe-tasks-review` | `需修改` / `阻塞` | `ahe-tasks` |
 | `ahe-tasks-review` | `阻塞`（需重编排） | `ahe-workflow-router` |
-| 任务真人确认 | 确认通过 | `ahe-test-driven-dev` |
-| 任务真人确认 | 要求修改 / 未确认 | `ahe-tasks` |
+| 任务真人确认 | approval step 完成 | `ahe-test-driven-dev` |
+| 任务真人确认 | 要求修改 / approval step 未完成 | `ahe-tasks` |
 | `ahe-test-driven-dev` | 实现完成 | `ahe-regression-gate` |
 | `ahe-regression-gate` | `通过` | `ahe-completion-gate` |
 | `ahe-regression-gate` | `需修改` / `阻塞` | `ahe-test-driven-dev` |
@@ -185,6 +193,10 @@ branches:
 
 不要跳过第 2 步、第 3 步和第 4 步。
 
-恢复编排完成后，若下一推荐节点不是暂停点，立刻在同一轮中进入该节点，不等待用户确认。
+恢复编排完成后：
+
+- 若下一推荐节点是 `interactive` 下的 approval node，等待用户确认
+- 若下一推荐节点是 `auto` 下的 approval node，先写 approval record，再进入该节点解锁后的下游节点
+- 若下一推荐节点不是 approval node，也不是 hard stop，立刻在同一轮中进入该节点，不等待用户确认
 
 若该下一推荐节点是 review 节点，则“进入该节点”的含义是：按 `references/review-dispatch-protocol.md` 派发 reviewer subagent，并按 `references/reviewer-return-contract.md` 消费返回摘要，而不是在父会话内联执行 review。

@@ -18,6 +18,7 @@
 
 - 新会话默认先走 `using-ahe-workflow`。
 - 若当前需要 authoritative route / stage / profile 判断、review / gate 后恢复编排，或 evidence 冲突，则交给 `ahe-workflow-router`。
+- 若用户显式要求 `auto` / 自动执行，把它视为 `Execution Mode` 偏好，一并交给 entry layer 或 router 处理；不要把它当成新的 profile。
 - 只有在当前节点、前置工件和批准状态都已经明确时，才 direct invoke 某个具体 `ahe-*` skill。
 - review / gate skill 只处理本节点职责，不替代主链编排。
 
@@ -57,7 +58,7 @@
 ## 关键文档
 
 - `skills/docs/ahe-workflow-entrypoints.md`：定义何时先走 `skills/using-ahe-workflow/SKILL.md`，何时交给 `ahe-workflow-router`，以及何时允许 direct invoke。
-- `skills/docs/ahe-workflow-shared-conventions.md`：集中定义 progress schema、fresh evidence、verdict、severity 和记录表达方式。
+- `skills/docs/ahe-workflow-shared-conventions.md`：集中定义 progress schema、`Execution Mode`、fresh evidence、verdict、severity 和记录表达方式。
 - `skills/docs/ahe-command-entrypoints.md`：定义 `/ahe-spec`、`/ahe-build`、`/ahe-review`、`/ahe-closeout` 这类 docs-only command contract。
 - `docs/ahe-workflow-multi-agent-operating-model-design.md`：描述 AHE 多 agent 运行模型与 coordination 设计。
 - `docs/ahe-workflow-skill-anatomy.md`：定义 workflow skill 的目标态 anatomy。

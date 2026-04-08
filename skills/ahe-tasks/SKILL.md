@@ -90,7 +90,7 @@ direct invoke 常见信号：
 - 任务能回指到规格 / 设计中的依据，而不是凭感觉新增
 - 每个任务都知道会触碰哪些文件或工件
 - 每个任务都知道如何验证完成
-- 任务计划为 `ahe-test-driven-dev` 准备了测试设计种子，但没有越权替代真人测试设计确认
+- 任务计划为 `ahe-test-driven-dev` 准备了测试设计种子，但没有越权替代测试设计 approval step
 
 ## Inputs / Required Artifacts
 
@@ -266,7 +266,7 @@ direct invoke 常见信号：
 - 关键任务能追溯回规格或设计依据
 - 风险区域已经体现在任务顺序、验证或显式风险说明中
 - 计划已经给出唯一 `Current Active Task` 选择规则
-- 对首个活跃任务或高风险任务，测试设计种子已足以帮助 `ahe-test-driven-dev` 进入真人测试设计确认
+- 对首个活跃任务或高风险任务，测试设计种子已足以帮助 `ahe-test-driven-dev` 进入测试设计 approval step
 
 任务计划准备好后，不要在父会话里内联执行 `ahe-tasks-review`。正确做法是：
 
@@ -275,12 +275,12 @@ direct invoke 常见信号：
 3. 启动独立 reviewer subagent，并在该 subagent 中调用 `ahe-tasks-review`
 4. 由 reviewer subagent 写 review 记录并回传结构化摘要
 5. 父会话读取 reviewer 返回结果后继续：
-   - 若结论为 `通过`，先进入 `任务真人确认`；只有真人确认通过后，才把批准结果写入任务计划或等价评审工件，并进入 `ahe-test-driven-dev`
+   - 若结论为 `通过`，先进入 `任务真人确认`；只有 approval step 已完成后，才把批准结果写入任务计划或等价评审工件，并进入 `ahe-test-driven-dev`
    - 若结论为 `需修改`，携带关键 findings 回到本 skill 修订
    - 若结论为 `阻塞` 且 `reroute_via_router=true`（或历史字段 `reroute_via_starter=true`）或 `next_action_or_recommended_skill=ahe-workflow-router`，回到 `ahe-workflow-router` 重编排
    - 其他 `阻塞`，携带关键 findings 回到本 skill 补条件或修订
 
-建议的首个活跃任务应先写在任务计划正文中；只有在 `ahe-tasks-review` 通过且 `任务真人确认` 完成后，再把权威版 `Current Active Task` 写入 `task-progress.md` 或等价状态工件。
+建议的首个活跃任务应先写在任务计划正文中；只有在 `ahe-tasks-review` 通过且 `任务真人确认` 这一 approval step 已完成后，再把权威版 `Current Active Task` 写入 `task-progress.md` 或等价状态工件。
 
 ## Output Contract
 
@@ -304,7 +304,7 @@ direct invoke 常见信号：
 推荐下一步 skill: `ahe-tasks-review`
 ```
 
-注意：只有 `ahe-tasks-review` 返回 `通过`，且 `任务真人确认` 已完成、批准结论已写入任务计划或等价评审工件后，才进入 `ahe-test-driven-dev`。
+注意：只有 `ahe-tasks-review` 返回 `通过`，且 `任务真人确认` 这一 approval step 已完成、批准结论已写入任务计划或等价评审工件后，才进入 `ahe-test-driven-dev`。
 
 如果计划仍未达到评审门槛，不要伪造 handoff；明确缺口，再继续本节点修订。
 

@@ -1,6 +1,6 @@
 # Execution Semantics
 
-这份参考文档集中保存 `ahe-workflow-router` 的连续执行原则、暂停点、非暂停点、路由失败模式与执行级红旗信号。
+这份参考文档集中保存 `ahe-workflow-router` 的连续执行原则、approval step 语义、暂停点、非暂停点、路由失败模式与执行级红旗信号。
 
 当你已经确认当前路由结果，需要判断：
 
@@ -10,26 +10,59 @@
 
 再来这里读取细节。
 
+## Execution Mode
+
+`Execution Mode` 与 `Workflow Profile` 正交：
+
+- `interactive`：approval step 需要等待用户输入
+- `auto`：approval step 可自动落盘解决，但仍必须保留 approval 语义与记录
+
+归一化优先级：
+
+1. 用户当前请求中的显式模式要求
+2. `AGENTS.md` 中的默认模式与 auto 禁止条件
+3. `task-progress.md` 中已有且仍有效的 `Execution Mode`
+4. 默认 `interactive`
+
+约束：
+
+- `auto` 不是新的 profile，也不允许借此删除 approval 节点
+- 若 `AGENTS.md` policy 禁止当前范围继续 `auto`，应停止自动推进并显式报告
+- `auto` 只改变等待方式，不改变 review / gate / approval step 的存在性
+
 ## 连续执行原则
 
-路由完成后，应在同一轮中立刻进入目标 skill 并执行，不等待用户确认。
+路由完成后，应在同一轮中立刻进入目标 skill 并执行；只有命中 approval step 或 hard stop 时，才改变这一默认行为。
 
-整条 workflow 链路默认以连续执行模式运行：一个节点完成后，自动判断下一个节点并立刻进入，直到遇到明确 pause point。
+整条 workflow 链路默认以连续执行模式运行：一个节点完成后，自动判断下一个节点并立刻进入，直到遇到明确 approval step 或 hard stop。
 
-即使刚刚回到 `ahe-workflow-router` 完成重编排，这条规则也不变：只要结果不是暂停点，就应继续在同一轮进入目标 skill，而不是额外停一轮等待用户回复。
+即使刚刚回到 `ahe-workflow-router` 完成重编排，这条规则也不变：只要结果不是 `interactive` 下的 approval step，也不是 hard stop，就应继续在同一轮进入目标 skill，而不是额外停一轮等待用户回复。
 
-## 暂停点
+## Approval Step
 
-只有以下场景才暂停执行并等待用户输入：
+以下场景属于 canonical approval step；它们在 `interactive` / `auto` 下的处理方式不同，但节点语义都必须保留：
 
-1. **规格真人确认**：reviewer subagent 返回 `ahe-spec-review` 结论为"通过"后，必须由父会话向用户展示评审结论并等待用户明确批准
-2. **设计真人确认**：reviewer subagent 返回 `ahe-design-review` 结论为"通过"后，必须由父会话向用户展示评审结论并等待用户明确批准
-3. **任务真人确认**：reviewer subagent 返回 `ahe-tasks-review` 结论为"通过"后，必须由父会话向用户展示评审结论并等待用户明确批准
-4. **测试用例设计确认**：`ahe-test-driven-dev` 在进入 Red-Green-Refactor 前，必须向用户展示测试用例设计并等待用户确认
-5. **规格评审 / 设计评审需修改**：`ahe-spec-review` 或 `ahe-design-review` 返回 `需修改`，或返回内容回修型 `阻塞` 时，必须先向用户展示评审结论和修订重点，再回到相应上游修订 skill
-6. **规格评审 / 设计评审需重编排**：若 `ahe-spec-review` 或 `ahe-design-review` 返回 `阻塞`，且 `reroute_via_router=true` 或 `next_action_or_recommended_skill=ahe-workflow-router`，先向用户展示阻塞原因，再回到 `ahe-workflow-router` 重编排
-7. **证据冲突需澄清**：工件状态互相矛盾，且无法用保守原则自动解决时
-8. **其他 review / gate 结论为"需修改"或"阻塞"且修订方向不明确**：需要与用户讨论修订方案
+1. **规格真人确认**：`ahe-spec-review` 返回 `通过` 后进入
+2. **设计真人确认**：`ahe-design-review` 返回 `通过` 后进入
+3. **任务真人确认**：`ahe-tasks-review` 返回 `通过` 后进入
+4. **测试用例设计确认**：`ahe-test-driven-dev` 在进入 Red-Green-Refactor 前进入
+
+处理规则：
+
+- `interactive`：approval step 会暂停执行并等待用户输入
+- `auto`：approval step 只有在 policy 允许且 approval record 已写入后，才算完成并可继续进入下游节点
+- 若 `auto` 模式下无法写 approval record、无法绑定上游 record / artifact hash，或当前 approval kind 被 policy 禁止，则该 approval step 升级为 hard stop
+
+## Hard Stop
+
+只有以下场景才停止自动推进并等待用户输入或显式报告阻塞：
+
+1. **规格评审 / 设计评审需修改（interactive）**：`ahe-spec-review` 或 `ahe-design-review` 返回 `需修改`，或返回内容回修型 `阻塞` 时，先向用户展示评审结论和修订重点，再回到相应上游修订 skill
+2. **规格评审 / 设计评审需修改但方向不清（auto）**：`ahe-spec-review` 或 `ahe-design-review` 返回 `需修改` 或内容回修型 `阻塞`，且当前修订方向无法唯一界定
+3. **规格评审 / 设计评审需重编排**：若 `ahe-spec-review` 或 `ahe-design-review` 返回 `阻塞`，且 `reroute_via_router=true` 或 `next_action_or_recommended_skill=ahe-workflow-router`，先展示阻塞原因，再回到 `ahe-workflow-router` 重编排
+4. **证据冲突需澄清**：工件状态互相矛盾，且无法用保守原则自动解决时
+5. **其他 review / gate 结论为 `需修改` 或 `阻塞` 且修订方向不明确**：需要与用户讨论修订方案或显式报告当前阻塞
+6. **Auto policy / 环境阻塞**：`AGENTS.md` 明确禁止当前场景 auto resolve，或缺少最小可路由工件、approval record 落点、验证环境或外部依赖
 
 ## 非暂停点
 
@@ -37,13 +70,17 @@
 
 - 路由完成后进入目标 skill
 - 执行型 skill 完成后进入下一个能力型 skill（如 `ahe-specify` 完成 → `ahe-spec-review`）
-- review / gate 结论为"通过"后进入迁移表中的下一个节点（真人确认节点除外）
+- review / gate 结论为"通过"后进入迁移表中的下一个节点（`interactive` 下的 approval step 除外）
+- `auto` 模式下，approval step 在 approval record 写入后继续进入下游节点
+- `auto` 模式下，`ahe-spec-review` / `ahe-design-review` 返回 `需修改` 且修订方向明确时，可自动回到上游 skill 继续修订
 - 除 `ahe-spec-review` / `ahe-design-review` 外，review / gate 结论为"需修改"且修订方向明确时，自动回到上游 skill 继续修订
 - 恢复编排协议判断出唯一下一推荐节点时
 
 ## 连续执行的红旗信号
 
 如果你发现自己在非暂停点输出路由报告后停下来等用户回复，这说明你把路由报告当成了用户交互，而不是内部编排步骤。正确做法是把路由说明嵌入执行流中，然后立刻进入目标 skill。
+
+如果你发现自己把 `auto` 理解成“可以跳过 approval record、review 或 gate”，这说明你把交互模式误当成了流程删减开关。正确做法是保留原有节点语义，只改变等待方式。
 
 ## 路由失败模式与恢复
 
@@ -54,6 +91,7 @@
 - **迁移表缺口**：若某结论无法映射到唯一下一推荐节点，回到 `ahe-workflow-router` 重编排，而不是自行补脑
 - **profile 不稳**：若新证据触发 upgrade 条件，先升级 profile 并写明原因，再继续路由
 - **显式交接不可解析**：若 `Next Action Or Recommended Skill` 是自由文本、无法唯一归一化，明确忽略该值并按迁移表 + 工件证据继续编排
+- **auto 落盘失败**：若 approval step 无法写出可回读的 approval record，停止自动推进并显式报告
 
 如果已经连续两次因为同一类证据缺口而无法稳定路由，应明确把它报告为当前阻塞，而不是继续重复解释同一状态机判断。
 
@@ -89,8 +127,9 @@
 | "这个改动很小，直接用 lightweight 就行" | Profile 由 router 根据信号判断，不允许用户或 agent 自行声称。 |
 | "`task-progress.md` 都写到实现了，可以直接下游继续" | 若它与批准状态或 review / gate 证据冲突，优先相信更保守、更上游的证据。 |
 | "没有明确热修复 / 变更证据，也可以先进支线处理" | 进入 `ahe-hotfix` / `ahe-increment` 必须有对应信号，不能把支线当快捷方式。 |
-| "缺了一两个评审或门禁也没关系，先推进再补" | 缺少必需 review / gate / 真人确认证据时，不允许继续向下游推进。 |
+| "缺了一两个评审或门禁也没关系，先推进再补" | 缺少必需 review / gate / approval step 证据时，不允许继续向下游推进。 |
 | "standard / lightweight 已经够了，不用升级" | 一旦发现缺上游依据或复杂度超出当前假设，就要升级 profile。 |
+| "既然是 auto，就把确认节点从链路里省掉" | `auto` 只改变 confirmation 的解决方式；approval 节点仍然存在，且必须落盘。 |
 
 ## 输出与交接语义
 
@@ -104,4 +143,4 @@
 - 发生了 profile 升级
 - 当前是 review / gate 后的恢复编排且跳转不直观
 
-若目标是 review 节点，则立刻派发 reviewer subagent。唯一例外：当路由结果指向暂停点时，才需要等待用户输入。
+若目标是 review 节点，则立刻派发 reviewer subagent。唯一例外：当路由结果指向 `interactive` 下的 approval step 或 hard stop 时，才需要等待用户输入。

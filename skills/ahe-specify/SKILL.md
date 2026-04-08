@@ -72,12 +72,12 @@ direct invoke 常见信号：
 - 必要的状态字段与记录路径
 - canonical handoff：`ahe-spec-review`
 
-是否进入 `ahe-spec-review`、何时做人类确认、何时进入 `ahe-design`，都交回父会话 / `ahe-workflow-router` 统一编排。
+是否进入 `ahe-spec-review`、何时完成 approval step、何时进入 `ahe-design`，都交回父会话 / `ahe-workflow-router` 统一编排。
 
 ## Hard Gates
 
 - 在需求规格通过评审并获批之前，不得开始架构设计、任务拆解、脚手架或实现代码编写。
-- 在 `ahe-spec-review` 给出“通过”结论之前，不发起真人批准确认。
+- 在 `ahe-spec-review` 给出“通过”结论之前，不发起 approval step。
 - 当前请求若尚未经过 `using-ahe-workflow` 或 `ahe-workflow-router` 的入口判断，不直接开始规格工作。
 
 ## Quality Bar
@@ -277,12 +277,12 @@ direct invoke 常见信号：
 3. 启动独立 reviewer subagent，并在该 subagent 中调用 `ahe-spec-review`
 4. 由 reviewer subagent 写 review 记录并回传结构化摘要
 5. 父会话读取 reviewer 返回结果后继续：
-   - 若结论为 `通过`，由父会话发起真人批准确认
+   - 若结论为 `通过`，由父会话完成 approval step（`interactive` 下等待真人，`auto` 下写 approval record）
    - 若结论为 `需修改`，携带关键 findings 回到本 skill 修订
    - 若结论为 `阻塞` 且 `reroute_via_router=true`（或历史字段 `reroute_via_starter=true`）或 `next_action_or_recommended_skill=ahe-workflow-router`，回到 `ahe-workflow-router` 重编排
    - 其他 `阻塞`，携带关键 findings 回到本 skill 补条件或修订
 
-不要在 `ahe-specify` 阶段请求真人批准规格；真人确认只发生在 `ahe-spec-review` 返回“通过”之后。
+不要在 `ahe-specify` 阶段请求 approval step；对应 approval step 只发生在 `ahe-spec-review` 返回“通过”之后。
 
 ## Output Contract
 

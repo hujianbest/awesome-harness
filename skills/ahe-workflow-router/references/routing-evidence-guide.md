@@ -20,6 +20,7 @@
 | 进度记录 | `task-progress.md` | 支撑跨会话连续推进 |
 | 发布说明 | `RELEASE_NOTES.md` | 面向用户的变更说明 |
 | 评审记录 | `docs/reviews/` | 可选但建议提供 |
+| approval 记录 | `docs/approvals/` | `interactive` / `auto` 下的 approval 证据 |
 | 验证记录 | `docs/verification/` | 可选但建议提供 |
 
 ## 最小路由证据
@@ -31,6 +32,7 @@
 - 需求规格、设计文档、任务计划的批准状态
 - `task-progress.md` 这类进度记录
 - `docs/reviews/` 下的评审记录
+- `docs/approvals/` 下的 approval 记录
 - `docs/verification/` 下的验证记录
 - 用户明确提出的变更请求或热修复请求
 
@@ -42,9 +44,10 @@
 2. 需求规格 / 设计文档 / 任务计划的存在情况与批准状态
 3. `task-progress.md`
 4. `docs/reviews/`
-5. `docs/verification/`
-6. `RELEASE_NOTES.md`
-7. 用户当前请求
+5. `docs/approvals/`
+6. `docs/verification/`
+7. `RELEASE_NOTES.md`
+8. 用户当前请求
 
 若较高优先级工件与较低优先级工件冲突，应优先相信更基础、更上游的工件状态。
 
@@ -65,7 +68,7 @@
 
 - 聊天里说“这个已经确认过了”，但工件中没有对应证据
 - 只存在草稿文档，没有状态字段或批准记录
-- review 结论是 `通过`，但没有真人确认
+- review 结论是 `通过`，但没有 approval step 完成证据
 - `task-progress.md` 写着“继续实现”，但规格 / 设计 / 任务工件没有批准证据
 - 只凭 `RELEASE_NOTES.md` 或零散提交信息推断阶段已经结束
 
@@ -80,15 +83,20 @@
 - 兼容旧写法：带有 `PASS` 结论的评审章节
 - 进度或验证记录中的阶段标记
 
-对规格和设计而言，仅有评审通过还不够；还应能看出真人确认已经完成。
+对规格和设计而言，仅有评审通过还不够；还应能看出 approval step 已经完成。
+
+approval step 的等价证据可以是：
+
+- `interactive` 模式下的真人确认记录
+- `auto` 模式下基于 review record 写入的 approval record
 
 如果批准状态不明确，应回路由到上游评审 skill，而不是直接假设已批准。
 
 补充判断：
 
-- 规格评审通过但缺少真人确认，不算已批准，应继续按需求阶段处理
-- 设计评审通过但缺少真人确认，不算已批准，应继续按设计阶段处理
-- 任务评审通过但缺少任务真人确认，不算已批准，应继续按任务阶段处理
+- 规格评审通过但缺少 approval step，不算已批准，应继续按需求阶段处理
+- 设计评审通过但缺少 approval step，不算已批准，应继续按设计阶段处理
+- 任务评审通过但缺少 approval step，不算已批准，应继续按任务阶段处理
 
 ## 证据冲突时的保守规则
 

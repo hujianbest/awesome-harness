@@ -31,6 +31,16 @@
 | `rules/` | 常驻规则 |
 | `hooks/` | hooks 说明或脚本 |
 
+## AHE Auto Mode Policy
+
+如果仓库采用 `skills/ahe-*` workflow，建议显式声明：
+
+- Default Execution Mode: `interactive` | `auto`
+- Auto-Resolvable Approval Steps: 哪些 approval step 允许自动落盘继续推进
+- Auto Mode Disallowed Areas: 哪些 profile、模块、风险类型或外部依赖场景禁止 auto
+- Auto Mode Hard Stops: 证据冲突、修订方向不明、缺少关键工件或环境时必须停止自动推进
+- Approval Artifact Path: approval record 的权威落点，例如 `docs/approvals/`
+
 ## 验证方式
 
 - 如果仓库主要是文档资产，优先检查路径、交叉引用和模板可用性。

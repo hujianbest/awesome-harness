@@ -19,6 +19,7 @@
 
 - Current Stage:
 - Workflow Profile:
+- Execution Mode:
 - Current Active Task:
 - Pending Reviews And Gates:
 - Relevant Files:

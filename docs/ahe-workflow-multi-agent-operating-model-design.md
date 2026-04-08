@@ -44,7 +44,7 @@
 | `ahe-*` workflow family | workflow skills family | 整个 workflow 家族以扁平 `skills/ahe-*` 目录存在 |
 | `skills/ahe-workflow-router/` | runtime router / 恢复编排 | canonical kernel；新请求识别与恢复入口（公开家族壳层见 `skills/using-ahe-workflow/`） |
 | `Board Governor` | 协调层运行时角色 | 在本版文档中作为 runtime coordination responsibility 描述，不落成新的 skill 修改 |
-| `Human Confirmation Bridge` | 协调层运行时角色 | 统一承接暂停点 / 审批证据桥接职责，但本次仅体现在文档设计中 |
+| `Human Confirmation Bridge` | 协调层运行时角色 | 统一承接暂停点 / 审批证据桥接职责；`interactive` 下等待人工，`auto` 下写 approval record，但本次仅体现在文档设计中 |
 | `archive responsibility` | 运行时 closeout / archive responsibility | 作为会话冻结与审计归档职责描述，不在本次改动中修改现有 skill |
 | `workflow-board` | 运行时对象 | 逻辑对象，不直接等同于某个 skill 目录 |
 | `skills/ahe-test-driven-dev/` | 实现入口 | 继续作为唯一实现入口 |
@@ -181,6 +181,11 @@ flowchart TD
 
 它的职责是等待、记录、对齐状态，而不是替代 execution / quality 节点做判断。
 
+在 `Execution Mode` 视角下：
+
+- `interactive`：bridge 负责等待并记录人工输入
+- `auto`：bridge 负责写 approval record，并在 policy 允许时释放下游节点
+
 ### `ahe-finalize`
 
 它负责写完 closeout record、release notes、evidence index、merge-back manifest 等收口工件。
@@ -229,6 +234,7 @@ flowchart TD
 - `changeWorkspace`
 - `archiveTargets`
 - `currentRecommendedStep`
+- `executionMode`
 - `readyNodes`
 - `blockedNodes`
 
@@ -285,7 +291,7 @@ flowchart TD
 | `passed` | 节点完成，允许解锁下游 |
 | `revise` | 需要修订，并回退到 `retryFromNode` |
 | `blocked` | 缺少关键证据或外部条件 |
-| `waiting_human` | 进入 human confirmation responsibility 等待人类输入 |
+| `waiting_human` | 进入 `interactive` 模式下的 human confirmation responsibility，等待人类输入 |
 | `stale` | lease 超时或上下文过期 |
 | `cancelled` | 因 profile 升级、支线切换或工作项失效而取消 |
 | `archived` | 已完成冻结归档 |
@@ -304,6 +310,8 @@ flowchart TD
 - `parallelism`
 - `pauseKind`
 - `humanConfirmationRequired`
+- `autoResolvable`
+- `requiresApprovalRecord`
 
 示例：
 
@@ -323,6 +331,8 @@ parallelism:
   mode: read_only_parallel
 pauseKind: none
 humanConfirmationRequired: false
+autoResolvable: false
+requiresApprovalRecord: false
 ```
 
 ## Profile 节点图
@@ -479,6 +489,12 @@ hotfix-request
 - `test-design-confirm`
 - 可选 `release-approval`
 - 证据冲突且无法自动保守回退的人工仲裁点
+
+处理规则：
+
+- `interactive`：approval step 进入 `waiting_human`
+- `auto`：approval step 若允许自动解决，则先写 approval record，再继续推进
+- 若 approval step 不允许 auto resolve、无法落盘 approval record，或当前 policy 禁止 auto，则转为显式阻塞，而不是静默跳过
 
 自动推进的场景：
 

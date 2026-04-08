@@ -20,6 +20,12 @@
 }
 ```
 
+兼容说明：
+
+- `needs_human_confirmation` 这个字段名为兼容现有 live contract 保留
+- 它的运行时语义已扩大为“当前 review 通过后，还需要父会话完成 approval step”
+- 父会话最终是等待真人确认，还是在 `Execution Mode=auto` 下自动落盘批准，由运行时编排决定
+
 ## 字段说明
 
 | 字段 | 说明 |
@@ -28,7 +34,7 @@
 | `next_action_or_recommended_skill` | reviewer 基于当前结果建议的下一步 canonical handoff |
 | `record_path` | 已写入的 review 记录路径 |
 | `key_findings` | 父会话需要向用户展示或用于回修的关键发现 |
-| `needs_human_confirmation` | 是否必须由父会话继续发起真人确认 |
+| `needs_human_confirmation` | 是否必须由父会话继续完成 approval step（字段名保留兼容） |
 | `reroute_via_router` | 若为 `true`，父会话应先回到 `ahe-workflow-router` 重编排 |
 
 ## 使用规则
@@ -77,7 +83,7 @@
 
 ### `needs_human_confirmation`
 
-只在 `conclusion=通过` 且当前 review 节点要求真人确认时，才把这个字段设为 `true`。
+只在 `conclusion=通过` 且当前 review 节点要求 approval step 时，才把这个字段设为 `true`。
 
 若 `conclusion=需修改` 或 `阻塞`，默认返回 `false`，并由 `next_action_or_recommended_skill` 指向回修或重编排节点。
 
@@ -105,13 +111,16 @@
 父会话收到该摘要后，先检查 `references/execution-semantics.md` 中定义的暂停点与“先向用户展示”的义务，再按以下顺序处理：
 
 1. 若 `reroute_via_router=true`，先经 `ahe-workflow-router` 重编排。
-2. 否则若 `conclusion=通过` 且 `needs_human_confirmation=true`，进入真人确认。
-3. 否则若 `conclusion=通过` 且无需真人确认，进入 `next_action_or_recommended_skill`。
+2. 否则若 `conclusion=通过` 且 `needs_human_confirmation=true`：
+   - `Execution Mode=interactive`：进入真人确认 / approval step
+   - `Execution Mode=auto`：先写 approval record，再继续进入该 approval step 解锁后的下游节点
+3. 否则若 `conclusion=通过` 且无需额外 approval step，进入 `next_action_or_recommended_skill`。
 4. 否则若 `conclusion=需修改` 或 `阻塞`，按 `next_action_or_recommended_skill` 回修或补条件。
 
 补充理解：
 
-- 对 `ahe-spec-review` / `ahe-design-review`，`需修改` 与内容回修型 `阻塞` 仍受暂停点约束，父会话需先向用户展示评审结论与修订重点
+- 对 `ahe-spec-review` / `ahe-design-review`，`interactive` 模式下的 `需修改` 与内容回修型 `阻塞` 仍受暂停点约束，父会话需先向用户展示评审结论与修订重点
+- 对 `ahe-spec-review` / `ahe-design-review`，`auto` 模式下若修订方向清楚、仍在当前范围内，可直接回到上游 skill 回修；若方向不清，仍应停止自动推进
 - 对 `ahe-spec-review` / `ahe-design-review`，若 `阻塞` 且需要经 router 重编排，父会话需先向用户展示阻塞原因，再回到 `ahe-workflow-router`
 - 对其他 review / gate，若修订方向不明确，也应先与用户讨论，而不是机械自动推进
 
