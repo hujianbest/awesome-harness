@@ -136,7 +136,7 @@
 
 ### 7. 明确进度字段映射
 
-在使用通用 `templates/task-progress-template.md` 时，明确说明：
+在使用通用 `skills/templates/task-progress-template.md` 时，明确说明：
 
 - `Current Active Task` 对应 `Current Task`
 - `Next Action Or Recommended Skill` 对应 `Next Action`
@@ -148,7 +148,7 @@
 
 主要参考：
 
-- `templates/task-progress-template.md`
+- `skills/templates/task-progress-template.md`
 - `skills/ahe-test-driven-dev/SKILL.md`
 
 ## 明确不做的事

@@ -121,7 +121,7 @@
 
 主要参考：
 
-- `templates/review-record-template.md`
+- `skills/templates/review-record-template.md`
 - `skills/ahe-spec-review/SKILL.md`
 
 ## 明确不做的事

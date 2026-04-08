@@ -203,8 +203,8 @@
 
 ## Related Docs
 
-- `docs/ahe-workflow-shared-conventions.md`
-- `docs/ahe-workflow-entrypoints.md`
-- `docs/ahe-command-entrypoints.md`
+- `skills/docs/ahe-workflow-shared-conventions.md`
+- `skills/docs/ahe-workflow-entrypoints.md`
+- `skills/docs/ahe-command-entrypoints.md`
 - `docs/ahe-path-mapping-guide.md`
 - `docs/ahe-workflow-core-vs-extensions.md`

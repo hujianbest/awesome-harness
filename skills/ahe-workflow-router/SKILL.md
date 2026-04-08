@@ -291,7 +291,7 @@ runtime 参考资料 canonical 位置：
 按需读取：
 
 - `skills/using-ahe-workflow/SKILL.md`
-- `docs/ahe-workflow-entrypoints.md`
+- `skills/docs/ahe-workflow-entrypoints.md`
 - `skills/ahe-workflow-router/references/profile-node-and-transition-map.md`
 - `skills/ahe-workflow-router/references/execution-semantics.md`
 - `skills/ahe-workflow-router/references/review-dispatch-protocol.md`

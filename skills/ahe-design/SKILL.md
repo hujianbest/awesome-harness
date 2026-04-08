@@ -108,7 +108,7 @@ direct invoke 常见信号：
 
 若项目尚未形成固定进度记录格式，默认使用：
 
-- `templates/task-progress-template.md`
+- `skills/templates/task-progress-template.md`
 
 交给 `ahe-design-review` 后，还应同步：
 

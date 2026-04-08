@@ -249,15 +249,15 @@ description: Provides the public entrypoint to the AHE workflow family. Use when
 
 按需读取：
 
-- `docs/ahe-workflow-entrypoints.md`
-- `docs/ahe-command-entrypoints.md`
-- `docs/ahe-workflow-shared-conventions.md`
+- `skills/docs/ahe-workflow-entrypoints.md`
+- `skills/docs/ahe-command-entrypoints.md`
+- `skills/docs/ahe-workflow-shared-conventions.md`
 - `skills/ahe-workflow-router/SKILL.md`
 
 读取规则：
 
-- 需要理解 public entry 与 direct invoke 边界时，先看 `docs/ahe-workflow-entrypoints.md`
-- 需要解释 `/ahe-*` 命令时，读 `docs/ahe-command-entrypoints.md`
+- 需要理解 public entry 与 direct invoke 边界时，先看 `skills/docs/ahe-workflow-entrypoints.md`
+- 需要解释 `/ahe-*` 命令时，读 `skills/docs/ahe-command-entrypoints.md`
 - 需要 authoritative runtime routing 时，进入 `skills/ahe-workflow-router/SKILL.md`
 - 不要为了 entry discovery 在这里复制 starter 的 runtime rules
 

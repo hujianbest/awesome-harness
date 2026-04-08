@@ -31,7 +31,7 @@
 | 双模式目标定义 | 已完成 | 计划与 anatomy 都已明确 `独立调用 + 串联调用` |
 | AHE vs `agent-skills-main` 对比刷新 | 已完成 | `docs/agent-skills-main-vs-ahe-workflow-report.md` 已按最新 skills 状态刷新 |
 | router / 契约附属文档关键对齐 | 进行中 | 已同步 lightweight 链路、progress example 与 reviewer handoff 核心表达；剩余全量 reviewer rollout 进入后续 sweep |
-| shared `task-progress` template 更新 | 已完成 | `templates/task-progress-template.md` 已切换到 canonical core 字段 |
+| shared `task-progress` template 更新 | 已完成 | `skills/templates/task-progress-template.md` 已切换到 canonical core 字段 |
 | 当前最高优先级 | 进行中 | live skills 对新 contract / schema 的 adopt，以及 core skills contract adoption |
 
 ## 输入与边界
@@ -49,7 +49,7 @@
 - `skills/ahe-regression-gate/SKILL.md`
 - `skills/ahe-completion-gate/SKILL.md`
 - `skills/ahe-finalize/SKILL.md`
-- `templates/task-progress-template.md`
+- `skills/templates/task-progress-template.md`
 
 ### 当前已知结构性问题
 
@@ -192,7 +192,7 @@
 
 建议涉及文件：
 
-- `templates/task-progress-template.md`
+- `skills/templates/task-progress-template.md`
 
 改动重点：
 
@@ -282,7 +282,7 @@
 1. 已完成：写 `docs/ahe-workflow-skill-anatomy.md`
 2. 已完成：修正 router collateral 与 router 主文件之间的关键冲突（历史表述：pre-split 合并 router collateral）
 3. 已完成：在 anatomy 里冻结并落实 canonical `task-progress` schema
-4. 已完成：更新 `templates/task-progress-template.md`
+4. 已完成：更新 `skills/templates/task-progress-template.md`
 5. 统一核心主链 skills 的 dual-mode contract
 6. 最后扫 review / branch skills
 7. 对 router kernel 做第二轮瘦身
@@ -301,7 +301,7 @@
 
 - 已存在一份可引用的家族 anatomy 文档。
 - router 主文件与 collateral 文档不再互相冲突。
-- `templates/task-progress-template.md` 与 canonical schema 已对齐。
+- `skills/templates/task-progress-template.md` 与 canonical schema 已对齐。
 - `ahe-workflow-router` 更像 routing kernel，长解释已下沉到 `references/`（家族说明由 `using-ahe-workflow` / docs 承担）。
 - 核心主链 skills 已共享一致的固定骨架与 vocabulary。
 - 核心主链 skills 已明确独立调用前置条件、fallback 到 router 的规则，以及串联调用时的 handoff contract。
@@ -331,7 +331,7 @@
 
 建议产物：
 
-- `docs/ahe-workflow-shared-conventions.md`
+- `skills/docs/ahe-workflow-shared-conventions.md`
 
 建议收口内容：
 
@@ -350,7 +350,7 @@
 
 建议产物：
 
-- `docs/ahe-workflow-entrypoints.md`
+- `skills/docs/ahe-workflow-entrypoints.md`
 
 内容建议：
 
@@ -388,7 +388,7 @@
 
 建议先做：
 
-- `docs/ahe-command-entrypoints.md`
+- `skills/docs/ahe-command-entrypoints.md`
 
 可先定义的入口：
 
@@ -521,7 +521,7 @@
 | --- | --- | --- |
 | Batch 1 | 计划文档 + anatomy 文档 | docs-only，已完成 |
 | Batch 2 | router collateral 对齐 | docs / references alignment |
-| Batch 3 | `templates/task-progress-template.md` | template refactor |
+| Batch 3 | `skills/templates/task-progress-template.md` | template refactor |
 | Batch 4 | `ahe-specify` / `ahe-design` / `ahe-tasks` | core chain normalization + dual-mode contract |
 | Batch 5 | `ahe-test-driven-dev` / `ahe-regression-gate` / `ahe-completion-gate` / `ahe-finalize` | core chain normalization + dual-mode contract |
 | Batch 6 | review / branch skills sweep | secondary normalization + dual-mode contract |
@@ -535,14 +535,14 @@
 | --- | --- | --- | --- |
 | `docs/ahe-workflow-family-optimization-execution-plan.md` | `P0` | docs-only | 是 |
 | `docs/ahe-workflow-skill-anatomy.md` | `P0` | docs-only | 是，已完成 |
-| `templates/task-progress-template.md` | `P0` | template refactor | 是 |
+| `skills/templates/task-progress-template.md` | `P0` | template refactor | 是 |
 | `skills/ahe-workflow-router/SKILL.md` | `P0` | skill refactor | 是 |
 | `skills/ahe-workflow-router/references/*.md` | `P0` | docs / references alignment | 是 |
 | 核心主链 `skills/ahe-*/SKILL.md` | `P0` | skill refactor | 是 |
-| `docs/ahe-workflow-shared-conventions.md` | `P1` | docs-only | 是 |
-| `docs/ahe-workflow-entrypoints.md` | `P1` | docs-only | 是 |
+| `skills/docs/ahe-workflow-shared-conventions.md` | `P1` | docs-only | 是 |
+| `skills/docs/ahe-workflow-entrypoints.md` | `P1` | docs-only | 是 |
 | `docs/ahe-review-persona-matrix.md` | `P1` | docs-only | 可选 |
-| `docs/ahe-command-entrypoints.md` | `P1` | docs-only | 可选 |
+| `skills/docs/ahe-command-entrypoints.md` | `P1` | docs-only | 可选 |
 | `skills/using-ahe-skills/SKILL.md` | `P1` | optional asset | 条件触发 |
 | `agents/*.md` | `P1` | optional asset | 条件触发 |
 | `docs/ahe-workflow-externalization-guide.md` | `P2` | docs-only | 条件触发 |

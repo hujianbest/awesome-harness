@@ -188,7 +188,7 @@ Verification 是 skill 的退出条件，而不是礼貌性 checklist。
 
 换句话说，要求的是语义清晰，而不是机械套标题。
 
-当前 live family 对“什么时候走公开入口 / router、什么时候允许 direct invoke”的入口约定，集中维护在 `docs/ahe-workflow-entrypoints.md`。
+当前 live family 对“什么时候走公开入口 / router、什么时候允许 direct invoke”的入口约定，集中维护在 `skills/docs/ahe-workflow-entrypoints.md`。
 
 ### `standalone contract`
 
@@ -219,7 +219,7 @@ Verification 是 skill 的退出条件，而不是礼貌性 checklist。
 
 这一节只保留真正属于 family-level 的约束，不把当前仓库的实现细节固化进 anatomy。
 
-当前 live family 的共享写法与字段约定，集中维护在 `docs/ahe-workflow-shared-conventions.md`。
+当前 live family 的共享写法与字段约定，集中维护在 `skills/docs/ahe-workflow-shared-conventions.md`。
 
 ### 1. Evidence-first
 

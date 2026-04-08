@@ -1,6 +1,6 @@
 # AHE Review 动作独立 Subagent 化优化方案
 
-**Router-era 注：** 下文若出现 **legacy 合并入口/router** 旧称或 **legacy reroute 字段**，请按当前 **`ahe-workflow-router`** 与 **`reroute_via_router`** 理解；独立 pre-split 合并 skill 已移除。具体 token 映射见 `docs/ahe-workflow-shared-conventions.md`。
+**Router-era 注：** 下文若出现 **legacy 合并入口/router** 旧称或 **legacy reroute 字段**，请按当前 **`ahe-workflow-router`** 与 **`reroute_via_router`** 理解；独立 pre-split 合并 skill 已移除。具体 token 映射见 `skills/docs/ahe-workflow-shared-conventions.md`。
 
 ## 背景
 

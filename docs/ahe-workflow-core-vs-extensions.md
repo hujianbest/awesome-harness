@@ -123,10 +123,10 @@ standard profile 在质量层上与 full profile 共享以下 core nodes：
 
 以下属于 extension：
 
-- `docs/ahe-workflow-shared-conventions.md`
-- `docs/ahe-workflow-entrypoints.md`
+- `skills/docs/ahe-workflow-shared-conventions.md`
+- `skills/docs/ahe-workflow-entrypoints.md`
 - `docs/ahe-review-persona-matrix.md`
-- `docs/ahe-command-entrypoints.md`
+- `skills/docs/ahe-command-entrypoints.md`
 - `docs/ahe-p0-batch-verification.md`
 
 它们提升理解和维护效率，但 runtime 不直接依赖它们存在。
@@ -246,4 +246,4 @@ standard profile 在质量层上与 full profile 共享以下 core nodes：
 - `docs/ahe-path-mapping-guide.md`
 - `docs/ahe-p1-optional-assets-decision.md`
 - `docs/ahe-p2-optional-setup-packaging-decision.md`
-- `docs/ahe-workflow-shared-conventions.md`
+- `skills/docs/ahe-workflow-shared-conventions.md`

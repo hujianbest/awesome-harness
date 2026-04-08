@@ -20,7 +20,7 @@
 - 对“方案是否真的经过权衡”的审计不够，容易接受只有结论没有代价的设计
 - 对“是否已足够支撑任务规划”的判断偏抽象，缺少更具操作性的检查
 - 缺少对设计风险、隐藏假设和单点评审盲区的主动挑战方式
-- 与 `templates/review-record-template.md` 的结论词存在映射关系，但当前 skill 没有明确提示
+- 与 `skills/templates/review-record-template.md` 的结论词存在映射关系，但当前 skill 没有明确提示
 
 ## 优化方向
 
@@ -118,7 +118,7 @@
 
 ### 6. 明确结论词与模板字段映射
 
-在使用 `templates/review-record-template.md` 时，补充说明：
+在使用 `skills/templates/review-record-template.md` 时，补充说明：
 
 - `通过` 对应 `pass`
 - `需修改` 对应 `revise`
@@ -131,7 +131,7 @@
 
 主要参考：
 
-- `templates/review-record-template.md`
+- `skills/templates/review-record-template.md`
 - `skills/ahe-design-review/SKILL.md`
 
 ## 明确不做的事

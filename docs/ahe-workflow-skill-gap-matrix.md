@@ -196,7 +196,7 @@
 
 先改：
 
-- `templates/task-progress-template.md`
+- `skills/templates/task-progress-template.md`
 
 原因：
 

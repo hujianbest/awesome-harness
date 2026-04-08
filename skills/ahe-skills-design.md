@@ -11,7 +11,7 @@
 
 同时明确一个边界：**当前 live workflow 已采用 reviewer subagent 执行 review 节点**。父会话负责编排、派发和消费 return contract；实现、回修和真人确认仍受主链门禁约束。
 
-**当前 AHE 分层（router era）：** 家族公开入口为 `using-ahe-workflow`；runtime 路由、恢复编排与 profile/stage 判断的权威为 `ahe-workflow-router`。下文若仍出现 **legacy 合并入口/router** 旧称，请等同理解为上述职责在 pre-split 时期的合并形态；canonical reroute 字段为 `reroute_via_router`（读时 legacy reroute 字段映射见 `docs/ahe-workflow-shared-conventions.md`）。
+**当前 AHE 分层（router era）：** 家族公开入口为 `using-ahe-workflow`；runtime 路由、恢复编排与 profile/stage 判断的权威为 `ahe-workflow-router`。下文若仍出现 **legacy 合并入口/router** 旧称，请等同理解为上述职责在 pre-split 时期的合并形态；canonical reroute 字段为 `reroute_via_router`（读时 legacy reroute 字段映射见 `skills/docs/ahe-workflow-shared-conventions.md`）。
 
 ## 2. 设计目标与非目标
 

@@ -5,6 +5,8 @@
 ## 目录约定
 
 - `skills/README.md`：本目录总览
+- `skills/docs/`：AHE workflow family 的共享文档
+- `skills/templates/`：AHE workflow family 的共享模板
 - `skills/design_rules.md`：skill 与 harness 资产的设计原则
 - `skills/<skill-name>/SKILL.md`：单个 skill 的入口文件
 - `skills/<skill-name>/references/`：该 skill 的补充说明、模板或参考资料
@@ -18,7 +20,7 @@
 ## Runtime router and alias
 
 - `skills/ahe-workflow-router/` — AHE workflow family 的 canonical runtime router，负责 stage / profile / branch / review recovery authority。
-- 历史文档或旧 handoff 若仍出现 **legacy 合并入口/路由** 旧名称，按 `ahe-workflow-router` 读法理解（非当前独立 skill）；明细见 `docs/ahe-workflow-shared-conventions.md`。
+- 历史文档或旧 handoff 若仍出现 **legacy 合并入口/路由** 旧名称，按 `ahe-workflow-router` 读法理解（非当前独立 skill）；明细见 `skills/docs/ahe-workflow-shared-conventions.md`。
 
 ## AHE workflow skills（`ahe-*`）
 
@@ -36,7 +38,7 @@
 - 新会话、命令入口或 family discovery 优先从 `skills/using-ahe-workflow/SKILL.md` 开始
 - 需要 authoritative runtime routing 或恢复编排时，从 `skills/ahe-workflow-router/SKILL.md` 开始
 - 已进入某个具体 workflow 节点时，从对应目录的 `SKILL.md` 开始
-- 与任务进度、评审、验证配套的文档骨架见 `templates/`（如 `task-progress-template.md`、`review-record-template.md`、`verification-record-template.md`）
+- 与任务进度、评审、验证配套的文档骨架见 `skills/templates/`（如 `task-progress-template.md`、`review-record-template.md`、`verification-record-template.md`）
 
 ## 新增 skill 时的建议
 

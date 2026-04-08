@@ -2,7 +2,7 @@
 
 ## 与当前架构的关系
 
-清单成稿于 pre-split **legacy 合并入口/router** 时代（入口与 kernel 曾集中在同一 skill）。当前 runtime 调度与 review 回收权威在 **`ahe-workflow-router`**；review 共享协议物理路径在 **`skills/ahe-workflow-router/references/`**。reviewer 摘要中的 canonical reroute 字段为 **`reroute_via_router`**（旧工件若写 legacy reroute 字段，按 `docs/ahe-workflow-shared-conventions.md` 同义读）。
+清单成稿于 pre-split **legacy 合并入口/router** 时代（入口与 kernel 曾集中在同一 skill）。当前 runtime 调度与 review 回收权威在 **`ahe-workflow-router`**；review 共享协议物理路径在 **`skills/ahe-workflow-router/references/`**。reviewer 摘要中的 canonical reroute 字段为 **`reroute_via_router`**（旧工件若写 legacy reroute 字段，按 `skills/docs/ahe-workflow-shared-conventions.md` 同义读）。
 
 ## 目的
 

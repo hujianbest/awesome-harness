@@ -15,9 +15,9 @@
 
 - `skills/ahe-workflow-router/SKILL.md`：runtime 路由与恢复编排 kernel
 - `skills/using-ahe-workflow/SKILL.md`：家族公开入口（何时交给 router、何时可 direct invoke 的心智壳层）
-- `docs/ahe-workflow-entrypoints.md`：说明什么时候走公开入口 / router、什么时候允许 direct invoke
-- `docs/ahe-command-entrypoints.md`：说明高频薄命令入口
-- `docs/ahe-workflow-shared-conventions.md`：集中收口 shared rules
+- `skills/docs/ahe-workflow-entrypoints.md`：说明什么时候走公开入口 / router、什么时候允许 direct invoke
+- `skills/docs/ahe-command-entrypoints.md`：说明高频薄命令入口
+- `skills/docs/ahe-workflow-shared-conventions.md`：集中收口 shared rules
 
 在这个基础上再新增 `using-ahe-skills` meta-skill，会带来三个问题：
 
@@ -69,9 +69,9 @@ reviewer 节点与 gate 节点的执行模型不同；若过早抽成 agent pers
 当前以更轻的资产组合替代 optional files：
 
 - runtime routing：`skills/ahe-workflow-router/SKILL.md`；公开入口：`skills/using-ahe-workflow/SKILL.md`
-- family shared rules：`docs/ahe-workflow-shared-conventions.md`
-- family entry rules：`docs/ahe-workflow-entrypoints.md`
-- command wrappers：`docs/ahe-command-entrypoints.md`
+- family shared rules：`skills/docs/ahe-workflow-shared-conventions.md`
+- family entry rules：`skills/docs/ahe-workflow-entrypoints.md`
+- command wrappers：`skills/docs/ahe-command-entrypoints.md`
 - reviewer / gate persona：`docs/ahe-review-persona-matrix.md`
 
 ## Practical Outcome

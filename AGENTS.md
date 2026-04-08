@@ -7,8 +7,8 @@
 ## 工作方式
 
 1. **先看当前入口**：默认从 `README.md`、`AGENTS.md` 或用户明确指定的文件开始，而不是假设存在历史入口。
-2. **以实际目录为准**：只引用当前仓库中真实存在的路径。不要使用已废弃目录名或已删除的旧路径；workflow 能力统一通过 `skills/ahe-*` 下的 `SKILL.md` 查阅。
-3. **从局部入口继续深入**：查看 skill 时从 `skills/<skill-name>/SKILL.md` 开始（workflow 族为 `skills/ahe-*/SKILL.md`）；查看模板时从 `templates/` 开始；查看长文资料时从 `docs/` 开始。
+2. **以实际目录为准**：只引用当前仓库中真实存在的路径。不要使用已废弃目录名或已删除的旧路径；workflow 能力统一通过 `skills/ahe-*` 下的 `SKILL.md` 与 `skills/docs/` 下的共享文档查阅。
+3. **从局部入口继续深入**：查看 skill 时从 `skills/<skill-name>/SKILL.md` 开始（workflow 族为 `skills/ahe-*/SKILL.md`）；查看 workflow 共享文档时从 `skills/docs/` 开始；查看 workflow 相关模板时从 `skills/templates/` 开始；查看其他通用模板时从 `templates/` 开始；查看其他长文资料时从 `docs/` 开始。
 4. **控制改动范围**：只修改当前任务涉及的目录与文档，不为了“统一整理”去批量改写无关分析资料。
 5. **保持资产可复用**：模板保持通用、说明保持简洁、路径保持稳定；新增或引用 workflow 约定时统一使用 `ahe-*` 命名。
 
@@ -20,6 +20,8 @@
 | `AGENTS.md` | 仓库级 agent 约定 |
 | `docs/` | 分析、设计说明与研究记录 |
 | `skills/` | 仓库自有 skills（含 `ahe-*` workflow 家族）与设计规则 |
+| `skills/docs/` | AHE workflow live 共享文档 |
+| `skills/templates/` | AHE workflow live 模板 |
 | `templates/` | 通用模板 |
 | `agents/` | 角色化 agent 说明占位目录 |
 | `rules/` | 常驻规则占位目录 |

@@ -262,8 +262,8 @@
 
 ## References
 
-- `docs/ahe-workflow-entrypoints.md`
-- `docs/ahe-workflow-shared-conventions.md`
+- `skills/docs/ahe-workflow-entrypoints.md`
+- `skills/docs/ahe-workflow-shared-conventions.md`
 - `skills/using-ahe-workflow/SKILL.md`
 - `skills/ahe-workflow-router/SKILL.md`
 - `skills/ahe-workflow-router/references/review-dispatch-protocol.md`

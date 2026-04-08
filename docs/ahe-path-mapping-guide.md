@@ -244,4 +244,4 @@ progress state 是最容易被忽略，但最不该缺的映射。
 
 - `docs/ahe-workflow-externalization-guide.md`
 - `docs/ahe-workflow-core-vs-extensions.md`
-- `docs/ahe-workflow-shared-conventions.md`
+- `skills/docs/ahe-workflow-shared-conventions.md`

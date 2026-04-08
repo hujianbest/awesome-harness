@@ -106,7 +106,7 @@ review skills 有双重入口语义：
 ### Public entry 应优先读取
 
 - 用户当前请求
-- `docs/ahe-workflow-entrypoints.md`
+- `skills/docs/ahe-workflow-entrypoints.md`
 - 与入口判断直接相关的少量工件线索
 - 命令 bias 或用户点名的 skill 意图
 

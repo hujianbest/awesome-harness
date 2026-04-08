@@ -2,7 +2,7 @@
 
 ## Status (router era)
 
-本文主体为**历史迁移计划**（撰写时 **`ahe-workflow-starter`** 仍将 public entry 与 runtime kernel 合在一处；下文将该 pre-split 形态简称为 **legacy combined skill**）。**当前架构已落地**：`using-ahe-workflow` = 家族公开入口；`ahe-workflow-router` = canonical runtime router / 恢复权威；独立 legacy combined skill 目录已移除。canonical reroute 字段为 `reroute_via_router`（legacy reroute 字段读时同义，映射见 `docs/ahe-workflow-shared-conventions.md`）。下文保留原决策与阶段划分供对照；文中「当前」如无特别说明，指计划撰写时的仓库状态。
+本文主体为**历史迁移计划**（撰写时 **`ahe-workflow-starter`** 仍将 public entry 与 runtime kernel 合在一处；下文将该 pre-split 形态简称为 **legacy combined skill**）。**当前架构已落地**：`using-ahe-workflow` = 家族公开入口；`ahe-workflow-router` = canonical runtime router / 恢复权威；独立 legacy combined skill 目录已移除。canonical reroute 字段为 `reroute_via_router`（legacy reroute 字段读时同义，映射见 `skills/docs/ahe-workflow-shared-conventions.md`）。下文保留原决策与阶段划分供对照；文中「当前」如无特别说明，指计划撰写时的仓库状态。
 
 ## Purpose
 
@@ -61,7 +61,7 @@
 这曾带来几个结构问题：
 
 - **legacy combined skill** 既是家族入口，又是 runtime router，又承担大量 family explainer 文本，主文件过重
-- `docs/ahe-workflow-entrypoints.md` 与 `docs/ahe-command-entrypoints.md` 已经在尝试描述更低摩擦入口，但公开入口仍然直接暴露 legacy combined skill
+- `skills/docs/ahe-workflow-entrypoints.md` 与 `skills/docs/ahe-command-entrypoints.md` 已经在尝试描述更低摩擦入口，但公开入口仍然直接暴露 legacy combined skill
 - leaf skills、reviewer return contract、transition map 和 execution semantics 都把 legacy combined skill 当作 reroute 目标，使它同时承担“public shell”和“runtime kernel”两层语义
 - 若未来真的想让 AHE 更像 `agent-skills-main` 那样有一个更稳定的 family entrypoint，当时 legacy combined skill 的命名和职责都不够适合作为那层产品化外壳
 
@@ -158,8 +158,8 @@ User / /ahe-* command / direct invoke
 
 - `README.md`
 - `skills/README.md`
-- `docs/ahe-workflow-entrypoints.md`
-- `docs/ahe-command-entrypoints.md`
+- `skills/docs/ahe-workflow-entrypoints.md`
+- `skills/docs/ahe-command-entrypoints.md`
 - future command wrappers / setup docs
 - 用户直接点名的 public entry
 
@@ -184,7 +184,7 @@ User / /ahe-* command / direct invoke
 
 迁移期允许：
 
-- 旧 leaf skill 继续回历史 router 名（读时归一化，见 `docs/ahe-workflow-shared-conventions.md`）
+- 旧 leaf skill 继续回历史 router 名（读时归一化，见 `skills/docs/ahe-workflow-shared-conventions.md`）
 - 旧 reviewer return contract 同理
 - 旧 examples / plans / historical artifacts 保持不动
 
@@ -282,8 +282,8 @@ User / /ahe-* command / direct invoke
 
 - `README.md`
 - `skills/README.md`
-- `docs/ahe-workflow-entrypoints.md`
-- `docs/ahe-command-entrypoints.md`
+- `skills/docs/ahe-workflow-entrypoints.md`
+- `skills/docs/ahe-command-entrypoints.md`
 
 这一步只改 public entry surface：
 
@@ -323,7 +323,7 @@ User / /ahe-* command / direct invoke
 
 更新以下位置的 canonical 写法：
 
-- `docs/ahe-workflow-shared-conventions.md`
+- `skills/docs/ahe-workflow-shared-conventions.md`
 - router / legacy references
 - reviewer return contract
 - transition map
@@ -386,8 +386,8 @@ User / /ahe-* command / direct invoke
 
 - `README.md`
 - `skills/README.md`
-- `docs/ahe-workflow-entrypoints.md`
-- `docs/ahe-command-entrypoints.md`
+- `skills/docs/ahe-workflow-entrypoints.md`
+- `skills/docs/ahe-command-entrypoints.md`
 
 ### Router layer（canonical 物理路径）
 
@@ -406,7 +406,7 @@ User / /ahe-* command / direct invoke
 
 ### Shared conventions and templates
 
-- `docs/ahe-workflow-shared-conventions.md`
+- `skills/docs/ahe-workflow-shared-conventions.md`
 - review / verification 模板示例
 - any example that writes `Next Action Or Recommended Skill: ahe-workflow-starter`（应改为 `ahe-workflow-router`）
 
@@ -466,8 +466,8 @@ User / /ahe-* command / direct invoke
 如果紧接着执行下一批，而不是继续停留在讨论层，推荐顺序如下：
 
 1. 新增 `skills/using-ahe-workflow/SKILL.md`
-2. 更新 `docs/ahe-workflow-entrypoints.md`
-3. 更新 `docs/ahe-command-entrypoints.md`
+2. 更新 `skills/docs/ahe-workflow-entrypoints.md`
+3. 更新 `skills/docs/ahe-command-entrypoints.md`
 4. 新增 `skills/ahe-workflow-router/SKILL.md`
 5. **（已完成）** 独立 legacy combined skill 已移除；reroute vocabulary 以 `ahe-workflow-router` / `reroute_via_router` 为准
 6. **（已完成）** family-wide reroute 字段收口为 `reroute_via_router`（legacy reroute 字段仅兼容读）

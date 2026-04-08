@@ -7,11 +7,11 @@
 ## 先看哪里
 
 1. 初次进入仓库时，先读 `README.md` 和 `AGENTS.md`。
-2. 需要进入 AHE workflow 时，先读 `docs/ahe-workflow-entrypoints.md`，再进入 `skills/using-ahe-workflow/SKILL.md`。
-3. 若当前属于 runtime 恢复编排、阶段判断、profile 判断或证据冲突，再进入 `skills/ahe-workflow-router/SKILL.md`。（旧文档或旧 handoff 若仍使用 **legacy 合并路由** 旧名称，按 `docs/ahe-workflow-shared-conventions.md` 的读时归一化规则，等同当前 router 语义。）
-4. 需要理解 progress、evidence、review verdict 和记录格式时，读 `docs/ahe-workflow-shared-conventions.md`。
+2. 需要进入 AHE workflow 时，先读 `skills/docs/ahe-workflow-entrypoints.md`，再进入 `skills/using-ahe-workflow/SKILL.md`。
+3. 若当前属于 runtime 恢复编排、阶段判断、profile 判断或证据冲突，再进入 `skills/ahe-workflow-router/SKILL.md`。（旧文档或旧 handoff 若仍使用 **legacy 合并路由** 旧名称，按 `skills/docs/ahe-workflow-shared-conventions.md` 的读时归一化规则，等同当前 router 语义。）
+4. 需要理解 progress、evidence、review verdict 和记录格式时，读 `skills/docs/ahe-workflow-shared-conventions.md`。
 5. 需要维护某个 skill 时，先读 `skills/README.md`，再进入目标 `skills/<skill-name>/SKILL.md`。
-6. 需要复用文档骨架时，进入 `templates/`。
+6. 需要复用 AHE workflow 模板时，进入 `skills/templates/`；其他通用模板仍在 `templates/`。
 7. 需要做 skill 校验、打包或评测时，以 `.cursor/skills/skill-creator/` 为工作目录执行脚本。
 
 ## 默认入口规则
@@ -21,7 +21,7 @@
 - 只有在当前节点、前置工件和批准状态都已经明确时，才 direct invoke 某个具体 `ahe-*` skill。
 - review / gate skill 只处理本节点职责，不替代主链编排。
 
-更完整的入口规则见 `docs/ahe-workflow-entrypoints.md`。
+更完整的入口规则见 `skills/docs/ahe-workflow-entrypoints.md`。
 
 ## 仓库结构
 
@@ -29,9 +29,11 @@
 | --- | --- |
 | `README.md` | 仓库总览与使用入口 |
 | `AGENTS.md` | 仓库级 agent 工作约定 |
-| `docs/` | 长文分析、设计说明、研究笔记与 workflow 设计文档 |
+| `docs/` | 长文分析、设计说明与研究笔记 |
 | `skills/` | 仓库内自有 skills（含 `ahe-*` workflow family）与相关设计规则 |
-| `templates/` | 可复用的 Markdown 模板 |
+| `skills/docs/` | 直接服务 live workflow skills 的共享文档 |
+| `skills/templates/` | 直接服务 live workflow skills 的模板 |
+| `templates/` | 其他可复用的 Markdown 模板 |
 | `agents/` | 预留给角色化 agent 说明或提示词 |
 | `rules/` | 预留给常驻规则 |
 | `hooks/` | 预留给 hooks 设计与辅助脚本 |
@@ -44,7 +46,7 @@
 | 类别 | Skills | 作用 |
 | --- | --- | --- |
 | Public Entry | `using-ahe-workflow` | 新会话入口、命令入口与 family discovery |
-| Orchestrator | `ahe-workflow-router` | 当前 runtime router、恢复编排、路由与阶段判断；旧资料中的 legacy 别名读法见 `docs/ahe-workflow-shared-conventions.md` |
+| Orchestrator | `ahe-workflow-router` | 当前 runtime router、恢复编排、路由与阶段判断；旧资料中的 legacy 别名读法见 `skills/docs/ahe-workflow-shared-conventions.md` |
 | Authoring | `ahe-specify`、`ahe-design`、`ahe-tasks` | 产出主链规格、设计和任务工件 |
 | Upstream Review | `ahe-spec-review`、`ahe-design-review`、`ahe-tasks-review` | 评审上游主工件并给出结构化结论 |
 | Implementation And Branches | `ahe-test-driven-dev`、`ahe-hotfix`、`ahe-increment`、`ahe-finalize` | 实现、支线分析与收尾闭环 |
@@ -54,9 +56,9 @@
 
 ## 关键文档
 
-- `docs/ahe-workflow-entrypoints.md`：定义何时先走 `skills/using-ahe-workflow/SKILL.md`，何时交给 `ahe-workflow-router`，以及何时允许 direct invoke。
-- `docs/ahe-workflow-shared-conventions.md`：集中定义 progress schema、fresh evidence、verdict、severity 和记录表达方式。
-- `docs/ahe-command-entrypoints.md`：定义 `/ahe-spec`、`/ahe-build`、`/ahe-review`、`/ahe-closeout` 这类 docs-only command contract。
+- `skills/docs/ahe-workflow-entrypoints.md`：定义何时先走 `skills/using-ahe-workflow/SKILL.md`，何时交给 `ahe-workflow-router`，以及何时允许 direct invoke。
+- `skills/docs/ahe-workflow-shared-conventions.md`：集中定义 progress schema、fresh evidence、verdict、severity 和记录表达方式。
+- `skills/docs/ahe-command-entrypoints.md`：定义 `/ahe-spec`、`/ahe-build`、`/ahe-review`、`/ahe-closeout` 这类 docs-only command contract。
 - `docs/ahe-workflow-multi-agent-operating-model-design.md`：描述 AHE 多 agent 运行模型与 coordination 设计。
 - `docs/ahe-workflow-skill-anatomy.md`：定义 workflow skill 的目标态 anatomy。
 - `docs/ahe-workflow-skill-gap-matrix.md`：评估当前 `ahe-*` family 与目标态 anatomy 的差距与改造优先级。
@@ -65,9 +67,9 @@
 ## 常用模板
 
 - `templates/AGENTS-template.md`
-- `templates/task-progress-template.md`
-- `templates/review-record-template.md`
-- `templates/verification-record-template.md`
+- `skills/templates/task-progress-template.md`
+- `skills/templates/review-record-template.md`
+- `skills/templates/verification-record-template.md`
 
 ## 当前约束
 

@@ -13,7 +13,7 @@
 - `skills/ahe-*/SKILL.md` 全量 17 个 workflow skills
 - `skills/README.md`
 - `skills/design_rules.md`
-- `templates/task-progress-template.md`
+- `skills/templates/task-progress-template.md`
 - `skills/ahe-workflow-router/references/profile-selection-guide.md`
 - `skills/ahe-workflow-router/references/routing-evidence-guide.md`
 - `skills/ahe-workflow-router/references/routing-evidence-examples.md`
@@ -48,7 +48,7 @@
 | 证据模型 | Verification checklist + review persona + command wrapper | review record + verification record + task-progress + explicit handoff + reviewer return contract | AHE 的证据链仍更完整、更可审计 |
 | reviewer 执行方式 | 人格/skill/command 协同，但更多是产品化薄封装 | review 节点显式采用 reviewer subagent 协议；gates 仍保留主会话 authority | AHE 在“受控 review 节点化”上更强 |
 | 人工介入 | 偏建议式与验证式，人类可随时介入 | spec/design 审批、测试设计确认等处仍有明确 pause point | AHE 仍更适合高控制场景 |
-| 辅助资产 | `docs/skill-anatomy.md`、`agents/`、`.claude/commands/`、`hooks/`、`references/` | `templates/` + skill `references/` + `AGENTS.md` + router / workflow collateral docs | `agent-skills` 配套层更产品化，AHE 配套层更 workflow-specific |
+| 辅助资产 | `docs/skill-anatomy.md`、`agents/`、`.claude/commands/`、`hooks/`、`references/` | `templates/` + `skills/templates/` + skill `references/` + `AGENTS.md` + router / workflow collateral docs | `agent-skills` 配套层更产品化，AHE 配套层更 workflow-specific |
 | 可移植性 | 高，默认就是可分发 skill pack | 中等；比上一版更可拆用，但仍依赖目录、记录路径与状态工件 | AHE 仍需一层 repo-agnostic 抽象 |
 | 维护成本 | 中等，靠统一 anatomy 降低漂移 | 仍偏高；router 主文件仍偏重，且家族规则尚未完全从 live skills 中抽离 | AHE 仍更容易出现一致性漂移 |
 
@@ -96,7 +96,7 @@
 
 - 不再是“从零提出家族 anatomy”，而是“用已经出现的 anatomy / dual-mode 思路统一 live skills 的 contract”。
 - 最高优先级结构问题从“是否支持 direct invoke”转为：
-  - `templates/task-progress-template.md` 与 canonical schema 对齐
+  - `skills/templates/task-progress-template.md` 与 canonical schema 对齐
   - 把 `standalone contract` / `chain contract` 明确落到核心主链节点
   - 修正 router collateral 与 router 主文件之间的冲突
   - 继续把解释层下沉到 `references/`、`using-ahe-workflow` 与 `docs/`
