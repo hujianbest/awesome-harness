@@ -8,7 +8,7 @@
 
 - 仍然由 `ahe-bug-patterns` 作为 full / standard 实现后的首个缺陷模式专项检查节点
 - 仍然不替代 `ahe-test-review`、`ahe-code-review` 或 `ahe-regression-gate`
-- 仍然在给出唯一下一步后由 `ahe-workflow-starter` 恢复后续编排
+- 仍然在给出唯一下一步后由 `ahe-workflow-router` 恢复后续编排
 
 ## 当前问题
 
@@ -125,7 +125,7 @@
 
 主要参考：
 
-- `skills/ahe-workflow-starter/SKILL.md`
+- `skills/ahe-workflow-router/SKILL.md`
 - `skills/ahe-bug-patterns/SKILL.md`
 
 ## 明确不做的事

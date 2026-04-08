@@ -8,7 +8,7 @@
 
 1. 初次进入仓库时，先读 `README.md` 和 `AGENTS.md`。
 2. 需要进入 AHE workflow 时，先读 `docs/ahe-workflow-entrypoints.md`，再进入 `skills/using-ahe-workflow/SKILL.md`。
-3. 若当前属于 runtime 恢复编排、阶段判断、profile 判断或证据冲突，再进入 `skills/ahe-workflow-starter/SKILL.md`。
+3. 若当前属于 runtime 恢复编排、阶段判断、profile 判断或证据冲突，再进入 `skills/ahe-workflow-router/SKILL.md`。（旧文档或旧 handoff 若仍写 `ahe-workflow-starter`，按 legacy 别名读作同一路由语义。）
 4. 需要理解 progress、evidence、review verdict 和记录格式时，读 `docs/ahe-workflow-shared-conventions.md`。
 5. 需要维护某个 skill 时，先读 `skills/README.md`，再进入目标 `skills/<skill-name>/SKILL.md`。
 6. 需要复用文档骨架时，进入 `templates/`。
@@ -17,7 +17,7 @@
 ## 默认入口规则
 
 - 新会话默认先走 `using-ahe-workflow`。
-- 若当前需要 authoritative route / stage / profile 判断、review / gate 后恢复编排，或 evidence 冲突，则交给 `ahe-workflow-starter`。
+- 若当前需要 authoritative route / stage / profile 判断、review / gate 后恢复编排，或 evidence 冲突，则交给 `ahe-workflow-router`。
 - 只有在当前节点、前置工件和批准状态都已经明确时，才 direct invoke 某个具体 `ahe-*` skill。
 - review / gate skill 只处理本节点职责，不替代主链编排。
 
@@ -44,7 +44,7 @@
 | 类别 | Skills | 作用 |
 | --- | --- | --- |
 | Public Entry | `using-ahe-workflow` | 新会话入口、命令入口与 family discovery |
-| Orchestrator | `ahe-workflow-starter` | 当前 runtime router、恢复编排、路由与阶段判断 |
+| Orchestrator | `ahe-workflow-router` | 当前 runtime router、恢复编排、路由与阶段判断（`ahe-workflow-starter` 仅作历史兼容别名，不作为当前入口） |
 | Authoring | `ahe-specify`、`ahe-design`、`ahe-tasks` | 产出主链规格、设计和任务工件 |
 | Upstream Review | `ahe-spec-review`、`ahe-design-review`、`ahe-tasks-review` | 评审上游主工件并给出结构化结论 |
 | Implementation And Branches | `ahe-test-driven-dev`、`ahe-hotfix`、`ahe-increment`、`ahe-finalize` | 实现、支线分析与收尾闭环 |
@@ -54,7 +54,7 @@
 
 ## 关键文档
 
-- `docs/ahe-workflow-entrypoints.md`：定义何时先走 `skills/using-ahe-workflow/SKILL.md`，何时交给 `ahe-workflow-starter`，以及何时允许 direct invoke。
+- `docs/ahe-workflow-entrypoints.md`：定义何时先走 `skills/using-ahe-workflow/SKILL.md`，何时交给 `ahe-workflow-router`，以及何时允许 direct invoke。
 - `docs/ahe-workflow-shared-conventions.md`：集中定义 progress schema、fresh evidence、verdict、severity 和记录表达方式。
 - `docs/ahe-command-entrypoints.md`：定义 `/ahe-spec`、`/ahe-build`、`/ahe-review`、`/ahe-closeout` 这类 docs-only command contract。
 - `docs/ahe-workflow-multi-agent-operating-model-design.md`：描述 AHE 多 agent 运行模型与 coordination 设计。

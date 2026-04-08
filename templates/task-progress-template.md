@@ -3,7 +3,7 @@
 使用说明：
 
 - 这是 `ahe` 中的通用任务进度模板。
-- 适合记录当前目标、workflow 状态、证据和下一步；可与 `skills/ahe-*` workflow skills（如 `skills/ahe-workflow-starter/`）配合使用。
+- 适合记录当前目标、workflow 状态、证据和下一步；可与 `skills/ahe-*` workflow skills（runtime 编排以 `skills/ahe-workflow-router/` 为准；旧资料若写 `ahe-workflow-starter` 按 legacy 理解）配合使用。
 - 建议保存在仓库根目录或 `docs/` 下的合适位置。
 - 若当前项目采用 `ahe-*` workflow，优先使用下面的 canonical 字段名，不再把 `Current Task` / `Next Action` 当作主字段。
 - 该模板定义的是 minimal canonical core；项目可按需追加附加工件区块，但不应改写核心字段名。

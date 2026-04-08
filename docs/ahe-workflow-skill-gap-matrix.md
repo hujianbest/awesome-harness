@@ -1,5 +1,7 @@
 # AHE workflow skill gap matrix
 
+**Router-era 注：** 矩阵中曾用 `ahe-workflow-starter` 指代的“过重 orchestrator”问题，现应理解为 **`ahe-workflow-router`**（kernel）与 **`using-ahe-workflow`**（公开入口）分层后的剩余 gap；独立 starter skill 已移除。
+
 ## 目的
 
 本文基于 `docs/ahe-workflow-skill-anatomy.md` 的目标态 anatomy，评估当前 `skills/ahe-*/SKILL.md` 的结构偏差，并把 `P0-4` / `P0-5` 的改造顺序细化成可直接执行的批次。
@@ -35,7 +37,7 @@
 - `Common Rationalizations` 在家族里明显偏弱，只有极少数 skill 接近目标态。
 - 许多 skill 已经有强输出语义，但还没有被明确写成 `Output Contract`。
 - `Evidence-first` 整体是家族强项，但常常散落在步骤和门禁里，没有被结构化表达。
-- progressive disclosure 不均衡，尤其是 `ahe-workflow-starter` 和 `ahe-test-driven-dev` 仍偏重。
+- progressive disclosure 不均衡，尤其是 `ahe-workflow-router`（及入口层 `using-ahe-workflow`）和 `ahe-test-driven-dev` 仍偏重。
 
 ## 偏差最大的 skill
 
@@ -43,7 +45,7 @@
 
 | 排名 | skill | 主要 gap | 建议归属 |
 | --- | --- | --- | --- |
-| 1 | `ahe-workflow-starter` | 缺显式 `Verification`、主文件过重、section skeleton 不统一、rationalizations 不完整 | `P0-2` + `P0-6` |
+| 1 | `ahe-workflow-router`（+ 入口 `using-ahe-workflow`） | 缺显式 `Verification`、router 主文件过重、section skeleton 不统一、rationalizations 不完整 | `P0-2` + `P0-6` |
 | 2 | `ahe-test-driven-dev` | 主文件过大、appendix 应下沉、dual-mode contract 未显式化、输出契约未标准命名 | `P0-4` Batch 5 |
 | 3 | `ahe-spec-review` | `When to Use` 不够显式、缺 `Red Flags` / `Common Rationalizations`、dual-mode contract 缺失 | `P0-5` 第一波 |
 | 4 | `ahe-design-review` | 与 `ahe-spec-review` 类似，结构更像现状说明而非目标态 reviewer skeleton | `P0-5` 第一波 |
@@ -52,9 +54,9 @@
 
 ## 逐项说明
 
-### 1. `ahe-workflow-starter`
+### 1. `ahe-workflow-router`（历史表述：`ahe-workflow-starter`）
 
-当前最大问题不是能力不够，而是主文件过重、入口职责过多、目标态 skeleton 不够清晰。
+当前最大问题不是能力不够，而是 router 主文件过重、与公开入口分层后仍易把解释层堆回 kernel、目标态 skeleton 不够清晰。
 
 最关键缺口：
 
@@ -65,7 +67,7 @@
 
 建议动作：
 
-- 先执行 `P0-2`，对齐 starter 主文件与 collateral
+- 先执行 `P0-2`，对齐 router 主文件与 collateral
 - 再在 `P0-6` 做第二轮瘦身，把长解释与矩阵继续下沉
 
 ### 2. `ahe-test-driven-dev`
@@ -174,16 +176,16 @@
 
 ## 按依赖执行的推荐顺序
 
-### Step 1. `P0-2` starter collateral 对齐
+### Step 1. `P0-2` router collateral 对齐
 
 先处理：
 
-- `skills/ahe-workflow-starter/SKILL.md`
-- `skills/ahe-workflow-starter/references/profile-selection-guide.md`
-- `skills/ahe-workflow-starter/references/routing-evidence-guide.md`
-- `skills/ahe-workflow-starter/references/routing-evidence-examples.md`
-- `skills/ahe-workflow-starter/references/review-dispatch-protocol.md`
-- `skills/ahe-workflow-starter/references/reviewer-return-contract.md`
+- `skills/ahe-workflow-router/SKILL.md`
+- `skills/ahe-workflow-router/references/profile-selection-guide.md`
+- `skills/ahe-workflow-router/references/routing-evidence-guide.md`
+- `skills/ahe-workflow-router/references/routing-evidence-examples.md`
+- `skills/ahe-workflow-router/references/review-dispatch-protocol.md`
+- `skills/ahe-workflow-router/references/reviewer-return-contract.md`
 
 原因：
 
@@ -276,17 +278,17 @@
 - branch / re-entry archetype 已相对稳定
 - 适合放在 reviewer 第二波之后统一补 contract
 
-### Step 8. `P0-6` starter 第二轮瘦身
+### Step 8. `P0-6` router 第二轮瘦身
 
 最后再处理：
 
-- `skills/ahe-workflow-starter/SKILL.md`
-- `skills/ahe-workflow-starter/references/*.md`
+- `skills/ahe-workflow-router/SKILL.md`
+- `skills/ahe-workflow-router/references/*.md`
 
 原因：
 
 - 此时 family vocabulary、output contract、reviewer / gate 边界都已经稳定
-- 更容易知道哪些说明真正应留在 starter 主文件，哪些应继续下沉
+- 更容易知道哪些说明真正应留在 router 主文件，哪些应继续下沉到 `references/` 或 `using-ahe-workflow`
 
 ## 批次建议
 
@@ -294,22 +296,22 @@
 
 | 批次 | 范围 | 目的 |
 | --- | --- | --- |
-| Batch A | starter collateral | 关闭文档层冲突 |
+| Batch A | router collateral | 关闭文档层冲突 |
 | Batch B | `task-progress` 模板 | 冻结 canonical schema |
 | Batch C | `ahe-specify` `ahe-design` `ahe-tasks` | 形成 producer archetype |
 | Batch D | `ahe-regression-gate` `ahe-completion-gate` `ahe-finalize` `ahe-test-driven-dev` | 形成 gate / finalizer / implementation archetype |
 | Batch E | `ahe-spec-review` `ahe-design-review` `ahe-tasks-review` | reviewer 第一波统一 |
 | Batch F | `ahe-test-review` `ahe-code-review` `ahe-traceability-review` `ahe-bug-patterns` | reviewer 第二波统一 |
 | Batch G | `ahe-hotfix` `ahe-increment` | branch / re-entry 对齐 |
-| Batch H | starter second slimming | 回收解释层、完成 kernel 收口 |
+| Batch H | router second slimming | 回收解释层、完成 kernel 收口 |
 
 ## 当前最值得进入的下一编辑入口
 
-如果要继续直接改文件，最优入口不是 gap 最大的 `ahe-workflow-starter` 主文件本体，而是：
+如果要继续直接改文件，最优入口不是 gap 最大的 `ahe-workflow-router` 主文件本体，而是：
 
-1. `skills/ahe-workflow-starter/references/profile-selection-guide.md`
-2. `skills/ahe-workflow-starter/references/routing-evidence-examples.md`
-3. `skills/ahe-workflow-starter/SKILL.md`
+1. `skills/ahe-workflow-router/references/profile-selection-guide.md`
+2. `skills/ahe-workflow-router/references/routing-evidence-examples.md`
+3. `skills/ahe-workflow-router/SKILL.md`
 
 原因：
 
@@ -319,4 +321,4 @@
 
 ## 一句话结论
 
-从目标态 anatomy 看，当前 AHE 最需要的不是“继续增加规则”，而是按依赖顺序把已有强能力结构化：先修 starter collateral，再冻结 progress schema，然后分批把 producer、gate、reviewer 和 branch archetype 对齐到统一 skeleton。
+从目标态 anatomy 看，当前 AHE 最需要的不是“继续增加规则”，而是按依赖顺序把已有强能力结构化：先修 router collateral，再冻结 progress schema，然后分批把 producer、gate、reviewer 和 branch archetype 对齐到统一 skeleton。

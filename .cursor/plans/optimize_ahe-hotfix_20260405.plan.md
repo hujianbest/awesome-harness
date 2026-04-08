@@ -9,7 +9,7 @@
 - 仍然由 `ahe-hotfix` 负责热修复分析、复现、范围收敛和状态写回
 - 仍然只有 `ahe-test-driven-dev` 是唯一实现入口
 - 仍然不能因为“紧急”就放弃 fail-first、验证和后续门禁
-- 仍然由 `ahe-workflow-starter` 统一拥有后续恢复编排权
+- 仍然由 `ahe-workflow-router` 统一拥有后续恢复编排权
 
 ## 当前问题
 
@@ -93,7 +93,7 @@
 明确区分：
 
 - 这是实现缺陷，还是需求 / 验收 / 范围变化
-- 若本质是增量或规则变更，应回到 `ahe-increment` 或 `ahe-workflow-starter`
+- 若本质是增量或规则变更，应回到 `ahe-increment` 或 `ahe-workflow-router`
 
 为什么这么改：
 
@@ -102,7 +102,7 @@
 主要参考：
 
 - `skills/ahe-increment/SKILL.md`
-- `skills/ahe-workflow-starter/SKILL.md`
+- `skills/ahe-workflow-router/SKILL.md`
 
 ### 5. 强化 hotfix 阶段自己的 fresh evidence
 
@@ -139,21 +139,21 @@
 - `references/gstack-main/investigate/SKILL.md`
 - `docs/skills_refer.md`
 
-### 7. 明确后续链路提示但不抢 starter 的权
+### 7. 明确后续链路提示但不抢 router 的权
 
 保留“通常下一步”的提示，例如：
 
 - 多数热修分析完成后先进入 `ahe-test-driven-dev`
-- 完成实现后再由 starter 判断是否进入 `ahe-bug-patterns`、`ahe-regression-gate` 等
+- 完成实现后再由 router 判断是否进入 `ahe-bug-patterns`、`ahe-regression-gate` 等
 
 为什么这么改：
 
 - 既能减少 `Next Action` 的自由文本漂移
-- 又不会抢走 `ahe-workflow-starter` 的恢复编排权
+- 又不会抢走 `ahe-workflow-router` 的恢复编排权
 
 主要参考：
 
-- `skills/ahe-workflow-starter/SKILL.md`
+- `skills/ahe-workflow-router/SKILL.md`
 - `skills/ahe-test-driven-dev/SKILL.md`
 
 ## 明确不做的事

@@ -1,20 +1,22 @@
-# 优化 `ahe-workflow-starter` 方案
+# 优化 `ahe-workflow-starter` 方案（归档）
+
+> **Historical：** 本计划针对已移除的独立 `ahe-workflow-starter` skill。当前 canonical runtime 为 **`ahe-workflow-router`**；公开家族入口为 **`using-ahe-workflow`**。下文中路径与 skill 名在今日应读作对 **`skills/ahe-workflow-router/SKILL.md`** 的同类优化思路。
 
 ## 目标
 
-把 `skills/ahe-workflow-starter/SKILL.md` 从“能工作的一套状态机说明”提升为“能稳定做出高质量路由 / 恢复编排决策的 workflow 入口 skill”。
+把 `skills/ahe-workflow-router/SKILL.md`（计划撰写时：`skills/ahe-workflow-starter/SKILL.md`）从“能工作的一套状态机说明”提升为“能稳定做出高质量路由 / 恢复编排决策的 workflow kernel skill”。
 
 本次优化不会改变 AHE 的核心状态机事实：
 
 - 仍然只有一个当前 workflow profile 和一个当前推荐节点
-- 仍然由 `ahe-workflow-starter` 统一拥有路由与恢复编排权
+- 仍然由 `ahe-workflow-router` 统一拥有路由与恢复编排权（历史写法：`ahe-workflow-starter`）
 - 仍然遵守 `通过 | 需修改 | 阻塞` 的 review / gate 迁移语义
 - 仍然保持非暂停点连续执行、暂停点等待用户
 - 仍然以 `ahe-test-driven-dev` 作为实现阶段统一入口
 
 ## 当前问题
 
-当前 `ahe-workflow-starter` 已经信息很全，但还存在几个高价值短板：
+当前 `ahe-workflow-router`（计划撰写时：`ahe-workflow-starter`）已经信息很全，但还存在几个高价值短板：
 
 - 核心状态机主要靠长篇线性文字表达，不够 glanceable
 - 缺少一套显式的“决策分类”，导致证据冲突、边界场景时容易不一致
@@ -52,12 +54,12 @@
 
 为什么这么改：
 
-- 这能让 starter 在复杂恢复编排场景下更稳定
+- 这能让 router 在复杂恢复编排场景下更稳定
 
 主要参考：
 
 - `references/gstack-main/autoplan/SKILL.md`
-- `skills/ahe-workflow-starter/SKILL.md`
+- `skills/ahe-workflow-router/SKILL.md`
 
 ### 3. 补强 profile 与迁移表一致性
 
@@ -72,7 +74,7 @@
 
 主要参考：
 
-- `skills/ahe-workflow-starter/SKILL.md`
+- `skills/ahe-workflow-router/SKILL.md`
 
 ### 4. 增加路由恢复协议
 
@@ -90,7 +92,7 @@
 主要参考：
 
 - `references/everything-claude-code-main/skills/continuous-agent-loop/SKILL.md`
-- `skills/ahe-workflow-starter/SKILL.md`
+- `skills/ahe-workflow-router/SKILL.md`
 
 ### 5. 强化优先级表达
 
@@ -102,7 +104,7 @@
 
 为什么这么改：
 
-- 这类优先级歧义是 starter 最容易出错的地方之一
+- 这类优先级歧义是 router 最容易出错的地方之一
 
 主要参考：
 
@@ -115,21 +117,21 @@
 - 不重写整个状态机
 - 不新增新的 workflow profile
 - 不修改下游 skill 的核心职责边界
-- 不把 starter 变成另一个 planner skill
+- 不把 router 变成另一个 planner skill
 
 ## 计划中的实际改动
 
-会对 `skills/ahe-workflow-starter/SKILL.md` 做一轮聚焦增强，预计包括：
+会对 `skills/ahe-workflow-router/SKILL.md`（历史：`ahe-workflow-starter`）做一轮聚焦增强，预计包括：
 
 - 增加 canonical 路由图
 - 增加决策分类
 - 强化优先级 / branch / pause point 表达
 - 补齐轻量 profile 迁移表与恢复协议
-- 收紧“何时必须回到 starter”的失败模式说明
+- 收紧“何时必须回到 router”的失败模式说明
 
 ## 预期效果
 
-优化后的 `ahe-workflow-starter` 应该具备这些特征：
+优化后的 `ahe-workflow-router`（历史目标名：`ahe-workflow-starter`）应该具备这些特征：
 
 - 更像一个稳定可执行的状态机入口，而不是一篇很长的流程说明
 - 在 “继续 / review 完成 / gate 回流 / 支线切换” 场景下更少走错

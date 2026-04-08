@@ -75,7 +75,7 @@
 主要参考：
 
 - `skills/ahe-finalize/SKILL.md`
-- `skills/ahe-workflow-starter/SKILL.md`
+- `skills/ahe-workflow-router/SKILL.md`
 
 ### 4. 把 fresh evidence 升级为结构化 completion evidence bundle
 
@@ -126,11 +126,11 @@
 
 为什么这么改：
 
-- 这能让 starter 和 finalize 都能按显式状态恢复，而不是靠自然语言猜
+- 这能让 router 和 finalize 都能按显式状态恢复，而不是靠自然语言猜
 
 主要参考：
 
-- `skills/ahe-workflow-starter/SKILL.md`
+- `skills/ahe-workflow-router/SKILL.md`
 - `skills/ahe-regression-gate/SKILL.md`
 
 ### 7. 补充 blocker / need-modify 恢复规则
@@ -139,7 +139,7 @@
 
 - 证据不支持完成 -> `需修改`
 - 环境 / 工具链损坏 -> `阻塞` 并重试 completion gate
-- 上游编排 / profile / 证据链问题 -> 在记录里明确要求经 `ahe-workflow-starter` 重编排
+- 上游编排 / profile / 证据链问题 -> 在记录里明确要求经 `ahe-workflow-router` 重编排
 
 为什么这么改：
 

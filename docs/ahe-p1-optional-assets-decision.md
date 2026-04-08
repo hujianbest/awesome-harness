@@ -13,28 +13,29 @@
 
 当前仓库已经有以下入口资产：
 
-- `skills/ahe-workflow-starter/SKILL.md`：runtime 路由 kernel
-- `docs/ahe-workflow-entrypoints.md`：说明什么时候走 starter、什么时候允许 direct invoke
+- `skills/ahe-workflow-router/SKILL.md`：runtime 路由与恢复编排 kernel
+- `skills/using-ahe-workflow/SKILL.md`：家族公开入口（何时交给 router、何时可 direct invoke 的心智壳层）
+- `docs/ahe-workflow-entrypoints.md`：说明什么时候走公开入口 / router、什么时候允许 direct invoke
 - `docs/ahe-command-entrypoints.md`：说明高频薄命令入口
 - `docs/ahe-workflow-shared-conventions.md`：集中收口 shared rules
 
 在这个基础上再新增 `using-ahe-skills` meta-skill，会带来三个问题：
 
-1. **与 starter 职责重叠**
-它很容易被误写成第二个入口 kernel。
+1. **与现有入口层职责重叠**
+它很容易被误写成第二个入口 kernel（与 `using-ahe-workflow` / `ahe-workflow-router` 分层冲突）。
 
 2. **触发歧义**
-模型可能在“应该用 starter”与“应该用 meta-skill”之间摇摆。
+模型可能在“应该用公开入口 / router”与“应该用 meta-skill”之间摇摆。
 
 3. **维护税**
-一旦 shared conventions、entrypoints、commands 或 starter 有更新，meta-skill 也必须同步。
+一旦 shared conventions、entrypoints、commands 或 router / 公开入口有更新，meta-skill 也必须同步。
 
 ### Revisit Trigger
 
 只有在出现以下真实需求时，再考虑新增：
 
-- 外部仓库用户频繁需要“家族级 onboarding”，但又不适合直接进入 starter
-- 命令入口与 starter 之间还缺一层稳定的 family explainer
+- 外部仓库用户频繁需要“家族级 onboarding”，但又不适合直接进入 `using-ahe-workflow` / `ahe-workflow-router`
+- 命令入口与文档化入口之间还缺一层稳定的 family explainer
 - 文档入口已被证明不足，用户反复在“该从哪个 ahe skill 开始”上迷路
 
 ## Why Not Add `agents/*.md` Persona Assets Now
@@ -67,7 +68,7 @@ reviewer 节点与 gate 节点的执行模型不同；若过早抽成 agent pers
 
 当前以更轻的资产组合替代 optional files：
 
-- runtime routing：`skills/ahe-workflow-starter/SKILL.md`
+- runtime routing：`skills/ahe-workflow-router/SKILL.md`；公开入口：`skills/using-ahe-workflow/SKILL.md`
 - family shared rules：`docs/ahe-workflow-shared-conventions.md`
 - family entry rules：`docs/ahe-workflow-entrypoints.md`
 - command wrappers：`docs/ahe-command-entrypoints.md`

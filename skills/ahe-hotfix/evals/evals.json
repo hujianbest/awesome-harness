@@ -52,11 +52,11 @@
     {
       "id": 5,
       "prompt": "线上用户反馈登录页有个按钮颜色显示不对，纯 CSS 问题，已经定位到是哪个 class，改一行就能修。这个算热修复吗？还是说应该走别的流程？",
-      "expected_output": "应判断这是一个低风险、单文件的样式修复；应先使用 ahe-workflow-starter 确认当前阶段，然后根据信号判断：若不涉及功能行为变化、不在高风险模块，通常应走 lightweight profile 而不是热修复支线；热修复支线用于线上功能性缺陷，而不是纯样式问题。",
+      "expected_output": "应判断这是一个低风险、单文件的样式修复；应先使用 ahe-workflow-router 确认当前阶段，然后根据信号判断：若不涉及功能行为变化、不在高风险模块，通常应走 lightweight profile 而不是热修复支线；热修复支线用于线上功能性缺陷，而不是纯样式问题。",
       "files": [],
       "expectations": [
         "识别纯 CSS 样式修复不是典型热修复场景",
-        "说明应先通过 ahe-workflow-starter 判断正确路径",
+        "说明应先通过 ahe-workflow-router 判断正确路径",
         "指出 lightweight profile 可能更合适",
         "不强行把所有线上问题都路由到 ahe-hotfix"
       ]

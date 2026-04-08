@@ -188,7 +188,7 @@ Verification 是 skill 的退出条件，而不是礼貌性 checklist。
 
 换句话说，要求的是语义清晰，而不是机械套标题。
 
-当前 live family 对“什么时候走 starter、什么时候允许 direct invoke”的入口约定，集中维护在 `docs/ahe-workflow-entrypoints.md`。
+当前 live family 对“什么时候走公开入口 / router、什么时候允许 direct invoke”的入口约定，集中维护在 `docs/ahe-workflow-entrypoints.md`。
 
 ### `standalone contract`
 
@@ -279,7 +279,7 @@ anatomy 更适合定义“规格文档”“设计文档”“评审记录”“
 
 ### Orchestrator
 
-例如当前由 `ahe-workflow-starter` 承担的角色。
+例如当前由 `ahe-workflow-router`（runtime 恢复与编排）与 `using-ahe-workflow`（公开家族入口）分工承担、合起来覆盖的旧式单一 orchestrator 角色。
 
 写作重点：
 

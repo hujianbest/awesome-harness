@@ -6,7 +6,7 @@
 
 这次优化只增强 `ahe-design` 的设计深度、文档结构和评审对齐能力，不改 AHE 主链契约：
 
-- 仍然必须先经过 `skills/ahe-workflow-starter/SKILL.md` 路由
+- 仍然必须先经过 `skills/ahe-workflow-router/SKILL.md` 路由
 - 仍然只在已批准规格基础上产出 HOW 层设计
 - 仍然通过 `skills/ahe-design-review/SKILL.md` 进入评审
 - 仍然禁止在 `ahe-design` 阶段发起真人批准
@@ -186,7 +186,7 @@
 - 增加最少必要视图要求
 - 强化接口与契约、NFR 落地、需求追溯和任务规划准备度说明
 - 升级评审前自检
-- 调整 handoff 文案与 `task-progress.md` 阶段写法，使其更贴近 `ahe-workflow-starter` 的连续执行模型
+- 调整 handoff 文案与 `task-progress.md` 阶段写法，使其更贴近 `ahe-workflow-router` 的连续执行模型
 
 ## 预期效果
 

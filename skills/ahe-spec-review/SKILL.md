@@ -184,7 +184,7 @@ severity 统一使用：
 - 若结论为 `通过`，下一步为 `规格真人确认`，`needs_human_confirmation=true`
 - 若结论为 `需修改`，下一步为 `ahe-specify`
 - 若结论为 `阻塞` 且问题属于规格内容本身，下一步为 `ahe-specify`
-- 若结论为 `阻塞` 且问题属于 route / stage / 证据冲突，下一步为 `ahe-workflow-router`，并设置 `reroute_via_starter=true`
+- 若结论为 `阻塞` 且问题属于 route / stage / 证据冲突，下一步为 `ahe-workflow-router`，并设置 `reroute_via_router=true`（历史字段 `reroute_via_starter` 与之等价）
 
 ## Output Contract
 
@@ -231,7 +231,7 @@ review 记录正文请严格使用以下结构：
   "record_path": "实际写入的 review 记录路径",
   "key_findings": ["关键发现 1", "关键发现 2"],
   "needs_human_confirmation": true,
-  "reroute_via_starter": false
+  "reroute_via_router": false
 }
 ```
 
@@ -240,7 +240,7 @@ review 记录正文请严格使用以下结构：
 - `通过`：`next_action_or_recommended_skill=规格真人确认`，`needs_human_confirmation=true`
 - `需修改`：`next_action_or_recommended_skill=ahe-specify`，`needs_human_confirmation=false`
 - `阻塞` 且属于规格内容回修：`next_action_or_recommended_skill=ahe-specify`，`needs_human_confirmation=false`
-- `阻塞` 且属于 route / stage / 证据链冲突：`next_action_or_recommended_skill=ahe-workflow-router`，`needs_human_confirmation=false`，`reroute_via_starter=true`
+- `阻塞` 且属于 route / stage / 证据链冲突：`next_action_or_recommended_skill=ahe-workflow-router`，`needs_human_confirmation=false`，`reroute_via_router=true`
 
 ## Common Rationalizations
 

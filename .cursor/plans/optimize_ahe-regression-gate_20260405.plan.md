@@ -75,7 +75,7 @@
 
 主要参考：
 
-- `skills/ahe-workflow-starter/SKILL.md`
+- `skills/ahe-workflow-router/SKILL.md`
 - `skills/ahe-finalize/SKILL.md`
 
 ### 4. 把 fresh evidence 升级为结构化证据契约
@@ -106,11 +106,11 @@
 
 为什么这么改：
 
-- starter 已经用 canonical `ahe-*` handoff 恢复编排，regression gate 也应一致
+- router 已经用 canonical `ahe-*` handoff 恢复编排，regression gate 也应一致
 
 主要参考：
 
-- `skills/ahe-workflow-starter/SKILL.md`
+- `skills/ahe-workflow-router/SKILL.md`
 
 ### 6. 补充 blocker 分类与恢复规则
 
@@ -118,7 +118,7 @@
 
 - 回归真实失败 -> `需修改`，回到 `ahe-test-driven-dev`
 - 环境 / 工具链 / 命令入口损坏 -> `阻塞`
-- 若 `阻塞` 实际暴露的是 profile / 编排 / 上游证据问题，应在记录里明确要求经 `ahe-workflow-starter` 重编排
+- 若 `阻塞` 实际暴露的是 profile / 编排 / 上游证据问题，应在记录里明确要求经 `ahe-workflow-router` 重编排
 
 为什么这么改：
 

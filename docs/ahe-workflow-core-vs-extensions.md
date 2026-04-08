@@ -20,7 +20,8 @@
 
 以下属于 core：
 
-- `skills/ahe-workflow-starter/`
+- `skills/ahe-workflow-router/`（runtime 路由与恢复编排 kernel）
+- `skills/using-ahe-workflow/`（家族公开入口 shell；不承担 profile / stage machine）
 - profile 规则
 - canonical route / reroute semantics
 - pause point / human confirmation semantics
@@ -44,7 +45,7 @@
 原因：
 
 - 没有这些 contract，节点之间只能靠自由文本 handoff
-- 一旦 handoff 变成自由文本，starter、review、gate 与 branch 就无法稳定协作
+- 一旦 handoff 变成自由文本，router、review、gate 与 branch 就无法稳定协作
 
 ### 3. Main runtime nodes
 
@@ -54,7 +55,7 @@
 
 这些节点不一定出现在每一次运行里，但都属于 AHE family 必须保留的 core runtime surface：
 
-- `ahe-workflow-starter`
+- `ahe-workflow-router`
 - `ahe-tasks`
 - `ahe-tasks-review`
 - `任务真人确认`
@@ -143,7 +144,7 @@ standard profile 在质量层上与 full profile 共享以下 core nodes：
 
 - 它们只降低入口摩擦
 - 不拥有独立状态机
-- 即使没有这些命令，starter 与各 skill 仍可直接工作
+- 即使没有这些命令，`ahe-workflow-router` 与各 leaf skill 仍可直接工作
 
 ### 3. Optional personas and meta-assets
 
@@ -171,7 +172,7 @@ standard profile 在质量层上与 full profile 共享以下 core nodes：
 
 需要：
 
-- starter
+- `ahe-workflow-router`（runtime kernel；公开入口 `using-ahe-workflow` 为推荐但非替代 router 契约）
 - canonical contracts
 - progress state
 - tasks review / human confirmation / implementation / regression gate / completion gate / finalize 主线
@@ -215,7 +216,7 @@ standard profile 在质量层上与 full profile 共享以下 core nodes：
 
 - 先做很多命令包装，却还没有稳定 progress state
 - 先做 reviewer persona files，却还没有统一 shared conventions
-- 先做 packaging / hook 集成，却还没有跑通 starter
+- 先做 packaging / hook 集成，却还没有跑通 router 主链
 - 先复制一堆文档名字，却没有真正声明映射关系
 
 ## Practical Decision Table
@@ -231,7 +232,7 @@ standard profile 在质量层上与 full profile 共享以下 core nodes：
 
 对外部仓库来说，最小正确问题不是“有没有命令入口”，而是：
 
-- 有没有 starter
+- 有没有 `ahe-workflow-router` 及其契约面
 - 有没有 stable contracts
 - 有没有 progress state
 - 有没有 review / verification evidence

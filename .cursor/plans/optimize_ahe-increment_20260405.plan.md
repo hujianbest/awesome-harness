@@ -6,7 +6,7 @@
 
 本次优化不改变 AHE 主链契约：
 
-- 仍然由 `ahe-workflow-starter` 拥有分支进入与恢复编排权
+- 仍然由 `ahe-workflow-router` 拥有分支进入与恢复编排权
 - 仍然不能从变更请求直接跳进实现
 - 仍然由 `ahe-specify` / `ahe-design` / `ahe-tasks` 负责各自产物的高质量重写
 - 仍然由 `ahe-test-driven-dev` 作为唯一实现入口
@@ -41,7 +41,7 @@
 主要参考：
 
 - `references/longtaskforagent-main/skills/long-task-increment/SKILL.md`
-- `skills/ahe-workflow-starter/SKILL.md`
+- `skills/ahe-workflow-router/SKILL.md`
 
 ### 2. 引入结构化“变更包 / 影响矩阵”
 
@@ -94,7 +94,7 @@
 主要参考：
 
 - `skills/ahe-hotfix/SKILL.md`
-- `skills/ahe-workflow-starter/SKILL.md`
+- `skills/ahe-workflow-router/SKILL.md`
 
 ### 5. 收紧 canonical handoff
 
@@ -106,11 +106,11 @@
 
 为什么这么改：
 
-- starter 已经把显式交接做成受控字段，增量 skill 也必须对齐
+- router 已经把显式交接做成受控字段，增量 skill 也必须对齐
 
 主要参考：
 
-- `skills/ahe-workflow-starter/SKILL.md`
+- `skills/ahe-workflow-router/SKILL.md`
 - `skills/ahe-hotfix/SKILL.md`
 
 ### 6. 增加 profile 升级信号
@@ -127,7 +127,7 @@
 
 主要参考：
 
-- `skills/ahe-workflow-starter/SKILL.md`
+- `skills/ahe-workflow-router/SKILL.md`
 - `skills/ahe-design/SKILL.md`
 
 ### 7. 补强实现回流条件
@@ -152,7 +152,7 @@
 - 不把 `ahe-increment` 写成第二个 `ahe-specify`
 - 不直接替代 `ahe-design` 或 `ahe-tasks` 完成全部下游重写
 - 不在变更 skill 内直接推进实现
-- 不抢走 `ahe-workflow-starter` 的恢复编排权
+- 不抢走 `ahe-workflow-router` 的恢复编排权
 
 ## 计划中的实际改动
 
@@ -172,4 +172,4 @@
 - 不只是“分析变更影响”，而是能稳定收敛一轮安全的增量更新包
 - 更容易决定到底该回 `ahe-spec-review`、`ahe-design-review`、`ahe-tasks-review` 还是重新进入实现
 - 更少出现旧批准、旧 active task、旧验证证据被误用的情况
-- 与 `ahe-workflow-starter`、`ahe-hotfix`、`ahe-test-driven-dev` 的契约更一致
+- 与 `ahe-workflow-router`、`ahe-hotfix`、`ahe-test-driven-dev` 的契约更一致

@@ -95,7 +95,7 @@
 
 主要参考：
 
-- `skills/ahe-workflow-starter/SKILL.md`
+- `skills/ahe-workflow-router/SKILL.md`
 - `skills/ahe-finalize/SKILL.md`
 
 ### 5. 升级输出为可继续交接的 review artifact
@@ -129,7 +129,7 @@
 同时补充：
 
 - 若 `阻塞` 是实现修订类，回到 `ahe-test-driven-dev`
-- 若 `阻塞` 是上游批准 / 工件缺失 / 编排错位，应在记录中明确要求经 `ahe-workflow-starter` 重编排
+- 若 `阻塞` 是上游批准 / 工件缺失 / 编排错位，应在记录中明确要求经 `ahe-workflow-router` 重编排
 
 为什么这么改：
 
@@ -138,7 +138,7 @@
 主要参考：
 
 - `skills/ahe-code-review/SKILL.md`
-- `skills/ahe-workflow-starter/SKILL.md`
+- `skills/ahe-workflow-router/SKILL.md`
 
 ### 7. 强化记录要求与 finalize 对接
 

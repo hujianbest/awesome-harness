@@ -1,5 +1,7 @@
 # AHE Review 动作独立 Subagent 化优化方案
 
+**Router-era 注：** 下文若出现 `ahe-workflow-starter` 或 `reroute_via_starter`，请按当前 **`ahe-workflow-router`** 与 **`reroute_via_router`** 理解；独立 starter skill 已移除。
+
 ## 背景
 
 当前 `ahe-*` workflow 中，`ahe-specify`、`ahe-design`、`ahe-tasks` 等主链 skill 会把下一步直接交给对应 review skill，但从编排语义上看，review 仍然更像“当前会话继续执行的下一步”，而不是“由独立 reviewer 在隔离上下文中完成的独立动作”。
@@ -92,9 +94,11 @@
   "record_path": "评审记录路径",
   "key_findings": ["关键发现 1", "关键发现 2"],
   "needs_human_confirmation": false,
-  "reroute_via_starter": false
+  "reroute_via_router": false
 }
 ```
+
+（历史示例曾写 `reroute_via_starter`；canonical 字段名为 `reroute_via_router`，legacy 读法仍接受旧字段名。）
 
 其中：
 
@@ -140,12 +144,12 @@
 
 ### 第一批
 
-- `skills/ahe-workflow-starter/SKILL.md`
+- `skills/ahe-workflow-router/SKILL.md`
 - `skills/ahe-specify/SKILL.md`
 - `skills/ahe-design/SKILL.md`
 - `skills/ahe-tasks/SKILL.md`
 
-最小闭环优先改这四处，因为 starter 决定 review 是否以 subagent 方式派发，而三个上游 producer 又天然形成“产出文档 -> review -> 真人确认 / 下一阶段”的明确链路。
+最小闭环优先改这四处，因为 router 决定 review 是否以 subagent 方式派发，而三个上游 producer 又天然形成“产出文档 -> review -> 真人确认 / 下一阶段”的明确链路。
 
 ### 第二批
 
@@ -202,7 +206,7 @@
 
 让所有 review 型动作都输出统一摘要字段，便于：
 
-- workflow-starter 识别下一步
+- `ahe-workflow-router` 识别下一步
 - task-progress 或等价记录同步
 - 后续做 review 轨迹统计或质量门禁自动判断
 

@@ -9,7 +9,7 @@
 - 仍然只有在完成门禁通过后才进入 `ahe-finalize`
 - 仍然不由 `ahe-finalize` 重新执行或替代 `ahe-regression-gate` / `ahe-completion-gate`
 - 仍然不在收尾阶段混入新的实现工作
-- 仍然由 `ahe-workflow-starter` 负责后续会话恢复编排
+- 仍然由 `ahe-workflow-router` 负责后续会话恢复编排
 
 ## 当前问题
 
@@ -19,7 +19,7 @@
 - 没有区分 full / standard / lightweight profile 下实际存在的证据链
 - 文档同步仍偏笼统，缺少“哪些入口文档需要与实际交付保持一致”的最小检查
 - 输出更像 narrative summary，而不是可直接交接的 delivery pack
-- `Next Action` 仍是自然语言选项，不够贴合 starter 的 canonical handoff
+- `Next Action` 仍是自然语言选项，不够贴合 router 的 canonical handoff
 - 没有把“finalize 只做状态与文档收口，不再改实现”写成更硬的边界
 
 ## 优化方向
@@ -56,7 +56,7 @@
 
 主要参考：
 
-- `skills/ahe-workflow-starter/SKILL.md`
+- `skills/ahe-workflow-router/SKILL.md`
 - `skills/ahe-test-review/SKILL.md`
 - `skills/ahe-code-review/SKILL.md`
 - `skills/ahe-traceability-review/SKILL.md`
@@ -112,11 +112,11 @@
 
 为什么这么改：
 
-- finalize 是下一次会话最容易读取的状态节点之一，字段漂移会直接影响 starter 恢复编排
+- finalize 是下一次会话最容易读取的状态节点之一，字段漂移会直接影响 router 恢复编排
 
 主要参考：
 
-- `skills/ahe-workflow-starter/SKILL.md`
+- `skills/ahe-workflow-router/SKILL.md`
 - `skills/ahe-finalize/SKILL.md`
 
 ### 6. 增加硬边界：finalize 不改实现
@@ -156,7 +156,7 @@
 - 不重新执行 completion / regression gate
 - 不把 finalize 变成 release engineering 大全
 - 不在收尾节点写新的实现代码
-- 不新增 starter 之外的恢复编排权
+- 不新增 router 之外的恢复编排权
 
 ## 计划中的实际改动
 

@@ -6,7 +6,7 @@
 
 - 是否应该继续自动推进
 - 是否命中暂停点
-- 是否应该回到 starter 重编排
+- 是否应该回到 router 重编排
 
 再来这里读取细节。
 
@@ -27,7 +27,7 @@
 3. **任务真人确认**：reviewer subagent 返回 `ahe-tasks-review` 结论为"通过"后，必须由父会话向用户展示评审结论并等待用户明确批准
 4. **测试用例设计确认**：`ahe-test-driven-dev` 在进入 Red-Green-Refactor 前，必须向用户展示测试用例设计并等待用户确认
 5. **规格评审 / 设计评审需修改**：`ahe-spec-review` 或 `ahe-design-review` 返回 `需修改`，或返回内容回修型 `阻塞` 时，必须先向用户展示评审结论和修订重点，再回到相应上游修订 skill
-6. **规格评审 / 设计评审需重编排**：若 `ahe-spec-review` 或 `ahe-design-review` 返回 `阻塞`，且 `reroute_via_starter=true` 或 `next_action_or_recommended_skill=ahe-workflow-router`，先向用户展示阻塞原因，再回到 `ahe-workflow-router` 重编排
+6. **规格评审 / 设计评审需重编排**：若 `ahe-spec-review` 或 `ahe-design-review` 返回 `阻塞`，且 `reroute_via_router=true`（历史工件中的 `reroute_via_starter=true` 与之等价）或 `next_action_or_recommended_skill=ahe-workflow-router`，先向用户展示阻塞原因，再回到 `ahe-workflow-router` 重编排
 7. **证据冲突需澄清**：工件状态互相矛盾，且无法用保守原则自动解决时
 8. **其他 review / gate 结论为"需修改"或"阻塞"且修订方向不明确**：需要与用户讨论修订方案
 
@@ -66,7 +66,7 @@
 - 用户提出新的范围变化、验收变化或紧急缺陷线索，需要判断是否切到 `ahe-increment` / `ahe-hotfix`
 - 当前证据与既有阶段判断冲突，无法直接延续原路线
 - 需要进行 profile 升级
-- reviewer 显式返回 `reroute_via_starter=true`，或把 `next_action_or_recommended_skill` 指向 `ahe-workflow-router`
+- reviewer 显式返回 `reroute_via_router=true`（或历史字段 `reroute_via_starter=true`），或把 `next_action_or_recommended_skill` 指向 `ahe-workflow-router`
 
 ## 路由红旗信号
 
@@ -84,9 +84,9 @@
 | "热修复很急，可以先改再补流程" | 热修复也必须先进入 `ahe-hotfix`，不能绕过复现、评审和门禁。 |
 | "这是个小变更，不用走变更支线" | 只要是需求或范围变化，就先判断是否应进入 `ahe-increment`。 |
 | "我已经知道现在在哪个阶段了" | 结论必须绑定当前工件证据，而不是依赖印象或聊天记忆。 |
-| "用户已经点名某个 ahe skill，就不用再经过入口了" | 点名 skill 也不等于当前时机正确，仍要由 starter 判断是否应进入它。 |
+| "用户已经点名某个 ahe skill，就不用再经过入口了" | 点名 skill 也不等于当前时机正确，仍要由 router 判断是否应进入它。 |
 | "先做一点实现，后面再补 route 说明" | 路由必须先完成，之后才能进入下游 skill。 |
-| "这个改动很小，直接用 lightweight 就行" | Profile 由 starter 根据信号判断，不允许用户或 agent 自行声称。 |
+| "这个改动很小，直接用 lightweight 就行" | Profile 由 router 根据信号判断，不允许用户或 agent 自行声称。 |
 | "`task-progress.md` 都写到实现了，可以直接下游继续" | 若它与批准状态或 review / gate 证据冲突，优先相信更保守、更上游的证据。 |
 | "没有明确热修复 / 变更证据，也可以先进支线处理" | 进入 `ahe-hotfix` / `ahe-increment` 必须有对应信号，不能把支线当快捷方式。 |
 | "缺了一两个评审或门禁也没关系，先推进再补" | 缺少必需 review / gate / 真人确认证据时，不允许继续向下游推进。 |

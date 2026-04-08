@@ -14,7 +14,7 @@ description: Provides the public entrypoint to the AHE workflow family. Use when
 - `direct invoke`：当前节点已经足够明确，直接进入某个 leaf skill
 - `route-first`：当前阶段、profile、分支或证据仍不稳定，先交给当前 runtime router
 
-当前迁移阶段里，runtime router 已经收敛为：
+当前架构中，runtime router 已经收敛为：
 
 - `ahe-workflow-router`
 
@@ -109,14 +109,16 @@ description: Provides the public entrypoint to the AHE workflow family. Use when
 
 默认偏向如下：
 
-| 用户意图 | 可优先尝试的入口 | 一旦不明确时回哪里 |
-| --- | --- | --- |
-| 规格澄清 / 规格修订 | `ahe-specify` | `ahe-workflow-router` |
-| 当前活跃任务实现 | `ahe-test-driven-dev` | `ahe-workflow-router` |
-| review / gate 请求 | 具体 review / gate skill | `ahe-workflow-router` |
+
+| 用户意图                | 可优先尝试的入口                               | 一旦不明确时回哪里             |
+| ------------------- | -------------------------------------- | --------------------- |
+| 规格澄清 / 规格修订         | `ahe-specify`                          | `ahe-workflow-router` |
+| 当前活跃任务实现            | `ahe-test-driven-dev`                  | `ahe-workflow-router` |
+| review / gate 请求    | 具体 review / gate skill                 | `ahe-workflow-router` |
 | closeout / finalize | `ahe-completion-gate` 或 `ahe-finalize` | `ahe-workflow-router` |
-| 线上问题修复分析 | `ahe-hotfix` | `ahe-workflow-router` |
-| 范围 / 验收 / 约束变化分析 | `ahe-increment` | `ahe-workflow-router` |
+| 线上问题修复分析            | `ahe-hotfix`                           | `ahe-workflow-router` |
+| 范围 / 验收 / 约束变化分析    | `ahe-increment`                        | `ahe-workflow-router` |
+
 
 ### 5. 解释 `/ahe-*` 命令时，把命令当作 bias，不当作 authority
 
@@ -146,6 +148,30 @@ description: Provides the public entrypoint to the AHE workflow family. Use when
 - 自己展开完整 transition map
 - 自己决定 review return 之后的恢复编排
 - 自己把 `using-ahe-workflow` 写进 `Next Action Or Recommended Skill`
+
+### 7. clear-case fast path
+
+当你已经能唯一确定下一步时，优先使用短输出，而不是把整个 family 再解释一遍。
+
+为了让 entry 层结论在人工扫描、评测断言和后续 handoff 里都稳定可判读，clear case 统一收敛成下面这 3 行编号合同，不要改写成无编号粗体标题、表格或自然段。
+
+使用格式：
+
+1. `Entry Classification`：`direct invoke` 或 `route-first`
+2. `Target Skill`：直接写 canonical skill 名
+3. `Why`：只保留 1-2 条最关键证据
+
+每一项都单独占一行，并保留 `1.` / `2.` / `3.` 的编号。
+
+这里的标签只是当前回复的展示格式，不替代任何 runtime artifact 的 canonical 字段名。
+
+在这些 clear case 中，不要再：
+
+- 复述整张 entrypoint matrix
+- 重讲 `using-ahe-workflow` 与 router 的完整分层历史
+- 为了显得稳妥，再展开一遍不相关的备选节点
+
+如果结论是交给 `ahe-workflow-router`，只需要说明“为什么当前不能合法 direct invoke”，然后立即转交给 `ahe-workflow-router`，不要继续扩写理由。
 
 ## Core Operating Rules
 
@@ -187,24 +213,28 @@ description: Provides the public entrypoint to the AHE workflow family. Use when
 
 ## Entrypoint Matrix
 
-| 情况 | 首选动作 | 原因 |
-| --- | --- | --- |
-| 新会话，不知道从哪开始 | 用本 skill 做 entry discovery | 先判断是 direct invoke 还是 route-first |
-| 用户说“继续”但当前阶段不明 | 交给 `ahe-workflow-router` | 这是 runtime recovery，不是简单 entry bias |
-| 用户说“帮我写 spec”且上下文明确 | direct invoke `ahe-specify` | 当前职责明确，适合 leaf skill |
-| 用户说“帮我 review 一下”但对象不明确 | 交给 `ahe-workflow-router` | review-only 也需要 authoritative 节点判断 |
-| 用户说“按 TDD 做当前 active task”且前置齐全 | direct invoke `ahe-test-driven-dev` | 节点清楚且本地输入足够 |
-| 用户说“completion gate 过了，帮我收尾”且 gate 记录存在 | direct invoke `ahe-finalize` | 当前职责明确 |
+
+| 情况                                      | 首选动作                                | 原因                                  |
+| --------------------------------------- | ----------------------------------- | ----------------------------------- |
+| 新会话，不知道从哪开始                             | 用本 skill 做 entry discovery          | 先判断是 direct invoke 还是 route-first   |
+| 用户说“继续”但当前阶段不明                          | 交给 `ahe-workflow-router`            | 这是 runtime recovery，不是简单 entry bias |
+| 用户说“帮我写 spec”且上下文明确                     | direct invoke `ahe-specify`         | 当前职责明确，适合 leaf skill                |
+| 用户说“帮我 review 一下”但对象不明确                 | 交给 `ahe-workflow-router`            | review-only 也需要 authoritative 节点判断  |
+| 用户说“按 TDD 做当前 active task”且前置齐全         | direct invoke `ahe-test-driven-dev` | 节点清楚且本地输入足够                         |
+| 用户说“completion gate 过了，帮我收尾”且 gate 记录存在 | direct invoke `ahe-finalize`        | 当前职责明确                              |
+
 
 ## Common Rationalizations
 
-| Rationalization | Reality |
-|---|---|
-| “反正最终都会走 starter，我就别加这个入口层了” | 这个 skill 的职责是降低 entry friction，而不是复制 router。 |
-| “用户点名了某个 `ahe-*` skill，就直接进去吧” | 点名 skill 不等于当前时机正确，仍要先判断能否合法 direct invoke。 |
-| “我大概知道现在在哪个节点，不用再交给 router” | 只要 route / stage / profile 不稳，就应交给 authoritative router。 |
-| “把 `using-ahe-workflow` 也写进 handoff 会更统一” | public entry 和 runtime handoff 不是同一层语义。 |
-| “既然我已经在做 entry，不如顺手把 transition map 也判断了” | 这会把本 skill 重新写成第二个 starter。 |
+
+| Rationalization                           | Reality                                                  |
+| ----------------------------------------- | -------------------------------------------------------- |
+| “反正最终都会走 starter，我就别加这个入口层了”              | 这个 skill 的职责是降低 entry friction，而不是复制 router。             |
+| “用户点名了某个 `ahe-*` skill，就直接进去吧”            | 点名 skill 不等于当前时机正确，仍要先判断能否合法 direct invoke。              |
+| “我大概知道现在在哪个节点，不用再交给 router”               | 只要 route / stage / profile 不稳，就应交给 authoritative router。 |
+| “把 `using-ahe-workflow` 也写进 handoff 会更统一” | public entry 和 runtime handoff 不是同一层语义。                  |
+| “既然我已经在做 entry，不如顺手把 transition map 也判断了” | 这会把本 skill 重新写成第二个 starter。                              |
+
 
 ## Red Flags
 
@@ -235,9 +265,11 @@ description: Provides the public entrypoint to the AHE workflow family. Use when
 
 只有在以下条件全部满足时，这个 skill 才算完成：
 
-- [ ] 你已经先判断当前是在做 public entry，还是 runtime recovery
-- [ ] 你已经明确区分“可 direct invoke”与“必须 route-first”
-- [ ] 若节点已明确，你进入了合法 leaf skill
-- [ ] 若节点不明确、证据冲突或 profile 不稳，你把 authoritative 判断交给了 `ahe-workflow-router`
-- [ ] 你没有把 `using-ahe-workflow` 写入任何 runtime handoff 字段
-- [ ] 你没有在本 skill 中复制或取代 router 的 machine contract
+- 你已经先判断当前是在做 public entry，还是 runtime recovery
+- 你已经明确区分“可 direct invoke”与“必须 route-first”
+- 若命中 clear case，你使用了 `1.` / `2.` / `3.` 的编号快路径，而不是无编号等价变体
+- 若节点已明确，你进入了合法 leaf skill
+- 若节点不明确、证据冲突或 profile 不稳，你把 authoritative 判断交给了 `ahe-workflow-router`
+- 你没有把 `using-ahe-workflow` 写入任何 runtime handoff 字段
+- 你没有在本 skill 中复制或取代 router 的 machine contract
+

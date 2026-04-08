@@ -124,11 +124,11 @@
 
 为什么这么改：
 
-- starter 和其它 AHE 节点都已经在收紧 canonical `ahe-*` handoff
+- router 和其它 AHE 节点都已经在收紧 canonical `ahe-*` handoff
 
 主要参考：
 
-- `skills/ahe-workflow-starter/SKILL.md`
+- `skills/ahe-workflow-router/SKILL.md`
 
 ### 7. 补充 profile 说明
 
@@ -143,7 +143,7 @@
 
 主要参考：
 
-- `skills/ahe-workflow-starter/SKILL.md`
+- `skills/ahe-workflow-router/SKILL.md`
 
 ## 明确不做的事
 

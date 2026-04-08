@@ -6,7 +6,7 @@
 
 它解决的问题不是“路径长什么样”，而是：
 
-- starter 去哪里找 spec / design / tasks / reviews / verification / progress
+- runtime router 去哪里找 spec / design / tasks / reviews / verification / progress
 - review / gate 完成后记录应该写回哪里
 - finalize 去哪里消费 closeout 所需的 release / verification artifacts
 
@@ -44,7 +44,7 @@
 
 例如：
 
-- 不要同时让 starter 猜 `docs/specs/` 和 `product/specs/`
+- 不要同时让 `ahe-workflow-router` 猜 `docs/specs/` 和 `product/specs/`
 - 不要让 completion gate 同时依赖两个不同目录里的 verification 记录
 
 ### 2. Prefer repo-local writable paths
@@ -180,7 +180,7 @@ progress state 是最容易被忽略，但最不该缺的映射。
 最低要求：
 
 - 能稳定写入 canonical progress schema
-- 能在下一会话中被 starter 重新读取
+- 能在下一会话中被 `ahe-workflow-router` 重新读取
 - 不与 release notes / review 记录混成同一种 artifact
 
 常见可接受映射：
@@ -223,7 +223,7 @@ progress state 是最容易被忽略，但最不该缺的映射。
 
 ## Anti-Patterns
 
-- 让 starter 通过 `find` 式猜测去找工件
+- 让 `ahe-workflow-router` 通过 `find` 式猜测去找工件
 - 把 review / verification 记录散落在大量无命名规律的文件里
 - 同一个 logical surface 在不同会话中切换不同路径
 - 依赖外部系统，但仓库里没有任何可回读镜像

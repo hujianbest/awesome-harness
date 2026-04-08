@@ -138,7 +138,7 @@
 
 - 不把 `ahe-design-review` 变成 `ahe-design`
 - 不在评审阶段开始写任务、伪代码或修复方案实现
-- 不引入与 `ahe-workflow-starter` 冲突的新的 verdict 或新的流程节点
+- 不引入与 `ahe-workflow-router` 冲突的新的 verdict 或新的流程节点
 
 ## 计划中的实际改动
 

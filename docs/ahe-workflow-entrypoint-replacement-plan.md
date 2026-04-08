@@ -1,12 +1,16 @@
 # AHE workflow entrypoint replacement plan
 
+## Status (router era)
+
+本文主体为**历史迁移计划**（撰写时 `ahe-workflow-starter` 仍为 live combined 入口 + kernel）。**当前架构已落地**：`using-ahe-workflow` = 家族公开入口；`ahe-workflow-router` = canonical runtime router / 恢复权威；独立 `skills/ahe-workflow-starter/` 已移除。canonical reroute 字段为 `reroute_via_router`（旧工件中的 `reroute_via_starter` 仅作 legacy 同义读）。下文保留原决策与阶段划分供对照；文中「当前」如无特别说明，指计划撰写时的仓库状态。
+
 ## Purpose
 
-本文定义一条新的替换路径：
+本文曾定义一条替换路径：
 
 - 把 `using-ahe-workflow` 引入为新的 **公开命令入口 / family entrypoint**
-- 逐步移除 `ahe-workflow-starter` 作为公开入口的角色
-- 但**不直接删除当前 runtime routing kernel**
+- 逐步移除 pre-split `ahe-workflow-starter` 作为公开入口的角色
+- 但**不在第一轮直接删除当时承载的 runtime routing kernel**（后续已收敛为 `ahe-workflow-router` 并移除独立 starter skill）
 
 目标不是单纯把 starter 改个名字，而是把 AHE 现在混在一起的两类职责拆开：
 
@@ -19,7 +23,7 @@
 
 1. 新增 `using-ahe-workflow`，作为 AHE workflow family 的公开入口、命令入口和 family explainer。
 2. 将当前 `ahe-workflow-starter` 所承载的 runtime kernel 职责，收敛到新的 `ahe-workflow-router`。
-3. `ahe-workflow-starter` 在迁移期保留为 compatibility alias，而不是立即删除。
+3. 迁移期曾计划保留 `ahe-workflow-starter` 为 compatibility alias；（**现状**：独立 skill 已移除，读时别名由 `ahe-workflow-router` 文档约定覆盖。）
 4. `using-ahe-workflow` 只负责“如何进入 AHE”，不负责 profile 选择、stage 判断、review dispatch 或 transition map。
 5. runtime handoff、`Next Action Or Recommended Skill`、reviewer return contract 中，未来 canonical 值应写 `ahe-workflow-router`，而不是 `using-ahe-workflow`。
 
@@ -27,7 +31,7 @@
 
 - **`using-ahe-workflow` 取代 starter 的公开入口角色**
 - **`ahe-workflow-router` 取代 starter 的 runtime kernel 角色**
-- **`ahe-workflow-starter` 作为过渡层逐步退场**
+- **pre-split `ahe-workflow-starter` 作为过渡层逐步退场**（**已完成**）
 
 ## Why This Is Different From The Earlier Defer
 
@@ -52,14 +56,14 @@
 
 ## Problem Statement
 
-当前 AHE 的真实状态已经不是“有没有入口”，而是“入口和 kernel 绑在同一个 skill 上”。
+在计划撰写时，AHE 的真实状态已经不是“有没有入口”，而是“入口和 kernel 绑在同一个 skill（`ahe-workflow-starter`）上”。
 
-这带来几个结构问题：
+这曾带来几个结构问题：
 
 - `ahe-workflow-starter` 既是家族入口，又是 runtime router，又承担大量 family explainer 文本，主文件过重
 - `docs/ahe-workflow-entrypoints.md` 与 `docs/ahe-command-entrypoints.md` 已经在尝试描述更低摩擦入口，但公开入口仍然直接暴露 starter
 - leaf skills、reviewer return contract、transition map 和 execution semantics 都把 starter 当作 reroute 目标，使 starter 同时承担“public shell”和“runtime kernel”两层语义
-- 若未来真的想让 AHE 更像 `agent-skills-main` 那样有一个更稳定的 family entrypoint，目前 starter 的命名和职责都不够适合作为那层产品化外壳
+- 若未来真的想让 AHE 更像 `agent-skills-main` 那样有一个更稳定的 family entrypoint，当时 starter 的命名和职责都不够适合作为那层产品化外壳
 
 因此，本方案要解决的不是“把 starter 换个更好听的名字”，而是：
 
@@ -81,10 +85,10 @@
 
 本方案不做以下事情：
 
-- 不在第一轮直接删除 `ahe-workflow-starter`
+- 不在第一轮直接删除 `ahe-workflow-starter`（后续分阶段完成后，独立 skill 已移除）
 - 不把 `using-ahe-workflow` 做成第二个重型 kernel
 - 不让 `using-ahe-workflow` 进入 `Next Action Or Recommended Skill`
-- 不削弱 `ahe-workflow-starter` 当前承载的 pause points、review dispatch、profile-aware transition 和 reroute authority
+- 不削弱当时由 `ahe-workflow-starter` 承载、现由 `ahe-workflow-router` 承接的 pause points、review dispatch、profile-aware transition 和 reroute authority
 - 不在单轮中同步重写所有 `ahe-*` skill
 - 不为了统一命名而批量改写历史 progress / review / verification 工件
 
@@ -114,7 +118,7 @@ User / /ahe-* command / direct invoke
 | --- | --- | --- | --- |
 | Public entry | `using-ahe-workflow` | family discovery、entrypoint matrix、command bias、何时 direct invoke、何时交给 router | profile 选择、transition map、pause point 规则、reviewer return 消费 |
 | Runtime router | `ahe-workflow-router` | profile 选择、canonical node 选择、branch 切换、review dispatch、review return 消费、execution semantics、transition map | family onboarding、面向新用户的入口解释、产品化 quick-start |
-| Compatibility alias | `ahe-workflow-starter` | 迁移期兼容旧文档、旧 handoff、旧 reroute target | 长期继续作为 canonical runtime 名称 |
+| Legacy name (read-time) | `ahe-workflow-starter` | 仅旧文档 / 旧 handoff；曾计划为迁移期 compatibility alias | **非 live skill**；canonical runtime 名为 `ahe-workflow-router` |
 | Leaf skills | `ahe-specify` / `ahe-design` / `ahe-test-driven-dev` 等 | 完成本节点职责，写回 local output 与 canonical handoff | 决定 profile、决定整个主链下一步 |
 
 ## Naming Decision
@@ -285,7 +289,7 @@ User / /ahe-* command / direct invoke
 
 - 新会话默认先走 `using-ahe-workflow`
 - 命令入口默认先偏向 `using-ahe-workflow`
-- runtime fallback 仍然先维持 `ahe-workflow-starter`
+- 迁移中期曾一度维持 runtime fallback 指向 `ahe-workflow-starter`；（**现状**：canonical fallback 为 `ahe-workflow-router`）
 
 完成标志：
 
@@ -300,9 +304,9 @@ User / /ahe-* command / direct invoke
 
 处理方式：
 
-- 将 `ahe-workflow-starter` 的 runtime authority 收敛为 router 写法
-- `ahe-workflow-starter/SKILL.md` 先变成 thin compatibility wrapper，说明其 canonical successor 是 `ahe-workflow-router`
-- starter 里偏 public-explainer 的内容迁移到 `using-ahe-workflow`
+- 将原 `ahe-workflow-starter` 的 runtime authority 收敛为 router 写法（**现状**：由 `skills/ahe-workflow-router/SKILL.md` 承载）
+- 曾计划保留 `ahe-workflow-starter/SKILL.md` 为 thin wrapper；（**现状**：独立 starter 目录已移除，仅 legacy 名称可读）
+- 原 starter 里偏 public-explainer 的内容迁移到 `using-ahe-workflow`
 
 这一步不要求一次搬空所有 reference files。
 
@@ -360,14 +364,16 @@ User / /ahe-* command / direct invoke
 
 - live family 的 canonical reroute target 已统一
 
-### Phase 5. Retire starter
+### Historical Phase 5. Retire starter
 
-最后才考虑：
+**（已执行方向）** 独立 `ahe-workflow-starter` skill 已移除；读时 legacy 别名与字段兼容由 `ahe-workflow-router` 及 shared conventions 覆盖。
 
-- 保留 `ahe-workflow-starter` 为 deprecated alias
+按当时计划，这一阶段曾列出以下收尾选项：
+
+- 保留 `ahe-workflow-starter` 为 deprecated alias（以独立目录形式）
 - 或在确认全家族已不再写 starter 后删除
 
-进入条件：
+进入条件（供考古）：
 
 - 新文档不再写 starter
 - 新 skill / template / examples 不再写 starter
@@ -383,14 +389,15 @@ User / /ahe-* command / direct invoke
 - `docs/ahe-workflow-entrypoints.md`
 - `docs/ahe-command-entrypoints.md`
 
-### Router layer
+### Router layer（canonical 物理路径）
 
-- `skills/ahe-workflow-starter/SKILL.md`
-- `skills/ahe-workflow-starter/references/review-dispatch-protocol.md`
-- `skills/ahe-workflow-starter/references/reviewer-return-contract.md`
-- `skills/ahe-workflow-starter/references/execution-semantics.md`
-- `skills/ahe-workflow-starter/references/profile-node-and-transition-map.md`
-- future `skills/ahe-workflow-router/SKILL.md`
+- `skills/ahe-workflow-router/SKILL.md`
+- `skills/ahe-workflow-router/references/review-dispatch-protocol.md`
+- `skills/ahe-workflow-router/references/reviewer-return-contract.md`
+- `skills/ahe-workflow-router/references/execution-semantics.md`
+- `skills/ahe-workflow-router/references/profile-node-and-transition-map.md`
+
+（历史计划中曾列 `skills/ahe-workflow-starter/...`；该目录已移除，语义由上述 router 路径继承。）
 
 ### Leaf skill contracts
 
@@ -401,7 +408,7 @@ User / /ahe-* command / direct invoke
 
 - `docs/ahe-workflow-shared-conventions.md`
 - review / verification 模板示例
-- any example that writes `Next Action Or Recommended Skill: ahe-workflow-starter`
+- any example that writes `Next Action Or Recommended Skill: ahe-workflow-starter`（应改为 `ahe-workflow-router`）
 
 ### Analysis, decision and plan docs
 
@@ -451,7 +458,7 @@ User / /ahe-* command / direct invoke
 - `using-ahe-workflow` 没有复制 router 的 machine contract
 - runtime reroute 统一写 `ahe-workflow-router`
 - `Next Action Or Recommended Skill` 不写 `using-ahe-workflow`
-- `ahe-workflow-starter` 已降级成 alias，而不是继续承担 canonical runtime authority
+- 独立 `ahe-workflow-starter` skill 已移除；canonical runtime authority 在 `ahe-workflow-router`（legacy 名称读时兼容）
 - leaf skills、reviewer return contract、transition map 和 execution semantics 不再依赖 starter 作为唯一 canonical 名称
 
 ## Recommended Immediate Next Batch
@@ -462,9 +469,9 @@ User / /ahe-* command / direct invoke
 2. 更新 `docs/ahe-workflow-entrypoints.md`
 3. 更新 `docs/ahe-command-entrypoints.md`
 4. 新增 `skills/ahe-workflow-router/SKILL.md`
-5. 将 `ahe-workflow-starter` 改成 thin alias
-6. 最后再做 family-wide reroute vocabulary sweep
+5. **（已完成）** 独立 `ahe-workflow-starter` skill 已移除；reroute vocabulary 以 `ahe-workflow-router` / `reroute_via_router` 为准
+6. **（已完成）** family-wide reroute 字段收口为 `reroute_via_router`（legacy `reroute_via_starter` 仅兼容读）
 
 ## One-Sentence Recommendation
 
-最佳路径不是“直接删 starter”，而是“先让 `using-ahe-workflow` 接管公开入口，再把 starter 显式收缩为 `ahe-workflow-router`，最后再退休 starter”。
+历史推荐路径是：先让 `using-ahe-workflow` 接管公开入口，再把 pre-split starter 的 kernel 显式收缩为 `ahe-workflow-router`，最后退休独立 starter skill（**已与当前仓库状态一致**）。

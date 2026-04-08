@@ -79,7 +79,7 @@
 
 - 代替 traceability review 做 evidence-chain 审计
 - 代替 gate 节点做最终通过判断
-- 代替 starter 做 route / profile 裁决
+- 代替 `ahe-workflow-router` 做 route / profile 裁决
 
 ### `ahe-traceability-review`
 

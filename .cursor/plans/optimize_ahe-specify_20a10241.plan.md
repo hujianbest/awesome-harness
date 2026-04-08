@@ -9,7 +9,7 @@ todos:
     content: 确认后重构 `skills/ahe-specify/SKILL.md` 的 frontmatter、澄清协议、默认规格结构、自检与重入规则
     status: completed
   - id: validate-fit
-    content: 检查改写后内容是否仍与 `ahe-spec-review`、`ahe-workflow-starter` 和 AHE 主链契约兼容
+    content: 检查改写后内容是否仍与 `ahe-spec-review`、`ahe-workflow-router`（及公开入口 `using-ahe-workflow`）和 AHE 主链契约兼容
     status: completed
 isProject: false
 ---
@@ -22,7 +22,7 @@ isProject: false
 
 这次优化只改 `ahe-specify` 的澄清与写作方法，不改 AHE 主链契约：
 
-- 仍然必须先经过 `[skills/ahe-workflow-starter/SKILL.md](skills/ahe-workflow-starter/SKILL.md)` 路由
+- 仍然必须先经过 `[skills/ahe-workflow-router/SKILL.md](skills/ahe-workflow-router/SKILL.md)` 路由（新会话可先经 `using-ahe-workflow`）
 - 仍然输出可提交给 `[skills/ahe-spec-review/SKILL.md](skills/ahe-spec-review/SKILL.md)` 的规格草稿
 - 仍然禁止在 `ahe-specify` 阶段发起真人批准
 - 仍然保持 `specify -> spec-review -> 真人确认 -> design` 的顺序

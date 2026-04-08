@@ -277,7 +277,7 @@ direct invoke 常见信号：
 5. 父会话读取 reviewer 返回结果后继续：
    - 若结论为 `通过`，先进入 `任务真人确认`；只有真人确认通过后，才把批准结果写入任务计划或等价评审工件，并进入 `ahe-test-driven-dev`
    - 若结论为 `需修改`，携带关键 findings 回到本 skill 修订
-   - 若结论为 `阻塞` 且 `reroute_via_starter=true` 或 `next_action_or_recommended_skill=ahe-workflow-router`，回到 `ahe-workflow-router` 重编排
+   - 若结论为 `阻塞` 且 `reroute_via_router=true`（或历史字段 `reroute_via_starter=true`）或 `next_action_or_recommended_skill=ahe-workflow-router`，回到 `ahe-workflow-router` 重编排
    - 其他 `阻塞`，携带关键 findings 回到本 skill 补条件或修订
 
 建议的首个活跃任务应先写在任务计划正文中；只有在 `ahe-tasks-review` 通过且 `任务真人确认` 完成后，再把权威版 `Current Active Task` 写入 `task-progress.md` 或等价状态工件。

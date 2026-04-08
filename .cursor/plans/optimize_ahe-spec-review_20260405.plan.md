@@ -128,7 +128,7 @@
 
 - 不把 `ahe-spec-review` 变成 `ahe-specify`
 - 不在 review 阶段开始设计系统
-- 不发明与 `ahe-workflow-starter` 冲突的新 verdict 或新路由节点
+- 不发明与 `ahe-workflow-router` 冲突的新 verdict 或新路由节点
 
 ## 计划中的实际改动
 

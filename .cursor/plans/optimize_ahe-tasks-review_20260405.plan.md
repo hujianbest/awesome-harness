@@ -58,7 +58,7 @@
 
 主要参考：
 
-- `skills/ahe-workflow-starter/SKILL.md`
+- `skills/ahe-workflow-router/SKILL.md`
 - `references/longtaskforagent-main/skills/long-task-work/SKILL.md`
 
 ### 3. 强化“可执行验证”门槛

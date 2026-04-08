@@ -9,7 +9,7 @@
 - 仍然只有 `ahe-test-driven-dev` 作为实现阶段统一入口
 - 仍然坚持一次只推进一个活跃任务
 - 仍然要求在进入 Red-Green-Refactor 前先做真人测试设计确认
-- 仍然由 `ahe-workflow-starter` 管理实现后的恢复编排
+- 仍然由 `ahe-workflow-router` 管理实现后的恢复编排
 - 仍然不把 `ahe-test-driven-dev` 变成 `ahe-test-review`、`ahe-regression-gate` 或 `ahe-bug-patterns`
 
 ## 当前问题
@@ -64,14 +64,14 @@
 
 为什么这么改：
 
-- 这能把“实现完成”从口头描述升级为可被 `ahe-test-review` / `ahe-workflow-starter` / 后续 gate 消费的稳定产物
+- 这能把“实现完成”从口头描述升级为可被 `ahe-test-review` / `ahe-workflow-router` / 后续 gate 消费的稳定产物
 - 也能减少 review 阶段反复追问“你到底改了什么、怎么证明”
 
 主要参考：
 
 - `references/everything-claude-code-main/skills/verification-loop/SKILL.md`
 - `references/superpowers-main/skills/verification-before-completion/SKILL.md`
-- `skills/ahe-workflow-starter/SKILL.md`
+- `skills/ahe-workflow-router/SKILL.md`
 
 ### 3. 明确有效 RED / GREEN 的判定标准
 
@@ -174,7 +174,7 @@
 - 不把当前 skill 扩写成所有语言的完整测试手册
 - 不把 `ahe-test-driven-dev` 变成下游 review / gate 的替代品
 - 不新增第二条实现入口
-- 不改变 `ahe-workflow-starter` 已拥有的恢复编排权
+- 不改变 `ahe-workflow-router` 已拥有的恢复编排权
 
 ## 计划中的实际改动
 

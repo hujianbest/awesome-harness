@@ -1,5 +1,9 @@
 # AHE Review Subagent 化实施清单
 
+## 与当前架构的关系
+
+清单成稿于 pre-split **`ahe-workflow-starter`** 时代。当前 runtime 调度与 review 回收权威在 **`ahe-workflow-router`**；review 共享协议物理路径在 **`skills/ahe-workflow-router/references/`**。reviewer 摘要中的 canonical reroute 字段为 **`reroute_via_router`**（旧工件若写 `reroute_via_starter`，按 legacy 同义读）。
+
 ## 目的
 
 这份清单是 `docs/ahe-review-subagent-optimization-plan.md` 的下一步落地文档。
@@ -103,7 +107,7 @@
     "关键发现 2"
   ],
   "needs_human_confirmation": false,
-  "reroute_via_starter": false
+  "reroute_via_router": false
 }
 ```
 
@@ -111,7 +115,7 @@
 
 - `needs_human_confirmation=true` 主要用于 `ahe-spec-review`、`ahe-design-review`、`ahe-tasks-review`
 - reviewer 摘要统一返回 `next_action_or_recommended_skill`
-- `reroute_via_starter=true` 用于 reviewer 发现当前不是简单回修，而是需要重新编排的情况
+- `reroute_via_router=true` 用于 reviewer 发现当前不是简单回修，而是需要经 `ahe-workflow-router` 重新编排的情况（历史字段名 `reroute_via_starter` 仅兼容读）
 
 ### 4. 职责边界协议
 
@@ -131,7 +135,7 @@
 
 优先修改：
 
-- `skills/ahe-workflow-starter/SKILL.md`
+- `skills/ahe-workflow-router/SKILL.md`
 - `skills/ahe-specify/SKILL.md`
 - `skills/ahe-design/SKILL.md`
 - `skills/ahe-tasks/SKILL.md`
@@ -189,7 +193,7 @@
 
 下面按 skill 列出建议修改点。
 
-### 1. `skills/ahe-workflow-starter/SKILL.md`
+### 1. `skills/ahe-workflow-router/SKILL.md`（历史清单曾写 `ahe-workflow-starter`）
 
 这是最关键的入口改造点。
 
@@ -197,7 +201,7 @@
 
 - 在“路由顺序”或“后续编排规则”中明确：当下一节点是 review 节点时，执行方式不是“父会话内联进入 review skill”，而是“启动 reviewer subagent，并在 subagent 中调用对应 review skill”
 - 增加一段“review dispatch 规则”，说明如何根据节点名映射到 review skill
-- 增加一段“review 结果回收规则”，说明如何消费 `conclusion`、`next_action_or_recommended_skill`、`needs_human_confirmation`、`reroute_via_starter`
+- 增加一段“review 结果回收规则”，说明如何消费 `conclusion`、`next_action_or_recommended_skill`、`needs_human_confirmation`、`reroute_via_router`（及 legacy `reroute_via_starter`）
 - 在“暂停点”说明中保留 spec/design/tasks 的真人确认逻辑，但改成“reviewer 返回通过后，由父会话触发真人确认”
 
 #### 建议新增的小节
@@ -214,8 +218,8 @@
 
 #### 完成标准
 
-- starter 可以明确区分“进入执行 skill”和“派发 review subagent”
-- starter 不会再把 review skill 当成普通下游 skill 直接内联执行
+- router 可以明确区分“进入执行 skill”和“派发 review subagent”
+- router 不会再把 review skill 当成普通下游 skill 直接内联执行
 
 ### 2. `skills/ahe-specify/SKILL.md`
 
@@ -397,7 +401,7 @@
 
 #### 完成标准
 
-- 测试评审可被 `ahe-workflow-starter` 或父会话机械消费，并决定是否进入 `ahe-code-review`
+- 测试评审可被 `ahe-workflow-router` 或父会话机械消费，并决定是否进入 `ahe-code-review`
 
 ### 10. `skills/ahe-code-review/SKILL.md`
 
@@ -424,7 +428,7 @@
 #### 必改项
 
 - 明确它是 evidence-chain reviewer，而不是父会话中的普通顺序步骤
-- 明确当发现“需要重新编排”的问题时，如何用 `reroute_via_starter=true` 回传
+- 明确当发现“需要重新编排”的问题时，如何用 `reroute_via_router=true` 回传（legacy：`reroute_via_starter`）
 - 增加结构化回传摘要格式
 
 #### 不该改的部分
@@ -434,7 +438,7 @@
 
 #### 完成标准
 
-- traceability review 的阻塞结论能区分“回实现修订”与“回 starter 重编排”
+- traceability review 的阻塞结论能区分“回实现修订”与“回 router 重编排”
 
 ### 12. `skills/ahe-hotfix/SKILL.md`
 
@@ -501,10 +505,10 @@
 
 ### 建议维护的共享文档
 
-- `skills/ahe-workflow-starter/references/review-dispatch-protocol.md`
-- `skills/ahe-workflow-starter/references/reviewer-return-contract.md`
+- `skills/ahe-workflow-router/references/review-dispatch-protocol.md`
+- `skills/ahe-workflow-router/references/reviewer-return-contract.md`
 
-这两份文档已落在上述路径；后续应继续在这些 canonical 位置维护，而不是再新增平行副本。
+这两份文档的 canonical 物理路径为上列 router `references/`（历史清单中的 `ahe-workflow-starter/...` 已废弃）。
 
 ### 这两份文档至少应包含
 
@@ -523,13 +527,13 @@
 3. `ahe-tasks` 产出任务计划后，不在父会话内联执行 tasks review，而是派发 reviewer subagent。
 4. `ahe-spec-review`、`ahe-design-review` 和 `ahe-tasks-review` 通过后，真人确认仍由父会话执行。
 5. reviewer subagent 至少能统一返回 `conclusion`、`next_action_or_recommended_skill`、`record_path`、`key_findings`。
-6. `ahe-workflow-starter` 能识别“review 节点 = 派发 reviewer”而不是“直接进入 review skill”。
+6. `ahe-workflow-router` 能识别“review 节点 = 派发 reviewer”而不是“直接进入 review skill”。
 
 ## 推荐的实施顺序
 
 如果只做最小闭环，建议按下面顺序开工：
 
-1. 先改 `ahe-workflow-starter`
+1. 先改 `ahe-workflow-router`（历史步骤曾写 `ahe-workflow-starter`）
 2. 再改 `ahe-specify` + `ahe-spec-review`
 3. 再改 `ahe-design` + `ahe-design-review`
 4. 再改 `ahe-tasks` + `ahe-tasks-review`
@@ -547,7 +551,7 @@
 下一步最值得做的，不是立刻散点改多个 skill，而是按以下顺序推进：
 
 1. 以本清单为蓝本，先补共享的 review dispatch / return contract 参考文档。
-2. 先完成 `starter + specify/design/tasks + 对应 review skill` 的第一阶段改造。
+2. 先完成 `router + specify/design/tasks + 对应 review skill` 的第一阶段改造。
 3. 第一阶段跑通后，再把 `test-review`、`code-review`、`traceability-review` 接入同一 reviewer subagent 模式。
 
 这样可以在不重写 AHE 主链的前提下，把 review 独立性、路由一致性和后续可维护性一起拿到。

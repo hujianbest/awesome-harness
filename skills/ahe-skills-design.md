@@ -11,6 +11,8 @@
 
 同时明确一个边界：**当前 live workflow 已采用 reviewer subagent 执行 review 节点**。父会话负责编排、派发和消费 return contract；实现、回修和真人确认仍受主链门禁约束。
 
+**当前 AHE 分层（router era）：** 家族公开入口为 `using-ahe-workflow`；runtime 路由、恢复编排与 profile/stage 判断的权威为 `ahe-workflow-router`。下文若仍出现历史名称 `ahe-workflow-starter`，请等同理解为上述职责在 pre-split 时期的合并形态；canonical reroute 字段为 `reroute_via_router`（legacy：`reroute_via_starter`）。
+
 ## 2. 设计目标与非目标
 
 ### 2.1 目标
@@ -58,7 +60,7 @@
 
 ## 4. 总体设计原则
 
-1. **workflow 推进统一先经 starter 编排**：当你需要判断当前阶段、恢复主链/支线推进、决定下一步 skill，或处理 review / gate 请求时，都先进入 `ahe-workflow-starter`，由它统一决定当前应进入哪个节点以及后续如何衔接。
+1. **workflow 推进统一经 runtime router 编排**：当你需要判断当前阶段、恢复主链/支线推进、决定下一步 skill，或处理 review / gate 请求时，进入 **`ahe-workflow-router`**（新会话可先经 **`using-ahe-workflow`** 再交给 router），由 router 统一决定当前应进入哪个节点以及后续如何衔接。
 2. **规格先于设计，设计先于任务，任务先于实现**：任何跳步都必须被视为违规。
 3. **工件驱动，不靠记忆**：状态必须落在仓库文件中，而不是停留在对话里。
 4. **强门禁而非软建议**：关键阶段用必须、禁止、仅允许下游等表述，减少 Agent 自由发挥空间。
@@ -74,7 +76,7 @@
 
 ### 动机
 
-主链完整走下来（含 `ahe-workflow-starter`）涉及 18 个节点。对改一个配置项或修一个 typo 来说，这条链路过重。但如果为了省事允许随意跳步，又会损坏流程约束力。
+主链完整走下来（含 `ahe-workflow-router` 与入口层）涉及 18 个节点。对改一个配置项或修一个 typo 来说，这条链路过重。但如果为了省事允许随意跳步，又会损坏流程约束力。
 
 业界共识（Anthropic 2025、Propel 2026）：流程密度应匹配任务风险——"Start with the simplest pattern that meets your quality bar" 以及 "Risk must be tiered"。
 
@@ -90,7 +92,7 @@
 
 ### Profile 选择机制
 
-- Profile 由 `ahe-workflow-starter` 在路由阶段决定，不允许用户自行声称。
+- Profile 由 `ahe-workflow-router` 在路由阶段决定，不允许用户自行声称。
 - 若 `AGENTS.md` 声明了强制 profile 规则，优先执行。
 - 信号冲突时，选择更重的 profile（保守原则）。
 - 允许升级（lightweight → standard → full），**不允许降级**。
@@ -111,7 +113,7 @@ Current State 段新增 `Workflow Profile` 字段和 `Profile Selection Rational
 
 ### 对路由和迁移表的影响
 
-- `ahe-workflow-starter` 路由分两步：先决定 profile，再在 profile 约束下决定阶段。
+- `ahe-workflow-router` 路由分两步：先决定 profile，再在 profile 约束下决定阶段。
 - 每个 profile 维护独立的结果驱动迁移表。
 - 合法状态集合按 profile 缩窄：在当前 profile 不包含的节点上推进，视为无效迁移。
 
@@ -119,7 +121,7 @@ Current State 段新增 `Workflow Profile` 字段和 `Profile Selection Rational
 
 ```mermaid
 flowchart TD
-    starter[ahe-workflow-starter]
+    router[ahe-workflow-router]
 
     subgraph executionLayer [任务执行层]
         workSpecify[ahe-specify]
@@ -146,7 +148,7 @@ flowchart TD
         completionGate[ahe-completion-gate]
     end
 
-    starter --> workSpecify
+    router --> workSpecify
     workSpecify --> specReview
     specReview -->|通过| specConfirm
     specReview -->|需修改/阻塞| workSpecify
@@ -167,13 +169,13 @@ flowchart TD
     regressionGate --> completionGate
     completionGate --> workFinalize
 
-    starter --> workIncrement
-    starter --> workHotfix
+    router --> workIncrement
+    router --> workHotfix
 ```
 
-注：这张图只展示默认主链与默认回修方向。若 reviewer 返回 `reroute_via_starter=true`，或把 `next_action_or_recommended_skill` 明确指向 `ahe-workflow-starter`，父会话必须先回 starter 重编排，而不是机械沿图中默认回修箭头推进。
+注：这张图只展示默认主链与默认回修方向。若 reviewer 返回 `reroute_via_router=true`（legacy：`reroute_via_starter`），或把 `next_action_or_recommended_skill` 明确指向 `ahe-workflow-router`，父会话必须先回 router 重编排，而不是机械沿图中默认回修箭头推进。用户面向的家族入口通常是 `using-ahe-workflow`，图中省略仅为了避免重复节点。
 
-### 5.1 第一层：`ahe-workflow-starter`
+### 5.1 第一层：`ahe-workflow-router`（+ 公开入口 `using-ahe-workflow`）
 
 职责不是干活，而是：
 
@@ -230,7 +232,8 @@ flowchart TD
 质量与变更相关的配套模板可统一从以下入口进入：
 
 - `skills/README.md`
-- `skills/ahe-workflow-starter/SKILL.md`
+- `skills/using-ahe-workflow/SKILL.md`
+- `skills/ahe-workflow-router/SKILL.md`
 
 ### 6.1 为什么需要“逻辑工件”和“实际文件路径”分离
 
@@ -276,11 +279,11 @@ flowchart TD
 
 ## 7.1 编排层
 
-### `ahe-workflow-starter`
+### `ahe-workflow-router`（入口侧常先经 `using-ahe-workflow`）
 
 **触发时机**
 
-- 每次会话开始
+- 每次会话开始（或用户从 `using-ahe-workflow` 进入后交给 router）
 - 用户说“继续”“开始做”“处理这个需求”“修这个问题”
 
 **输入**
@@ -394,7 +397,7 @@ flowchart TD
 
 执行型 / 节点内闭环型。
 
-它不是顶层路由器，不负责像 `ahe-workflow-starter` 那样判断当前会话处于哪个阶段；它负责在“已经确认进入实现阶段”之后，围绕唯一活跃任务执行实现，并把 fresh evidence、风险和推荐下一步写回工件，供外部调度恢复后续质量链。
+它不是顶层路由器，不负责像 `ahe-workflow-router` 那样判断当前会话处于哪个阶段；它负责在“已经确认进入实现阶段”之后，围绕唯一活跃任务执行实现，并把 fresh evidence、风险和推荐下一步写回工件，供外部调度恢复后续质量链。
 
 **目标**
 
@@ -415,7 +418,7 @@ flowchart TD
 5. 再按 TDD 执行 Red -> Green -> Refactor
 6. 产出或更新 UT/集成测试
 7. 写回 fresh evidence、剩余风险和推荐下一步
-8. 由 `ahe-workflow-starter` 恢复到正确的质量能力或门禁
+8. 由 `ahe-workflow-router` 恢复到正确的质量能力或门禁
 9. 不在实现节点内部直接串起下游质量链
 
 **关键规则**
@@ -475,7 +478,7 @@ flowchart TD
 
 1. 先写失败复现测试
 2. 收敛最小修复边界，并把唯一实现下一步写回工件
-3. 由 `ahe-workflow-starter` 恢复到 `ahe-test-driven-dev` 或后续门禁
+3. 由 `ahe-workflow-router` 恢复到 `ahe-test-driven-dev` 或后续门禁
 4. 稳定后同步回写规格、设计、任务、发布说明和状态记录中受影响的部分
 
 ### `ahe-finalize`
@@ -651,7 +654,7 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-    starter[ahe-workflow-starter]
+    router[ahe-workflow-router]
     specify[ahe-specify]
     specReview[ahe-spec-review]
     specConfirm[规格真人确认]
@@ -670,7 +673,7 @@ flowchart TD
     completionGate[ahe-completion-gate]
     finalize[ahe-finalize]
 
-    starter --> specify
+    router --> specify
     specify --> specReview
     specReview -->|通过| specConfirm
     specReview -->|需修改/阻塞| specify
@@ -692,32 +695,32 @@ flowchart TD
     completionGate --> finalize
 ```
 
-注：图中的箭头表示 `ahe-workflow-starter` 根据当前结论恢复出的合法默认下一节点，不表示当前 skill 在内部直接调用下游 skill。
+注：图中的箭头表示 `ahe-workflow-router` 根据当前结论恢复出的合法默认下一节点，不表示当前 skill 在内部直接调用下游 skill。
 
-如果 reviewer 返回 `reroute_via_starter=true`，或把 `next_action_or_recommended_skill` 指向 `ahe-workflow-starter`，则该显式重编排信号优先于图中的默认回修箭头。
+如果 reviewer 返回 `reroute_via_router=true`（legacy：`reroute_via_starter`），或把 `next_action_or_recommended_skill` 指向 `ahe-workflow-router`，则该显式重编排信号优先于图中的默认回修箭头。
 
 ## 8.2 支线路由
 
 ```mermaid
 flowchart TD
-    starter[ahe-workflow-starter]
+    router[ahe-workflow-router]
     changeReq[变更请求]
     hotfixReq[热修复请求]
     increment[ahe-increment]
     hotfix[ahe-hotfix]
-    reroute[返回 ahe-workflow-starter 重新编排]
+    reroute[返回 ahe-workflow-router 重新编排]
 
-    starter --> changeReq
-    starter --> hotfixReq
+    router --> changeReq
+    router --> hotfixReq
     changeReq --> increment
     increment --> reroute
     hotfixReq --> hotfix
     hotfix --> reroute
 ```
 
-变更支线和热修复支线都不在自身节点内部决定下游实现或门禁；它们只负责把影响分析、复现证据、修复边界和唯一下一步写回工件，再由 `ahe-workflow-starter` 重新编排。
+变更支线和热修复支线都不在自身节点内部决定下游实现或门禁；它们只负责把影响分析、复现证据、修复边界和唯一下一步写回工件，再由 `ahe-workflow-router` 重新编排。
 
-## 9. `ahe-workflow-starter` 的推荐路由规则
+## 9. `ahe-workflow-router` 的推荐路由规则
 
 建议按如下优先级判断当前阶段：
 
@@ -750,7 +753,7 @@ flowchart TD
 - 父会话在阶段内执行产出与路由判断
 - 进入 review 节点时，由父会话派发独立 reviewer subagent
 - reviewer 只负责评审、落盘和回传结构化摘要
-- 审查失败则按返回契约回到上一步修改或回到 `ahe-workflow-starter`
+- 审查失败则按返回契约回到上一步修改或回到 `ahe-workflow-router`
 - 审查通过且真人确认完成后，才允许进入下游 skill
 
 ### 10.2 实际效果
@@ -798,7 +801,7 @@ flowchart TD
 
 你原始设想是：
 
-- 第一层：`ahe-workflow-starter`
+- 第一层：`using-ahe-workflow`（公开入口）+ `ahe-workflow-router`（runtime kernel）
 - 第二层：`ahe-specify`、`ahe-design`、`ahe-tasks`、`ahe-test-driven-dev`
 - 第三层：`ahe-design-review`、`ahe-code-review`、`ahe-test-review`
 
@@ -806,7 +809,8 @@ flowchart TD
 
 ### 第一层：流程编排
 
-- `ahe-workflow-starter`
+- `using-ahe-workflow`
+- `ahe-workflow-router`
 
 ### 第二层：任务执行流
 
@@ -850,7 +854,8 @@ flowchart TD
 
 ```text
 skills/
-  ahe-workflow-starter/
+  using-ahe-workflow/
+  ahe-workflow-router/
   ahe-specify/
   ahe-spec-review/
   ahe-design/
@@ -871,7 +876,7 @@ skills/
 
 ### 14.2 推荐实现顺序
 
-1. `ahe-workflow-starter`
+1. `using-ahe-workflow` + `ahe-workflow-router`
 2. `ahe-specify` + `ahe-spec-review`
 3. `ahe-design` + `ahe-design-review`
 4. `ahe-tasks` + `ahe-tasks-review`

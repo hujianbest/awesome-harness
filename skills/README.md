@@ -18,7 +18,7 @@
 ## Runtime router and alias
 
 - `skills/ahe-workflow-router/` — AHE workflow family 的 canonical runtime router，负责 stage / profile / branch / review recovery authority。
-- `skills/ahe-workflow-starter/` — 兼容旧入口、旧 handoff 与旧文档的 compatibility alias；新的 runtime 语义优先写 `ahe-workflow-router`。
+- 历史文档或旧 handoff 若仍出现 `ahe-workflow-starter`，按 legacy 名称理解为 `ahe-workflow-router` 的旧写法，而不是当前独立 skill。
 
 ## AHE workflow skills（`ahe-*`）
 

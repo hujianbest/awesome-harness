@@ -2,7 +2,7 @@
 
 这份参考文档集中保存 `ahe-workflow-router` 的 profile 合法节点集合、canonical route map、结果驱动迁移表与恢复编排协议。
 
-当你已经在 starter 主文件中确认：
+当你已经在 router 主文件（`skills/ahe-workflow-router/SKILL.md`）中确认：
 
 - 当前请求属于 workflow 场景
 - 当前 profile 已确定
@@ -168,7 +168,7 @@ branches:
 
 如果某个下游 skill 给出的结论无法映射到当前 profile 迁移表中的唯一下一推荐节点，则说明编排信息还不完整，应回到 `ahe-workflow-router` 重新判断，而不是自行补脑推进。
 
-上表主要描述“内容回修型”默认迁移。若 reviewer 返回摘要显式要求 `reroute_via_starter=true`，或把 `next_action_or_recommended_skill` 指向 `ahe-workflow-router`，该显式重编排信号优先于表内默认下一步。
+上表主要描述“内容回修型”默认迁移。若 reviewer 返回摘要显式要求 `reroute_via_router=true`（历史工件中的 `reroute_via_starter=true` 与之等价），或把 `next_action_or_recommended_skill` 指向 `ahe-workflow-router`，该显式重编排信号优先于表内默认下一步。
 
 ## 恢复编排协议
 

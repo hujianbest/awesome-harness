@@ -10,7 +10,7 @@
 
 ## 概述
 
-本设计的目标，不再是描述一个抽象的“多 agent workflow OS”，而是把真正会被 agent 主动领取的协调职责显式落成 `ahe-*` skills，让 AHE workflow 从当前的“`ahe-workflow-starter` 驱动的强约束串行流程”，演进为“协调层 skills + specialist skills + `workflow-board` 运行时对象”的板式运行模型。
+本设计的目标，不再是描述一个抽象的“多 agent workflow OS”，而是把真正会被 agent 主动领取的协调职责显式落成 `ahe-*` skills，让 AHE workflow 从以 **`ahe-workflow-router`**（runtime 恢复 / 编排；公开入口为 **`using-ahe-workflow`**）为中枢的强约束串行流程，演进为“协调层 skills + specialist skills + `workflow-board` 运行时对象”的板式运行模型。（Pre-split 时期曾由单一 `ahe-workflow-starter` 同时承担入口与 kernel，现已拆分并移除该独立 skill。）
 
 这里有一个关键重构原则：
 
@@ -42,7 +42,7 @@
 | 当前组件 / 职责 | 形态 | 说明 |
 | --- | --- | --- |
 | `ahe-*` workflow family | workflow skills family | 整个 workflow 家族以扁平 `skills/ahe-*` 目录存在 |
-| `skills/ahe-workflow-starter/` | intake / router 入口 | 保留为新请求识别与恢复入口 |
+| `skills/ahe-workflow-router/` | runtime router / 恢复编排 | canonical kernel；新请求识别与恢复入口（公开家族壳层见 `skills/using-ahe-workflow/`） |
 | `Board Governor` | 协调层运行时角色 | 在本版文档中作为 runtime coordination responsibility 描述，不落成新的 skill 修改 |
 | `Human Confirmation Bridge` | 协调层运行时角色 | 统一承接暂停点 / 审批证据桥接职责，但本次仅体现在文档设计中 |
 | `archive responsibility` | 运行时 closeout / archive responsibility | 作为会话冻结与审计归档职责描述，不在本次改动中修改现有 skill |
@@ -59,7 +59,7 @@
 
 这些职责负责会话编排、board 状态、暂停点与归档，不直接产出业务规格、设计或代码：
 
-- `ahe-workflow-starter`：识别新请求、恢复入口、决定是否进入 workflow、变更或热修复
+- `ahe-workflow-router`：识别新请求、恢复入口、决定是否进入 workflow、变更或热修复（`using-ahe-workflow` 仅分流到 router 或直接 leaf，不承担 transition machine）
 - `Board Governor`：消费 `workflow-board`、治理注入和 outcome，重算 `readyNodes`、`blockedNodes`、lease 与唯一下一推荐步骤
 - `Human Confirmation Bridge`：处理规格确认、设计确认、测试设计确认、可选 release approval 等显式暂停点
 - `archive responsibility`：在 closeout 完成后冻结 session、汇总工件、写入归档索引
@@ -96,7 +96,7 @@
 flowchart TD
     user[User Request]
     agentsmd[AGENTS.md Governance]
-    starter[ahe-workflow-starter]
+    router[ahe-workflow-router]
     governor[Board Governor]
     board[workflow-board]
     human[Human Confirmation Bridge]
@@ -124,8 +124,8 @@ flowchart TD
         completion[ahe-completion-gate]
     end
 
-    user --> starter
-    starter --> governor
+    user --> router
+    router --> governor
     agentsmd --> governor
     governor <--> board
     governor --> execution
@@ -146,15 +146,15 @@ flowchart TD
 
 ## 关键边界
 
-### `ahe-workflow-starter`
+### `ahe-workflow-router`（及公开入口 `using-ahe-workflow`）
 
-它不再被视为“永远唯一的状态机”，而应被理解为：
+`ahe-workflow-router` 不应再被视为“永远唯一的状态机”，而应被理解为：
 
-- 新 session 的 intake / router
+- 新 session 的 runtime intake / router（用户常从 `using-ahe-workflow` 进入后再交给 router）
 - 兼容模式下的恢复入口
-- 当用户只说“继续”“推进”“开始做”时的第一跳判断器
+- 当用户只说“继续”“推进”“开始做”且阶段不清时，由 router 做第一跳判断器
 
-一旦 session 已建立，后续 `readyNodes`、lease、fan-out 收敛、profile 升级与冲突修正，应该由 runtime coordination layer 负责，而不是让入口 skill 永远承担所有状态机逻辑。
+一旦 session 已建立，后续 `readyNodes`、lease、fan-out 收敛、profile 升级与冲突修正，应该由 runtime coordination layer 负责，而不是让 router 永远承担所有状态机逻辑。
 
 ### `Board Governor`
 
@@ -330,7 +330,7 @@ humanConfirmationRequired: false
 ### Full Profile
 
 ```text
-ahe-workflow-starter
+ahe-workflow-router
 -> Board Governor
 -> ahe-specify
 -> ahe-spec-review
@@ -361,7 +361,7 @@ ahe-workflow-starter
 ### Standard Profile
 
 ```text
-ahe-workflow-starter
+ahe-workflow-router
 -> Board Governor
 -> ahe-tasks
 -> ahe-tasks-review
@@ -379,7 +379,7 @@ ahe-workflow-starter
 ### Lightweight Profile
 
 ```text
-ahe-workflow-starter
+ahe-workflow-router
 -> Board Governor
 -> ahe-tasks
 -> ahe-tasks-review
@@ -422,7 +422,7 @@ ahe-workflow-starter
 
 ```text
 change-request
--> ahe-workflow-starter
+-> ahe-workflow-router
 -> Board Governor
 -> ahe-increment
 -> change-workspace-open
@@ -446,7 +446,7 @@ change-request
 
 ```text
 hotfix-request
--> ahe-workflow-starter
+-> ahe-workflow-router
 -> Board Governor
 -> ahe-hotfix
 -> repro-confirm
@@ -536,13 +536,13 @@ hotfix-request
 
 - 先把多 agent 概念稿收敛为 AHE 命名与职责拆分
 - 把 `workflow-board` / lease / outcome / archive 作为明确运行时对象描述清楚
-- 让现有 `ahe-workflow-starter`、`ahe-test-driven-dev`、质量层和支线 skill 有一致的目标态对齐坐标
+- 让现有 `ahe-workflow-router`（与 `using-ahe-workflow` 入口分层）、`ahe-test-driven-dev`、质量层和支线 skill 有一致的目标态对齐坐标
 
 ### 批次 2：Contract-first 对齐
 
 目标：
 
-- 让 `ahe-workflow-starter`、`ahe-test-driven-dev`、质量层和支线 skill 拥有明确 contract
+- 让 `ahe-workflow-router`、`ahe-test-driven-dev`、质量层和支线 skill 拥有明确 contract
 - 统一 pauseKind / retryFromNode / expectedWrites / requiredReads
 - 明确 finalize、archive、human confirmation 的运行时边界
 
@@ -559,7 +559,7 @@ hotfix-request
 
 - 把主链与支线切到 `board-first`
 - 让 session 恢复、merge-back、archive 全部由 board 原生协调
-- 让 `ahe-workflow-starter` 收敛为 intake / router，而不是继续承担全部状态机职责
+- 让 `ahe-workflow-router` 收敛为 intake / runtime router，而不是继续承担全部状态机职责（公开入口由 `using-ahe-workflow` 承担）
 
 ## 首批建议落地范围
 
@@ -567,7 +567,7 @@ hotfix-request
 
 1. 这份 AHE 版本的多 agent 设计文档
 2. `workflow-board` / lease / outcome / archive 的最小 schema 说明
-3. `ahe-workflow-starter`、`ahe-finalize`、quality fan-out 与 human confirmation 的边界对齐方案
+3. `ahe-workflow-router`、`ahe-finalize`、quality fan-out 与 human confirmation 的边界对齐方案
 4. mixed-mode 下的 dual-read / dual-write 与 cutover 判定规则
 
 ## 风险与缓解
@@ -599,4 +599,4 @@ hotfix-request
 
 ## 一句话总结
 
-推荐把多 agent 运行方案收敛为一套以现有 `ahe-*` skill 家族为基础的运行模型：由 `ahe-workflow-starter` 负责 intake，由 `workflow-board` 承担运行时事实源，由 coordination layer 管理 lease、fan-out、pause 与 archive，并由既有 execution / quality skills 承担节点职责，从而把抽象角色图重构成可落地的 AHE workflow operating model。
+推荐把多 agent 运行方案收敛为一套以现有 `ahe-*` skill 家族为基础的运行模型：由 `ahe-workflow-router`（配合 `using-ahe-workflow` 公开入口）负责 runtime intake，由 `workflow-board` 承担运行时事实源，由 coordination layer 管理 lease、fan-out、pause 与 archive，并由既有 execution / quality skills 承担节点职责，从而把抽象角色图重构成可落地的 AHE workflow operating model。

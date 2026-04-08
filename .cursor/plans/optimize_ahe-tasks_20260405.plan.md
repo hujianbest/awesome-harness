@@ -8,7 +8,7 @@
 
 - 仍然只在需求规格和设计都已批准时使用
 - 仍然在 `ahe-tasks-review` 前禁止进入实现
-- 仍然由 `ahe-workflow-starter` 管理下游编排
+- 仍然由 `ahe-workflow-router` 管理下游编排
 - 仍然在 `ahe-tasks-review` 通过并写入批准记录后，才进入 `ahe-test-driven-dev`
 
 ## 当前问题

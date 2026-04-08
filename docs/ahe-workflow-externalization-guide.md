@@ -6,7 +6,7 @@
 
 重点不是“把外部仓库改得和本仓库一模一样”，而是保证以下能力存在：
 
-- starter 能找到足够的路由证据
+- `ahe-workflow-router` 能找到足够的路由证据
 - review / gate 能找到可消费的上游工件
 - approval 与 verification 能留下可回读的证据
 - direct invoke 不会因为缺少状态面而变成瞎猜
@@ -49,7 +49,7 @@
 - 真人确认完成
 - 尚未批准
 
-如果只能看出“有人大概同意过”，而没有可回读证据，starter 仍应按未批准处理。
+如果只能看出“有人大概同意过”，而没有可回读证据，`ahe-workflow-router` 仍应按未批准处理。
 
 ### 3. Stable progress state
 
@@ -153,7 +153,7 @@
 2. 所需逻辑工件路径已能通过 `AGENTS.md` 或等价约定定位
 3. 批准状态、profile 和当前阶段没有冲突
 4. 节点所需最小证据已经存在
-5. 调用方理解该节点只完成本地职责，后续编排仍回到父会话 / starter
+5. 调用方理解该节点只完成本地职责，后续编排仍回到父会话 / `ahe-workflow-router`
 
 若任一条件不满足，先走 `ahe-workflow-router`。
 
@@ -189,7 +189,7 @@
 1. 先声明 `AGENTS.md` 映射
 2. 再确定 progress state 的最小字段
 3. 再确定 review / verification 路径
-4. 再让 starter 在该仓库里跑通
+4. 再让 `ahe-workflow-router` 在该仓库里跑通
 5. 最后才逐步开放 direct invoke 或薄命令入口
 
 ## Externalization Checklist

@@ -58,7 +58,7 @@ direct invoke 不是主路径替代品，而是在“当前节点已经足够明
 2. 当前请求是该 skill 的本地职责，而不是更上游或并行节点职责
 3. 所需核心工件已经存在且可读
 4. 没有 profile 冲突、批准状态冲突或证据冲突
-5. 调用方接受“本 skill 只完成本节点职责，后续编排仍回到父会话 / starter”
+5. 调用方接受“本 skill 只完成本节点职责，后续编排仍回到父会话 / router”
 
 若任一条件不满足，交给 `ahe-workflow-router`。
 
@@ -72,7 +72,7 @@ direct invoke 不是主路径替代品，而是在“当前节点已经足够明
 | Review | `ahe-spec-review` / `ahe-design-review` / `ahe-tasks-review` / downstream reviews | 当前明确是 review-only，请求和工件都指向一个具体 review 节点 | 没有可评审草稿 / 记录、其实需要继续产出正文、或 route / stage 冲突 |
 | Implementation | `ahe-test-driven-dev` | 已有唯一活跃任务，且任务计划已批准，或已有 hotfix handoff / 回流 findings | 无唯一活跃任务、批准状态冲突、其实要做 review / gate |
 | Quality analysis | `ahe-bug-patterns` | 已有实现交接块或明确改动范围，当前需要专项缺陷模式排查 | 缺实现范围、其实要继续实现、其实只是一般 review / gate |
-| Gates | `ahe-regression-gate` / `ahe-completion-gate` | 上游记录已落盘，当前就是要跑正式门禁 | 缺上游 handoff / verification 输入、缺环境、其实该回到实现或 starter |
+| Gates | `ahe-regression-gate` / `ahe-completion-gate` | 上游记录已落盘，当前就是要跑正式门禁 | 缺上游 handoff / verification 输入、缺环境、其实该回到实现或 router |
 | Finalize | `ahe-finalize` | completion gate 已允许收尾，当前要做状态 / 文档 / 发布说明收口 | 仍需补实现或补验证、gate 记录缺失或不支持 finalize |
 | Branch analysis | `ahe-hotfix` / `ahe-increment` | 问题明确属于 hotfix 或 increment，当前要做影响分析与 re-entry，而不是直接改代码 | 阶段不清、输入证据冲突、其实已经明确进入实现 |
 
@@ -81,15 +81,15 @@ direct invoke 不是主路径替代品，而是在“当前节点已经足够明
 review skills 有双重入口语义：
 
 - direct invoke：用户明确要求“review 这份 spec/design/tasks/tests/code/traceability”，调用方可直接把当前工作视为某个 review 节点
-- chain invoke：starter 或父会话已经判定当前 canonical 节点是某个 review 节点
+- chain invoke：router 或父会话已经判定当前 canonical 节点是某个 review 节点
 
 差异：
 
 - direct invoke 时，调用方需要自己先确认这真的是 review-only 场景
-- 无论是 direct invoke 还是 chain invoke，review 的实际执行都仍遵循 `skills/ahe-workflow-starter/references/review-dispatch-protocol.md`：由父会话构造 review request，并派发 reviewer subagent
+- 无论是 direct invoke 还是 chain invoke，review 的实际执行都仍遵循 `skills/ahe-workflow-router/references/review-dispatch-protocol.md`：由父会话构造 review request，并派发 reviewer subagent（旧工件若仍引用 `ahe-workflow-starter/.../review-dispatch-protocol.md`，语义等价，按 legacy 路径理解即可）
 - 无论哪种模式，review skill 只负责给出 review 记录与结构化摘要，不负责推进主链
 
-## Public Entry Mode vs Starter Mode vs Direct Invoke
+## Public Entry Mode vs Router Mode vs Direct Invoke
 
 | 维度 | Public entry 模式 | Router 编排模式 | Direct invoke 模式 |
 |---|---|---|---|
@@ -110,7 +110,7 @@ review skills 有双重入口语义：
 - 与入口判断直接相关的少量工件线索
 - 命令 bias 或用户点名的 skill 意图
 
-public entry 阶段不应复制 starter 的 runtime 判断，也不应先做大范围代码探索。
+public entry 阶段不应复制 router 的 runtime 判断，也不应先做大范围代码探索。
 
 ### Router 应优先读取
 
