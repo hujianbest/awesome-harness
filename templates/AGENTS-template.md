@@ -8,13 +8,13 @@
 
 ## 仓库定位
 
-这是一个用于维护 `<主要资产类型>` 的个人 harness 工作台。请以当前仓库实际目录结构为准；若使用 AHE 风格 workflow skills，工作流类能力位于扁平目录 `skills/ahe-*`（入口为各目录下 `SKILL.md`）。
+这是一个用于维护 `<主要资产类型>` 的个人 harness 工作台。请以当前仓库实际目录结构为准；若使用 AHE 风格 workflow skills，工作流类能力位于扁平目录 `ahe-coding-skills/ahe-*`（入口为各目录下 `SKILL.md`）。
 
 ## 工作方式
 
 1. 先从 `README.md`、`AGENTS.md` 或用户指定入口开始。
 2. 只引用仓库中真实存在的路径。
-3. skill 从 `skills/<skill-name>/SKILL.md` 开始阅读；workflow 族从 `skills/ahe-*/SKILL.md` 开始。
+3. skill 从 `ahe-coding-skills/<skill-name>/SKILL.md` 开始阅读；workflow 族从 `ahe-coding-skills/ahe-*/SKILL.md` 开始。
 4. 模板统一放在 `templates/`，保持通用和可复用。
 5. 长文说明、分析或设计记录统一放在 `docs/`。
 
@@ -25,7 +25,7 @@
 | `README.md` | 仓库总览 |
 | `AGENTS.md` | 仓库级约定 |
 | `docs/` | 分析、说明和设计记录 |
-| `skills/` | 仓库自有 skills（含 `ahe-*` workflow 家族时） |
+| `ahe-coding-skills/` | 仓库自有 skills（含 `ahe-*` workflow 家族时） |
 | `templates/` | 通用模板 |
 | `agents/` | 角色化 agent 说明 |
 | `rules/` | 常驻规则 |
@@ -33,7 +33,7 @@
 
 ## AHE Auto Mode Policy
 
-如果仓库采用 `skills/ahe-*` workflow，建议显式声明：
+如果仓库采用 `ahe-coding-skills/ahe-*` workflow，建议显式声明：
 
 - Default Execution Mode: `interactive` | `auto`
 - Auto-Resolvable Approval Steps: 哪些 approval step 允许自动落盘继续推进
@@ -48,6 +48,6 @@
 
 ## 注意事项
 
-- 不要保留指向历史目录的失效引用；workflow 使用 `skills/ahe-*`。
+- 不要保留指向历史目录的失效引用；workflow 使用 `ahe-coding-skills/ahe-*`。
 - 不要为了统一格式而重写无关资料。
 - 保持说明短而稳定，避免把 `AGENTS.md` 写成冗长流程手册。

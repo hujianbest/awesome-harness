@@ -41,7 +41,7 @@
 主要参考：
 
 - `references/longtaskforagent-main/skills/using-long-task/SKILL.md`
-- `docs/skills_refer.md`
+- `docs/references/skills_refer.md`
 
 ### 2. 增加“决策分类”
 

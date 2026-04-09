@@ -42,7 +42,7 @@
 主要参考：
 
 - `references/gstack-main/plan-design-review/SKILL.md`
-- `docs/skills_refer.md` 中对 `plan-design-review` 的总结
+- `docs/references/skills_refer.md` 中对 `plan-design-review` 的总结
 
 ### 2. 强化需求追溯检查
 

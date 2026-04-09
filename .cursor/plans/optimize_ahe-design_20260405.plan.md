@@ -108,7 +108,7 @@
 主要参考：
 
 - `references/longtaskforagent-main/skills/long-task-design/SKILL.md`
-- `docs/skills_refer.md` 中对高质量设计类 skill 的归纳
+- `docs/references/skills_refer.md` 中对高质量设计类 skill 的归纳
 
 ### 5. 强化接口与契约章节
 

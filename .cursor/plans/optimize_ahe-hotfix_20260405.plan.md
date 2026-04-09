@@ -137,7 +137,7 @@
 主要参考：
 
 - `references/gstack-main/investigate/SKILL.md`
-- `docs/skills_refer.md`
+- `docs/references/skills_refer.md`
 
 ### 7. 明确后续链路提示但不抢 router 的权
 
