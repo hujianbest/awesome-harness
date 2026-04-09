@@ -30,7 +30,10 @@
 | --- | --- |
 | `README.md` | 仓库总览与使用入口 |
 | `AGENTS.md` | 仓库级 agent 工作约定 |
-| `docs/` | 按 `analysis/`、`architecture/`、`designs/`、`guides/`、`plans/`、`references/` 分组的长文文档 |
+| `docs/` | 按 `analysis/`、`architecture/`、`designs/`、`guides/`、`plans/`、`specs/`、`tasks/`、`references/` 分组的长文文档 |
+| `contracts/` | 平台 / pack 的 narrative contracts 与 manifests |
+| `schemas/` | 平台 / pack 的 machine-readable schema、examples 与本地校验入口 |
+| `.platform-runtime/` | 平台 Phase 1 的隐藏 runtime state surface |
 | `ahe-coding-skills/` | 仓库内自有 skills（含 `ahe-*` workflow family）与相关设计规则 |
 | `ahe-se-skills/` | 独立的 `se-*` 分析 workflow skills |
 | `ahe-coding-skills/docs/` | 直接服务 live workflow skills 的共享文档 |
@@ -41,7 +44,7 @@
 | `hooks/` | 预留给 hooks 设计与辅助脚本 |
 | `.cursor/skills/skill-creator/` | skill 校验、打包、评测辅助脚本 |
 
-`rules/`、`hooks/` 当前仍以轻量骨架为主；`agents/` 目录现已开始承载可复用子 agent 提示文档。
+`rules/`、`hooks/` 当前仍以轻量骨架为主；`agents/` 目录现已开始承载可复用子 agent 提示文档。当前平台优先 Phase 1 还会把 machine-readable / runtime surfaces 落在 `contracts/`、`schemas/` 与 `.platform-runtime/`；主题级任务计划与 board 统一放在 `docs/tasks/`。
 
 ## AHE Workflow Family
 
@@ -84,6 +87,7 @@
 - `ahe-coding-skills/docs/ahe-workflow-shared-conventions.md`：集中定义 progress schema、`Execution Mode`、fresh evidence、verdict、severity 和记录表达方式。
 - `ahe-coding-skills/docs/ahe-command-entrypoints.md`：定义 `/ahe-spec`、`/ahe-build`、`/ahe-review`、`/ahe-closeout` 这类 docs-only command contract。
 - `docs/designs/ahe-platform-first-multi-agent-implementation-design.md`：描述平台优先 multi-agent runtime 的实现设计，以及 AHE 作为首个 coding pack 的接入方案。
+- `docs/tasks/2026-04-09-ahe-platform-first-multi-agent-phase-1-tasks.md`：当前平台优先 Phase 1 的已批准任务计划与唯一活跃任务选择基线。
 - `docs/architecture/ahe-workflow-skill-anatomy.md`：定义 workflow skill 的目标态 anatomy。
 - `docs/guides/ahe-workflow-externalization-guide.md`：说明外部仓库采用 AHE workflow family 时的最小能力面。
 - `docs/guides/ahe-path-mapping-guide.md`：说明默认逻辑工件如何映射到实际仓库路径。

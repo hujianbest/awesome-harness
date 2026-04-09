@@ -19,6 +19,10 @@
 | `README.md` | 仓库总览与使用入口 |
 | `AGENTS.md` | 仓库级 agent 约定 |
 | `docs/` | 分析、设计说明与研究记录 |
+| `docs/tasks/` | AHE 主题级任务计划与 task board |
+| `contracts/` | 平台 / pack contract 叙事与 manifests |
+| `schemas/` | 平台 / pack machine-readable schemas 与 examples |
+| `.platform-runtime/` | 平台 Phase 1 repo-local runtime state surface |
 | `ahe-coding-skills/` | 仓库自有 skills（含 `ahe-*` workflow 家族）与设计规则 |
 | `ahe-se-skills/` | 独立的 `se-*` 分析 workflow skills |
 | `ahe-coding-skills/docs/` | AHE workflow live 共享文档 |
@@ -28,6 +32,19 @@
 | `rules/` | 常驻规则占位目录 |
 | `hooks/` | hooks 说明或辅助脚本占位目录 |
 | `.cursor/skills/skill-creator/` | skill 校验、打包、评测辅助脚本 |
+
+## AHE Workflow 默认路径映射
+
+当前仓库接受 `docs/guides/ahe-path-mapping-guide.md` 中的默认 logical surfaces 作为默认映射合同；若未来需要 repo-specific override，以本文件的显式声明为准。换句话说，`AGENTS.md` 是 repo-specific governance root，path mapping guide 只在这里未覆盖时提供默认规则，不构成并列竞争治理源。
+
+- requirement spec: `docs/specs/`
+- design doc: `docs/designs/`
+- task plan / task board: `docs/tasks/`
+- progress state: `task-progress.md`
+- review records: `docs/reviews/`
+- platform contracts: `contracts/`
+- schema bundle: `schemas/`
+- runtime state: `.platform-runtime/`
 
 ## 独立 SE 分析 workflow
 

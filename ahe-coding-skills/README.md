@@ -22,6 +22,23 @@
 - `ahe-coding-skills/ahe-workflow-router/` — AHE workflow family 的 canonical runtime router，负责 stage / profile / branch / review recovery authority。
 - 历史文档或旧 handoff 若仍出现 **legacy 合并入口/路由** 旧名称，按 `ahe-workflow-router` 读法理解（非当前独立 skill）；明细见 `ahe-coding-skills/docs/ahe-workflow-shared-conventions.md`。
 
+## Worktree isolation
+
+AHE workflow 现在支持把 Git worktree 作为 pack-local 隔离工作目录来使用。
+
+对外应这样理解：
+
+- `ahe-workflow-router` 负责决定当前任务是继续 `in-place`，还是进入 `worktree-required` / `worktree-active`
+- `task-progress.md` 可追加 `Workspace Isolation`、`Worktree Path`、`Worktree Branch` 作为 coordination fields
+- `ahe-test-driven-dev`、review dispatch、`ahe-bug-patterns`、`ahe-regression-gate`、`ahe-completion-gate`、`ahe-finalize` 会沿用同一 worktree 上下文，而不是在质量链中途退回仓库根目录
+- 这些字段属于 AHE pack-local workflow 语义，不是平台共享 contract 的保留关键字
+
+共享规则入口见：
+
+- `ahe-coding-skills/docs/ahe-worktree-isolation.md`
+- `ahe-coding-skills/docs/ahe-workflow-shared-conventions.md`
+- `ahe-coding-skills/templates/task-progress-template.md`
+
 ## AHE workflow skills（`ahe-*`）
 
 工作流类能力以 **扁平** 目录 `ahe-coding-skills/ahe-*` 维护。每个目录一个 skill，入口仍为该目录下的 `SKILL.md`。

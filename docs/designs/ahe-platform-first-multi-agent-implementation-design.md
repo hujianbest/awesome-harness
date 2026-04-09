@@ -1,10 +1,18 @@
 # AHE 平台优先 Multi-Agent 实现设计方案
 
-- 状态: 草稿
+- 状态: 已批准
 - 日期: 2026-04-09
-- 主题: 平台优先 multi-agent runtime 的实现设计
-- 定位: 基于 `docs/architecture/ahe-platform-first-multi-agent-architecture.md`，给出可进入后续任务规划的实现设计方案。本文回答“平台优先架构将如何在当前仓库中落地”，而不是重复解释为什么要采用该架构。
-- 关联文档:
+- 主题: `ahe-platform-first-multi-agent-phase-1`
+- 定位: 基于已批准的 `docs/specs/2026-04-09-ahe-platform-first-multi-agent-phase-1-srs.md`，给出可进入后续任务规划的 Phase 1 实现设计。本文回答“平台优先 multi-agent 将如何在当前仓库中落地”，而不是重复定义需求或提前写任务计划。
+- 已批准规格:
+  - `docs/specs/2026-04-09-ahe-platform-first-multi-agent-phase-1-srs.md`
+  - `docs/reviews/spec-review-ahe-platform-first-multi-agent-phase-1.md`
+  - `docs/reviews/spec-approval-ahe-platform-first-multi-agent-phase-1.md`
+- 评审记录:
+  - `docs/reviews/design-review-ahe-platform-first-multi-agent-phase-1.md`
+- 批准记录:
+  - `docs/reviews/design-approval-ahe-platform-first-multi-agent-phase-1.md`
+- 支撑上下文:
   - `README.md`
   - `AGENTS.md`
   - `docs/architecture/ahe-platform-first-multi-agent-architecture.md`
@@ -15,9 +23,12 @@
 
 ## 1. 概述
 
-当前仓库已经明确采用“平台优先 + AHE 仅为首个 coding pack”的总体方向。  
+当前仓库已经完成 `AHE 平台优先 Multi-Agent Phase 1` 需求规格的评审与批准。  
+本轮设计不再把架构文草稿当作唯一上游，而是以已批准规格作为需求 authority，以架构文和既有 review 记录作为补充上下文，对现有实现设计稿做定向收敛。
+
 下一步需要解决的问题不是“是否要这么做”，而是：
 
+- 如何把已批准规格中的 `FR-001` 到 `FR-011` 与 `NFR-001` 到 `NFR-006` 落到实际设计边界上
 - 平台层具体由哪些实现层组成
 - 各层应落在哪些目录、对象和 contract 上
 - `ahe-coding-skills/` 如何作为 pack 接入，而不是继续兼任平台
@@ -26,21 +37,24 @@
 本文给出的不是最终代码结构，而是一份 **可实施的实现设计**。  
 目标是让后续任务规划能围绕稳定的边界、目录挂载、接口和运行时对象展开，而不再靠概念性草图推进。
 
+本文中的“系统”特指：当前仓库内拟引入的 repo-local platform runtime、治理注入、pack integration 和 progress projection 的组合。Cursor、CLI、subagent、shell、MCP 等宿主差异统一由 `HostAdapterLayer` 吸收，不单独改变 Phase 1 的需求边界。
+
 ---
 
 ## 2. 设计驱动因素
 
-### 2.1 关键驱动
+### 2.1 来自已批准规格的关键驱动
 
-1. 平台 shared contract 必须摆脱 AHE 私有语言。
-2. `ahe-coding-skills/` 只能是 pack，不能再承担 pack-neutral orchestration。
-3. 当前仓库是 Markdown-first、无常驻服务、无数据库的资产仓，第一阶段必须 file-backed。
-4. 运行时恢复不能继续主要依赖聊天记忆，必须逐步转向 board + evidence + artifact surface。
-5. 兼容期内必须允许 `artifact-first + board-assisted`，避免过早切 `board-first`。
-6. 未来必须允许第二个、第三个非 coding pack 接入，而无需继承 AHE 的命名或 graph 术语。
+1. `FR-001` 与 `NFR-004`：平台 shared contract、目录和字段命名必须保持 pack-neutral，不能把 AHE 私有语言升格为平台保留字。
+2. `FR-002` 与 `FR-011`：Phase 1 只支持单 pack 启动，但 `pack registry`、`graphVariantId` 和 artifact mapping 的形态必须能容纳未来非 AHE pack。
+3. `FR-003`、`FR-007`、`FR-008`、`NFR-002` 与 `NFR-003`：session 恢复、approval、evidence 与 progressView 必须以 repo-local、可回读、可审计的工件为基础。
+4. `FR-004` 与 `FR-005`：治理注入与 artifact surface mapping 必须拥有单一权威解释路径，不能在 `AGENTS.md`、guide 和运行时之间漂移。
+5. `FR-009` 与 `NFR-005`：质量 fan-out 的只读并行和主工件单写边界必须在设计层显式建模，而不是依赖约定俗成。
+6. `FR-010` 与 `NFR-006`：Phase 1 必须保留 `artifact-first + board-assisted` 兼容模式，并维持 `task-progress.md` 这一人类可读投影视图。
 
 ### 2.2 设计约束
 
+- 已批准规格是当前设计的 requirement authority；任何与规格冲突的旧设计想法都应让位于已批准 spec。
 - 不新增平台私有治理源；治理只从 `AGENTS.md` 注入。
 - 不要求第一阶段改写全部 `ahe-*` skills。
 - 不把平台实现成 Clowder 式完整应用。
@@ -50,30 +64,55 @@
 
 本设计至少要明确：
 
-- 分层边界
-- 目录挂载
+- 分层边界与系统边界
+- 目录挂载与 Phase 1 最小 machine-readable 落点
 - runtime 对象
-- machine-readable contract 的组织方式
+- 治理解析优先级与 path mapping fallback
 - AHE pack 接入方式
 - 关键控制流
 - 兼容和切换策略
 - 验证与风险控制方式
 
+### 2.4 输入优先级与治理解析顺序
+
+1. `docs/specs/2026-04-09-ahe-platform-first-multi-agent-phase-1-srs.md` 及其评审 / 批准记录是当前轮次的需求 authority。
+2. `AGENTS.md` 是 repo-specific governance 的唯一权威入口。
+3. 若 `AGENTS.md` 未声明显式路径映射，则回退到 `docs/guides/ahe-path-mapping-guide.md` 中的默认 logical surface 规则；该 guide 是默认映射合同，不是平行治理源。
+4. `docs/architecture/ahe-platform-first-multi-agent-architecture.md` 提供平台优先方向和分层语境，但不得覆盖已批准 spec。
+5. 历史 review 记录用于保留 findings 与验证问题是否已收敛，不应重新引入已被当前仓库状态覆盖的旧阻塞前提。
+
 ---
 
 ## 3. 需求覆盖与追溯
 
-下表把架构文档中的关键要求映射到本文的实现设计承接点。
+本文以已批准规格为唯一需求追溯锚点；若后文与 spec 冲突，以 spec 与其批准记录为准。
 
-| 架构要求 | 实现设计中的承接 |
+### 3.1 功能需求追溯
+
+| 需求 ID | 设计承接 |
 | --- | --- |
-| 平台只使用中立术语 | `决策 D5` 与 `第 10 节 接口与契约` |
-| AHE 仅为首个 coding pack | `第 8.4 节 PackIntegrationLayer` 与 `第 12 节 AHE Coding Pack 接入设计` |
-| board 先作为辅助事实源 | `第 13 节 兼容与切换策略` |
-| 治理从 `AGENTS.md` 注入 | `第 8.1 节 GovernanceAndSurfaceLayer` |
-| `contracts/` / `schemas/` 成为正式挂载点 | `第 7 节 目录与挂载设计` 与 `第 10.7 节 契约组织方式` |
-| 主工件单写、质量节点只读并行 | `第 8.3 节 OrchestrationKernel` 与 `第 11.4 节 quality fan-out` |
-| 未来支持多 pack | `第 10.1 节 PackDefinition` 与 `第 12 节 AHE Coding Pack 接入设计` |
+| `FR-001` 平台中立 vocabulary 与 contract 边界 | `决策 D1`、`决策 D5`、`第 7 节`、`第 10 节`、`第 12 节` |
+| `FR-002` 单 pack 启动与注册 | `第 4 节 候选方案`、`第 10.1 节`、`第 10.2 节`、`第 11.1 节`、`第 12 节` |
+| `FR-003` Session 创建、恢复与重入 | `第 9.1 节`、`第 9.2 节`、`第 10.4 节`、`第 10.5 节`、`第 13 节` |
+| `FR-004` 治理注入与路径映射 | `第 2.4 节`、`第 8.1 节`、`第 10.3 节`、`第 11.1 节` |
+| `FR-005` 稳定 logical artifact surfaces | `第 7 节`、`第 10.9 节`、`第 10.14 节`、`第 10.15 节` |
+| `FR-006` 平台协调职责与 pack 执行职责分离 | `第 8 节`、`第 11.2 节`、`第 11.3 节`、`第 12 节` |
+| `FR-007` 证据记录、审批与归档 | `第 8.6 节`、`第 9.5 节`、`第 9.6 节`、`第 10.11` 到 `第 10.13 节` |
+| `FR-008` 人类可读的 progress state | `决策 D4`、`第 10.4 节`、`第 10.5 节`、`第 12.4 节`、`第 13.3 节` |
+| `FR-009` 受控并行与主工件单写 | `第 8.7 节`、`第 9.4 节`、`第 11.4 节`、`第 13.4 节` |
+| `FR-010` `artifact-first + board-assisted` 兼容模式 | `第 13.1` 到 `第 13.7 节` |
+| `FR-011` 未来 pack 的可接入性 | `第 10.1 节`、`第 10.2 节`、`第 12 节`、`第 14.3 节` |
+
+### 3.2 非功能需求追溯
+
+| 需求 ID | 设计承接 |
+| --- | --- |
+| `NFR-001` repo-local、file-backed 成立 | `决策 D3`、`第 7.1 节`、`第 13.4 节` |
+| `NFR-002` 恢复依赖可回读工件 | `第 9.2 节`、`第 10.12 节`、`第 13.1 节`、`第 14.1 节` |
+| `NFR-003` evidence 可审计 | `第 8.6 节`、`第 10.11` 到 `第 10.13 节`、`第 14.2 节` |
+| `NFR-004` pack-neutral 可复用 | `决策 D1`、`决策 D5`、`第 7 节`、`第 10 节`、`第 14.3 节` |
+| `NFR-005` 单写安全边界 | `第 8.7 节`、`第 11.4 节`、`第 13.4 节`、`第 14.4 节` |
+| `NFR-006` 与当前 AHE workflow 兼容迁移 | `决策 D4`、`第 12.4 节`、`第 13.3 节`、`第 14.5 节` |
 
 ---
 
@@ -315,6 +354,16 @@ flowchart TD
 
 ### 7.1 顶层目录设计
 
+Phase 1 先冻结一组“最小但闭环”的 machine-readable 落点。进入 `ahe-tasks` 前，以下路径视为必须存在的正式挂载面：
+
+- `contracts/platform/`
+- `contracts/packs/ahe-coding/`
+- `schemas/platform/`
+- `schemas/packs/ahe-coding/`
+- `.platform-runtime/sessions/<sessionId>/`
+
+`agents/platform/`、`rules/platform/`、`hooks/platform/` 保留为可选扩展挂载点；它们在 Phase 1 可以先只停留在设计层，不作为进入任务规划的阻塞前提。
+
 建议目标态目录如下：
 
 ```text
@@ -362,20 +411,20 @@ schemas/
       graph-variant.schema.json
       node-definition.schema.json
 
-agents/
+agents/                    # optional in Phase 1
   platform/
     platform-entry.md
     board-governor.md
     approval-service.md
     archive-service.md
 
-rules/
+rules/                     # optional in Phase 1
   platform/
     naming-policy.md
     projection-policy.md
     concurrency-policy.md
 
-hooks/
+hooks/                     # optional in Phase 1
   platform/
     session-open.md
     lease-expired.md
@@ -428,6 +477,12 @@ hooks/
 - `ArtifactSurfaceResolver`
 - `ApprovalAliasResolver`
 
+解析优先级：
+
+1. 优先读取 `AGENTS.md` 中显式声明的路径映射、审批别名与 policy。
+2. 若 `AGENTS.md` 未声明显式 mapping，则回退到 `docs/guides/ahe-path-mapping-guide.md` 的默认 logical surface 规则。
+3. 若默认 guide 也未覆盖，则使用本设计在 `第 7.1 节` 与 `第 10.15 节` 冻结的 Phase 1 默认落点。
+
 职责：
 
 - 从 `AGENTS.md` 读取 governance snapshot
@@ -438,6 +493,7 @@ hooks/
 
 - 不直接保存 session state
 - 不直接决定下游节点结论
+- `docs/guides/ahe-path-mapping-guide.md` 在这里只提供默认映射合同，不充当 repo-specific 治理源
 
 ### 8.2 SharedContractLayer
 
@@ -924,6 +980,17 @@ closedAt: 2026-04-09T13:00:00Z
 - contract 如何校验
 - contract 当前实例长什么样
 
+### 10.15 Phase 1 最小 machine-readable slice
+
+在进入 `ahe-tasks` 前，Phase 1 至少需要以下闭环：
+
+- `contracts/platform/`：承载 `第 10.1` 到 `第 10.13 节` 定义的 platform-neutral narrative contracts。
+- `contracts/packs/ahe-coding/`：至少承载 `pack-definition.yaml`、`graph-variants.yaml`、`artifact-role-mappings.yaml` 和 `node-definitions/`。
+- `schemas/platform/` 与 `schemas/packs/ahe-coding/`：提供与上述 contract 族对应的 schema bundle，保证 pack manifests、session、board、approval、evidence 和 archive 等对象可校验。
+- `.platform-runtime/sessions/<sessionId>/`：固定为 Phase 1 的 session-centric runtime root，至少包含 `session.yaml`、`board.yaml`、`governance.yaml`、`attempts/`、`leases/`、`approvals/`、`outcomes/`、`snapshots/` 与 `archive/`。
+- `task-progress.md`：继续作为人类可读投影，Phase 1 不新增平台专属诊断字段到该投影；额外诊断信息保留在 runtime artifacts 中。
+- `agents/platform/`、`rules/platform/`、`hooks/platform/`：明确不属于 Phase 1 最小闭环，可在后续增量中再实体化。
+
 ---
 
 ## 11. 关键流程与实现边界
@@ -933,6 +1000,7 @@ closedAt: 2026-04-09T13:00:00Z
 实现重点：
 
 - 优先从 `AGENTS.md` 恢复 surface mapping
+- 若 `AGENTS.md` 无显式 mapping，则按 `docs/guides/ahe-path-mapping-guide.md` 的默认 logical surfaces 回退
 - 用 `PackRegistry` 选定 pack 与 graph variant
 - 生成初始 board 和 progressView
 
@@ -1093,6 +1161,8 @@ pack 返回平台的最小结果为：
 - `task-progress.md` 继续存在
 - 但它由 `ProgressProjection` 维护
 - 当 board 与 progressView 冲突时，以 board + evidence 的保守判定为准，再回写 projection
+- `Workspace Isolation`、`Worktree Path`、`Worktree Branch` 这类 worktree 协调字段允许保留在 progressView 中，但它们属于 AHE pack-local projection 语义，不上升为平台共享 contract 字段
+- 当 AHE 进入 `worktree-active` 时，`ahe-test-driven-dev`、review fan-out、`ahe-bug-patterns`、`ahe-regression-gate`、`ahe-completion-gate` 与 `ahe-finalize` 应消费同一候选实现 worktree；平台只负责保守投影与路径治理，不改写这些 pack-local 语义
 
 ---
 
@@ -1245,6 +1315,7 @@ pack 返回平台的最小结果为：
 
 - 验证 board 更新后 `task-progress.md` 投影可重建
 - 验证冲突回退不会导致 progressView 伪前进
+- 验证 pack-local worktree 协调字段在 projection / recovery / quality handoff 中不会被静默丢失
 
 ### 15.5 安全与治理验证
 
@@ -1276,17 +1347,18 @@ pack 返回平台的最小结果为：
 | 角色越权 | router、governor、approval、archive 边界混用 | 明确分层职责和 expectedWrites |
 | 运行态篡改 | `.platform-runtime/` 或 governance snapshot 被手改 | fingerprint 校验 + atomic write + fail-closed |
 
-### 16.2 仍需在实现前定稿的问题
+### 16.2 本轮已收敛的实现前边界
 
-- `.platform-runtime/` 是否最终按 session 目录还是按 record class 分目录，仍可在 contract 细化时微调。
-- `agents/platform/`、`rules/platform/`、`hooks/platform/` 是否第一阶段就需要实体文件，还是先只保留设计占位，仍可在任务规划时确定。
-- progressView 投影字段是否完全复用 AHE 现有字段，还是增加平台诊断字段，仍需在兼容策略细化时收敛。
+- `.platform-runtime/` 在 Phase 1 固定采用 session-centric 布局，即 `.platform-runtime/sessions/<sessionId>/`；不再把 record-class 分目录作为当前轮次待定项。
+- `agents/platform/`、`rules/platform/`、`hooks/platform/` 在 Phase 1 明确视为 optional placeholders，不作为进入任务规划的阻塞条件。
+- `task-progress.md` 在 Phase 1 完全复用当前 canonical AHE 字段；额外平台诊断信息只写入 runtime artifacts，不扩展用户可见 projection。
 
 ### 16.3 任务规划准备度判断
 
-本文已具备进入后续任务规划的条件：
+在已批准 spec、已落盘 spec approval evidence 和上述边界收敛后，本文已具备进入后续任务规划的条件：
 
 - 平台与 pack 边界清楚
+- 与已批准 spec 的 `FR/NFR` 追溯清楚
 - 目录与挂载清楚
 - runtime 对象与 contract 已有最小闭环
 - 关键流程清楚
@@ -1321,6 +1393,11 @@ pack 返回平台的最小结果为：
   - 新增控制权与写权限矩阵，明确 pack-local node、projection、approval、archive 与 governor 的写边界。
   - 新增冲突裁决矩阵、file-backed 一致性合同、迁移 phase 表和 fail-closed 规则。
   - 明确 `ahe-coding-skills/` 是 canonical authoring source，`.cursor/skills/ahe-skills/` 是分发镜像。
+- Post-spec Alignment（2026-04-09）:
+  - 已把设计追溯锚点改为 `docs/specs/2026-04-09-ahe-platform-first-multi-agent-phase-1-srs.md` 及其评审 / 批准记录，不再仅回指架构草稿。
+  - 已明确 `AGENTS.md` > `docs/guides/ahe-path-mapping-guide.md` 默认规则 > Phase 1 设计默认落点的治理解析顺序。
+  - 已冻结 Phase 1 的 session-centric runtime layout，并把 `agents/platform/`、`rules/platform/`、`hooks/platform/` 标记为 optional placeholders。
+  - 已明确 Phase 1 不扩展 `task-progress.md` 的用户可见字段，只把额外诊断保留在 runtime artifacts 中。
 
 ---
 

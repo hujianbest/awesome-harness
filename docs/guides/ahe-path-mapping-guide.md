@@ -4,6 +4,8 @@
 
 本文说明当外部仓库不采用 AHE 默认路径时，如何把逻辑工件稳定映射到实际路径。
 
+如果仓库直接接受 AHE 默认路径，`AGENTS.md` 可以只声明“默认 logical surfaces 已接受”并指向本文；在这种情况下，本文充当默认映射合同，而不是与 `AGENTS.md` 并列竞争的治理源。
+
 它解决的问题不是“路径长什么样”，而是：
 
 - runtime router 去哪里找 spec / design / tasks / reviews / verification / progress
@@ -86,6 +88,17 @@
 - verification records: docs/verification/
 - release notes: docs/releases/RELEASE_NOTES.md
 ```
+
+若仓库直接接受本文列出的默认路径，也可以在 `AGENTS.md` 中采用更轻量的写法：
+
+```md
+## ahe-workflow
+
+- default logical surfaces: accepted
+- mapping guide: docs/guides/ahe-path-mapping-guide.md
+```
+
+这表示 repo-specific governance 仍以 `AGENTS.md` 为准，而默认路径的具体解释回退到本文。
 
 若项目需要更细粒度映射，可继续拆：
 

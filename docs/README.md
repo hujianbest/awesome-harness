@@ -2,6 +2,8 @@
 
 `docs/` 只保留分组目录与索引页，长文默认按主题归档，不再继续堆放在根目录。
 
+repo-level 的 machine-readable / runtime surfaces 不放在 `docs/` 下；当前与平台优先 Phase 1 直接相关的非 docs 挂载面为 `contracts/`、`schemas/` 与 `.platform-runtime/`，其治理入口见 `README.md` 与 `AGENTS.md`。
+
 ## 分类说明
 
 | 目录 | 说明 |
@@ -12,6 +14,7 @@
 | `guides/` | AHE 对外接入、映射与使用指南 |
 | `plans/` | 尚在推进中的优化方案与规划稿 |
 | `specs/` | AHE 主题级需求规格说明 |
+| `tasks/` | AHE 主题级任务计划与 task board |
 | `references/` | 参考资产索引与研究辅助文档 |
 
 ## 当前内容
@@ -46,6 +49,11 @@
 ### `specs/`
 
 - `specs/2026-04-09-ahe-platform-first-multi-agent-phase-1-srs.md`
+
+### `tasks/`
+
+- `tasks/2026-04-09-ahe-platform-first-multi-agent-phase-1-tasks.md`
+- `tasks/2026-04-09-ahe-platform-first-multi-agent-phase-1-task-board.md`
 
 ### `references/`
 
