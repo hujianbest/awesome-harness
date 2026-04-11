@@ -10,6 +10,7 @@ from .launcher import (
     RuntimeServices,
 )
 from .session_api import SessionApi, SessionLaunchSummary
+from .web import WebControlPlane, WebControlPlaneConfig, WebControlPlaneState
 
 __all__ = [
     "BootstrapConfig",
@@ -22,4 +23,7 @@ __all__ = [
     "RuntimeServices",
     "SessionApi",
     "SessionLaunchSummary",
+    "WebControlPlane",
+    "WebControlPlaneConfig",
+    "WebControlPlaneState",
 ]

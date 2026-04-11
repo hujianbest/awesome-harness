@@ -1,7 +1,7 @@
 # T160: Garage Local-first Web Control Plane
 
 - Task ID: `T160`
-- 状态: 待执行
+- 状态: 已完成
 - 日期: 2026-04-11
 - 定位: 把 `WebEntry` 落成 local-first control plane + UI，使浏览器入口通过共享 `SessionApi` 消费同一个 runtime，而不是复制出第二套 web-only runtime。
 - 当前阶段: 完整架构主线下的第二组独立入口 implementation tracks
