@@ -6,6 +6,7 @@
 - 定位: 定义 `Garage` 的顶层分层架构，明确一个长期 agent runtime 如何同时满足两条主线：对新能力开放的可扩展性，以及从工作经验中持续变强的可成长性。
 - 当前阶段: 完整架构主线，实施将按切片推进
 - 关联文档:
+  - `docs/VISION.md`
   - `docs/GARAGE.md`
   - `docs/architecture/A120-garage-core-subsystems-architecture.md`
   - `docs/architecture/A130-garage-continuity-memory-skill-architecture.md`
@@ -54,6 +55,28 @@
 7. 主事实面优先落在 `workspace`，让系统保持可读、可追溯、可恢复。
 8. 架构拆解应按“总 -> 分”推进：先冻结层次与责任，再展开内部对象与 capability cuts。
 
+### 2.1 这组目标背后的 5 条设计公理
+
+`Garage` 的顶层架构不是从“先支持哪些功能”反推出来的，而是从 `docs/VISION.md` 中的 5 条设计公理推出来的。
+
+| 设计公理 | 对架构的直接要求 |
+| --- | --- |
+| 团队先于工具 | `role`、`session`、`handoff`、`review`、`memory`、`skill` 必须是一等对象，系统不能退化成 model/tool shell。 |
+| 人定方向，AI 在治理中放大 | `Governance`、`approval`、`exception`、`archive` 必须是内建能力，而不是事后附加层。 |
+| 扩展与成长是两条并列主线 | 架构必须同时存在 `Shared Contracts + Capability Packs` 和 `GrowthSystem + ContinuityAssets` 两条骨架。 |
+| 长期连续性先于单轮聪明 | `memory / session / skill / evidence` 必须分层，且 runtime 必须高于入口长期存在。 |
+| 所有成长都必须 `evidence-first`、`workspace-first`、`governance-bounded` | `workspace` 必须是主事实面，`GrowthProposal` 必须是显式治理对象，原始 `session` 不得直接自动晋升为长期资产。 |
+
+### 2.2 这 5 条公理如何翻译成顶层边界
+
+因此，`A110` 必须先冻结下面这组顶层判断：
+
+- 系统的最小协作单位是团队，不是单个模型调用。
+- 扩展新能力时优先新增 pack 和 contracts，而不是修改 core。
+- 成长团队本身时优先新增 evidence、proposal 和 update path，而不是隐式自动学习。
+- 长期连续性必须分层保存，不能把历史、事实、方法和证据混成一个桶。
+- 主动成长必须落在 workspace 可读真相面与治理边界内，而不是退回宿主缓存或黑箱状态。
+
 ## 3. 外部参考如何吸收
 
 `Garage` 不从零发明架构，而是吸收两类已经被验证过的结构思想。
@@ -91,41 +114,48 @@
 - 宽边界平台的全部复杂度
 - 先做重型服务控制面再反推产品
 
-## 4. 总体架构判断
+## 4. 顶层骨架与边界原则
 
 从顶层看，`Garage` 应被定义成：
 
 **一个 `workspace-first`、`multi-entry`、`self-evolving` 的 `Creator OS Runtime`：它通过统一核心承接团队协作，通过 shared contracts 承接可扩展能力面，通过 growth system 承接从经验到长期资产的主动成长。**
 
+但 `A110` 在这里不试图定义完整端到端主链、canonical lifecycle 或 ADR；这些属于 `A140`。
+
+`A110` 在这一节只回答 4 个边界问题：
+
+1. 谁负责接住用户与宿主表面。
+2. 谁负责把外部入口翻译成统一 runtime 动作。
+3. 谁负责持有长期稳定的平台语义。
+4. 系统通过什么 seam 扩展能力，又通过什么 seam 成长自己。
+
 ```mermaid
 flowchart TB
-    creator[Creator] --> experience[ExperienceAndEntry]
-    vision[VisionAndGovernance] --> runtime[GarageRuntime]
+    creator[Creator] --> entry[ExperienceAndEntry]
+    vision[VisionAndGovernance] --> core[GarageCore]
 
-    experience --> bootstrap[BootstrapAndHostAdapters]
-    bootstrap --> team[TeamRuntime]
-    team --> core[GarageCore]
+    entry --> bootstrap[BootstrapAndHostAdapters]
+    bootstrap --> core
 
-    core --> contracts[SharedContracts]
-    contracts --> packs[CapabilityPacks]
+    packs[CapabilityPacks] --> contracts[SharedContracts]
+    contracts --> core
 
     core --> execution[ExecutionLayer]
     core --> workspace[WorkspaceSurfaces]
-    core --> evidence[EvidenceAndArchive]
+    workspace --> evidence[EvidenceAndArchive]
     evidence --> growth[GrowthSystem]
     growth --> continuity[MemoryAndSkillAssets]
-    continuity --> team
+    continuity --> core
 ```
 
-这张图表达的不是实现顺序，而是责任顺序：
+这张图表达的是顶层骨架，而不是系统运行顺序：
 
-- 用户总是先通过某个入口接触系统。
-- 入口先经过 bootstrap 与 host adapter 被翻译成统一 runtime 动作。
-- 用户感知到的是 team runtime，但真正稳定的系统语义收敛在 `Garage Core`。
-- packs 通过 shared contracts 进入系统，而不是直接改写 core。
-- execution layer 承担工具与 provider 的真实执行。
-- workspace、evidence 和 archive 形成主事实面。
-- growth system 从 evidence 中产生提案，并把长期有效的结果晋升到 `memory`、`skill` 或运行时更新。
+- `ExperienceAndEntry` 只拥有外部接触面，不拥有 runtime 真相。
+- `BootstrapAndHostAdapters` 负责把入口差异翻译成统一 runtime 动作。
+- `GarageCore` 负责持有长期稳定的中立平台语义。
+- `SharedContracts + CapabilityPacks` 是能力扩展 seam。
+- `WorkspaceSurfaces + EvidenceAndArchive + GrowthSystem + MemoryAndSkillAssets` 是主动成长 seam。
+- 如果要看这些层怎样被串成一次完整运行，应进入 `A140`，而不是在 `A110` 里重复定义系统主链。
 
 ## 5. 第一层拆解：8 个顶层分层
 
@@ -334,6 +364,8 @@ flowchart TB
 这篇文档负责：
 
 - 冻结顶层分层架构
+- 冻结层与层之间的责任边界
+- 作为其他架构文档的边界优先级来源
 
 后续由不同文档继续展开：
 
@@ -342,6 +374,8 @@ flowchart TB
 - `A140`：给出端到端系统设计与关键架构决策
 - `F010`：冻结共享 contracts
 - `F080`：冻结 self-evolving learning loop 的稳定 capability cut
+
+如果后续文档中的具体系统图、主链或 ADR 与 `A110` 的边界定义冲突，应以 `A110` 为准，再回头修正后续文档。
 
 ## 10. 一句话总结
 

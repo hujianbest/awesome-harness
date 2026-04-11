@@ -6,6 +6,7 @@
 - 定位: 在 `A110`、`A120`、`A130` 已分别冻结顶层分层、runtime 子系统与 continuity 主链之后，给出 `Garage` 的完整端到端系统架构视图，统一回答“系统如何运行、为什么这样取舍、关键 ADR 是什么”。
 - 当前阶段: 完整架构主线，实施将按切片推进
 - 关联文档:
+  - `docs/VISION.md`
   - `docs/GARAGE.md`
   - `docs/architecture/A110-garage-extensible-architecture.md`
   - `docs/architecture/A120-garage-core-subsystems-architecture.md`
@@ -39,6 +40,20 @@
 - `A120` 对 runtime 子系统地图的冻结
 - `A130` 对 continuity 主链和 `GrowthProposal` 的冻结
 - `F070/F080` 对成长 mapping 和 learning loop 的 feature-level 细化
+
+### 1.1 这份系统设计由什么设计公理驱动
+
+这篇系统设计文不是从“先支持哪些功能”倒推出来的，而是从 `docs/VISION.md` 中已经冻结的设计公理推出来的。
+
+这里最关键的 5 个输入判断是：
+
+- 团队先于工具：系统必须先把 AI 团队协作当成一等对象，而不是退化成 model/tool shell。
+- 人定方向，AI 在治理中放大：系统必须允许主动执行和主动成长，但不允许绕开审批、review 和治理边界。
+- 扩展与成长并列：系统既要能持续接入新 pack，也要能让团队因为做过的事情而变强。
+- 长期连续性先于单轮聪明：`memory / session / skill / evidence` 必须分层，runtime 必须高于单次入口存在。
+- 成长必须 `evidence-first`、`workspace-first`、`governance-bounded`：任何长期更新都必须先有证据、先有 proposal，再进入长期资产和 runtime update。
+
+因此，`A140` 的目标不是再讲一遍愿景，而是把这些公理翻译成完整系统在需求、分层、主链和 ADR 上的具体取舍。
 
 ## 2. 需求摘要
 
@@ -93,6 +108,13 @@
 | 入口策略 | 各入口各自实现 runtime / 统一 bootstrap + runtime | 统一 bootstrap + runtime | 避免 CLI、IDE、聊天入口语义分叉。 |
 
 ## 4. 总体架构
+
+本节不是重新定义 `A110` 的顶层分层，而是在 `A110` 已经冻结的边界之内，给出一个完整 runtime 的端到端系统视图。
+
+换句话说：
+
+- `A110` 负责回答“系统有哪些顶层层次，以及每层不该越界到哪里”
+- `A140` 负责回答“这些层次在一次真实系统运行里怎样被串起来”
 
 ```mermaid
 flowchart TB
@@ -150,6 +172,8 @@ flowchart TB
 这条主链最关键的价值，是把“执行任务”和“让团队因为任务而成长”放进同一个可治理的 runtime 里。
 
 ## 6. 关键 ADR 摘要
+
+下面这些 ADR 不是从局部实现偏好出发的，而是对上面那组设计公理在系统层的固定化表达。
 
 ### ADR-001: 统一 runtime，高于所有入口
 
@@ -292,6 +316,7 @@ flowchart TB
 这篇文档负责：
 
 - 给出完整端到端系统架构和关键 ADR 收束
+- 在 `A110` 已冻结的边界之内，实例化一份系统级设计视图
 
 后续由不同文档继续展开：
 
@@ -300,6 +325,8 @@ flowchart TB
 - `A130`：continuity 与 proposal-driven growth 主链
 - `F070`：pack-specific 的 continuity 映射与晋升规则
 - `F080`：active self-evolving learning loop 的稳定 capability cut
+
+如果本篇中的具体主链、系统图或 ADR 表达与 `A110` 的顶层边界发生冲突，应以 `A110` 为准，再回头修正 `A140`。
 
 ## 9. 一句话总结
 
