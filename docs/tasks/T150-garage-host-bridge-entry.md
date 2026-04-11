@@ -1,7 +1,7 @@
 # T150: Garage Host Bridge Entry
 
 - Task ID: `T150`
-- 状态: 待执行
+- 状态: 已完成
 - 日期: 2026-04-11
 - 定位: 把 `Claude`、`OpenCode`、`Cursor` 一类宿主集成收敛到通用 `HostBridgeEntry` 与薄适配层，使宿主差异留在桥边缘，而不是在每个宿主里各长一套 runtime。
 - 当前阶段: 完整架构主线下的第二组独立入口 implementation tracks

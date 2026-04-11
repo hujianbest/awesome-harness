@@ -22,21 +22,66 @@ from session import BlockedGateError, SessionAction, SessionController
 from surfaces import ArtifactRoute, FileBackedSurfaceManager
 
 
+def _host_binding(
+    adapter_id: str,
+    *,
+    host_kind: str,
+    capabilities: tuple[str, ...],
+    metadata: Mapping[str, str] | None = None,
+) -> HostAdapterBinding:
+    return HostAdapterBinding(
+        adapter_id=adapter_id,
+        host_kind=host_kind,
+        capabilities=capabilities,
+        metadata=dict(metadata or {}),
+    )
+
+
 DEFAULT_HOST_CATALOG: dict[str, HostAdapterBinding] = {
-    "cli": HostAdapterBinding(
-        adapter_id="cli",
+    "cli": _host_binding(
+        "cli",
         host_kind="cli",
-        capabilities=("create-session", "resume-session", "submit-step"),
+        capabilities=("create-session", "resume-session", "attach-session", "submit-step"),
     ),
-    "ide": HostAdapterBinding(
-        adapter_id="ide",
-        host_kind="ide",
-        capabilities=("create-session", "resume-session", "submit-step", "open-file"),
+    "web": _host_binding(
+        "web",
+        host_kind="web",
+        capabilities=("create-session", "resume-session", "attach-session", "submit-step", "stream-session"),
     ),
-    "chat": HostAdapterBinding(
-        adapter_id="chat",
-        host_kind="chat",
-        capabilities=("create-session", "resume-session", "submit-step", "request-approval"),
+    "host-bridge": _host_binding(
+        "host-bridge",
+        host_kind="host-bridge",
+        capabilities=("create-session", "resume-session", "attach-session", "submit-step", "request-approval"),
+    ),
+    "cursor": _host_binding(
+        "cursor",
+        host_kind="host-bridge",
+        capabilities=("create-session", "resume-session", "attach-session", "submit-step", "open-file"),
+        metadata={"bridgeFamily": "cursor"},
+    ),
+    "claude": _host_binding(
+        "claude",
+        host_kind="host-bridge",
+        capabilities=("create-session", "resume-session", "attach-session", "submit-step", "request-approval"),
+        metadata={"bridgeFamily": "claude"},
+    ),
+    "opencode": _host_binding(
+        "opencode",
+        host_kind="host-bridge",
+        capabilities=("create-session", "resume-session", "attach-session", "submit-step"),
+        metadata={"bridgeFamily": "opencode"},
+    ),
+    "ide": _host_binding(
+        "ide",
+        host_kind="host-bridge",
+        capabilities=("create-session", "resume-session", "attach-session", "submit-step", "open-file"),
+        metadata={"legacyAlias": "true", "bridgeFamily": "cursor"},
+    ),
+    "chat": _host_binding(
+        "chat",
+        host_kind="host-bridge",
+        capabilities=("create-session", "resume-session", "attach-session", "submit-step", "request-approval"),
+        metadata={"legacyAlias": "true", "bridgeFamily": "chat"},
     ),
 }
 
