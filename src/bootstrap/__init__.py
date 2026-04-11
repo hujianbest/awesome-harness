@@ -20,8 +20,10 @@ from .concrete_host_bridge import (
     CLAUDE_HOST_ADAPTER_ID,
     CURSOR_HOST_ADAPTER_ID,
     GarageHostAdapterError,
+    OPENCODE_HOST_ADAPTER_ID,
     require_claude_host_bridge,
     require_cursor_host_bridge,
+    require_opencode_host_bridge,
 )
 from .host_bridge import HostBridgeLaunchRequest, HostBridgeSessionApi
 from .runtime_home_doctor import DoctorFinding, DoctorSeverity, diagnose_runtime_home, findings_as_jsonable
@@ -60,6 +62,7 @@ __all__ = [
     "HostBridgeLaunchRequest",
     "HostBridgeSessionApi",
     "LaunchMode",
+    "OPENCODE_HOST_ADAPTER_ID",
     "LaunchResult",
     "ResolvedCredentials",
     "default_runtime_home_path",
@@ -87,4 +90,5 @@ __all__ = [
     "resolve_workspace_root",
     "require_claude_host_bridge",
     "require_cursor_host_bridge",
+    "require_opencode_host_bridge",
 ]

@@ -7,8 +7,10 @@ from bootstrap.concrete_host_bridge import (
     CLAUDE_HOST_ADAPTER_ID,
     CURSOR_HOST_ADAPTER_ID,
     GarageHostAdapterError,
+    OPENCODE_HOST_ADAPTER_ID,
     require_claude_host_bridge,
     require_cursor_host_bridge,
+    require_opencode_host_bridge,
 )
 
 
@@ -95,6 +97,25 @@ class ConcreteHostBridgeTests(unittest.TestCase):
                 goal="g",
             )
             self.assertIs(require_claude_host_bridge(req), req)
+
+    def test_require_opencode_accepts_opencode_binding(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            ws = Path(tmp) / "ws"
+            rh = Path(tmp) / "rh"
+            req = HostBridgeLaunchRequest(
+                host_adapter_id=OPENCODE_HOST_ADAPTER_ID,
+                launch_mode=LaunchMode.CREATE,
+                source_root=self.repo_root,
+                runtime_home=rh,
+                workspace_root=ws,
+                workspace_id="w",
+                profile_id="dogfood",
+                problem_kind="implementation",
+                entry_pack="coding",
+                entry_node="coding.bridge-intake",
+                goal="g",
+            )
+            self.assertIs(require_opencode_host_bridge(req), req)
 
 
 if __name__ == "__main__":

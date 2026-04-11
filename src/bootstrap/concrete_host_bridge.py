@@ -11,6 +11,7 @@ from .launcher import BootstrapError
 
 CURSOR_HOST_ADAPTER_ID = "cursor"
 CLAUDE_HOST_ADAPTER_ID = "claude"
+OPENCODE_HOST_ADAPTER_ID = "opencode"
 
 
 def require_cursor_host_bridge(request: HostBridgeLaunchRequest) -> HostBridgeLaunchRequest:
@@ -26,6 +27,15 @@ def require_claude_host_bridge(request: HostBridgeLaunchRequest) -> HostBridgeLa
     if request.host_adapter_id != CLAUDE_HOST_ADAPTER_ID:
         raise GarageHostAdapterError(
             f"Claude host bridge requires host_adapter_id {CLAUDE_HOST_ADAPTER_ID!r}, "
+            f"got {request.host_adapter_id!r}."
+        )
+    return request
+
+
+def require_opencode_host_bridge(request: HostBridgeLaunchRequest) -> HostBridgeLaunchRequest:
+    if request.host_adapter_id != OPENCODE_HOST_ADAPTER_ID:
+        raise GarageHostAdapterError(
+            f"OpenCode host bridge requires host_adapter_id {OPENCODE_HOST_ADAPTER_ID!r}, "
             f"got {request.host_adapter_id!r}."
         )
     return request
