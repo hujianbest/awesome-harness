@@ -33,6 +33,12 @@
 3. task 文件名已经统一对齐到 `Txxx-<title-slug>.md` 规则，但这些文档仍然只是当前 implementation tracks。
 4. 当设计文档和 task 文档冲突时，应先回写设计文档，再重切任务文档。
 
+### 2.1 Handoff 速查（第三组产品化切片）
+
+- **主要代码位置**：`src/bootstrap/`（入口、profile、credentials、doctor、install 默认路径、ops、trace 摘要、具体宿主守卫）、`src/redaction.py`、`src/execution/runtime.py`、`scripts/release_smoke.py`。
+- **验证**：`python -m unittest discover -s tests`；发布前可跑 `python scripts/release_smoke.py`。
+- **本周期未接**：`T220`–`T222`（WebEntry 深化）、`T230`（supervisor / daemon）——需要 SSE/轮询策略、浏览器侧治理 UX 或多 workspace 编排需求明确后再切。
+
 ## 3. 命名规则
 
 - 目录入口使用 `docs/tasks/README.md`
@@ -150,3 +156,15 @@
 - 设计变更优先回写 `docs/architecture/`、`docs/design/` 或 `docs/features/`；任务变更优先回写 `docs/tasks/`。
 - 新增 task doc 时，先更新本页索引与依赖顺序。
 - 如果某个 task 已经明显变成独立 capability 或稳定系统语义，应把真相源提升回 `docs/features/` 或 `docs/architecture/`，而不是继续堆在 task doc 里。
+
+## 10. 代码进度快照（handoff 用，非架构真相）
+
+本节只回答「仓库里已经有什么」，**不**替代上文交付顺序与 `docs/features/`、`docs/architecture/` 的语义定义。
+
+| 范围 | 本仓库实现情况 | 说明 |
+| --- | --- | --- |
+| `T180`–`T181` | 已有对应实现 | 凭据引用解析、`garage doctor`、迁移版本文件提示 |
+| `T190`–`T191` | 已有对应实现 | 默认 runtime home / 环境变量覆盖、`garage --version`、`scripts/release_smoke.py` |
+| `T200`–`T201` | 已有对应实现 | `garage status`、launcher ops 事件、`summarize_execution_trace` / `SessionApi.summarize_step_outcome` |
+| `T210`–`T212` | 已有对应实现 | `require_cursor_host_bridge` 等具体宿主守卫，仍走共享 `HostBridgeSessionApi` |
+| `T220`–`T222`、`T230` | 未在本周期落地 | Web streaming/观测/治理 UI 与可选 daemon 待后续切片 |
