@@ -99,6 +99,36 @@ class GarageCliTests(unittest.TestCase):
             self.assertEqual(payload["sessionId"], created.session_state.session_id)
             self.assertEqual(payload["hostAdapterId"], "cli")
 
+    def test_cli_doctor_reports_ok_for_valid_runtime_home(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            runtime_home = Path(tmp_dir) / "runtime-home"
+            for sub in ("profiles", "config", "adapters", "cache"):
+                (runtime_home / sub).mkdir(parents=True)
+            (runtime_home / "profiles" / "dogfood.json").write_text(
+                json.dumps({"providerId": "provider.dogfood", "modelId": "m", "adapterId": "a"}),
+                encoding="utf-8",
+            )
+            (runtime_home / "adapters" / "a.json").write_text(
+                json.dumps({"providerId": "provider.dogfood"}),
+                encoding="utf-8",
+            )
+            stdout = io.StringIO()
+            stderr = io.StringIO()
+            with redirect_stdout(stdout), redirect_stderr(stderr):
+                exit_code = main(
+                    [
+                        "doctor",
+                        "--runtime-home",
+                        str(runtime_home),
+                        "--profile-id",
+                        "dogfood",
+                    ]
+                )
+            self.assertEqual(exit_code, 0)
+            self.assertEqual(stderr.getvalue(), "")
+            payload = json.loads(stdout.getvalue())
+            self.assertTrue(payload["ok"])
+
 
 if __name__ == "__main__":
     unittest.main()

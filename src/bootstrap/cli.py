@@ -9,6 +9,7 @@ from pathlib import Path
 from typing import Sequence
 
 from .launcher import BootstrapConfig, BootstrapError, LaunchMode
+from .runtime_home_doctor import DoctorSeverity, diagnose_runtime_home, findings_as_jsonable
 from .session_api import SessionApi
 
 
@@ -41,6 +42,20 @@ def build_parser() -> argparse.ArgumentParser:
     _add_common_arguments(attach)
     attach.add_argument("--session-id", required=True, help="Session id to attach.")
 
+    doctor = subparsers.add_parser("doctor", help="Validate runtime home layout, profile, and credentials.")
+    doctor.add_argument(
+        "--runtime-home",
+        type=Path,
+        required=True,
+        help="Runtime home root used for profiles, config, cache, and adapters.",
+    )
+    doctor.add_argument("--profile-id", default="default", help="Runtime profile id to validate.")
+    doctor.add_argument(
+        "--strict",
+        action="store_true",
+        help="Treat warnings (for example missing directories) as failures.",
+    )
+
     return parser
 
 
@@ -48,6 +63,18 @@ def main(argv: Sequence[str] | None = None) -> int:
     parser = build_parser()
     args = parser.parse_args(argv)
     try:
+        if args.command == "doctor":
+            findings, ok = diagnose_runtime_home(args.runtime_home, profile_id=args.profile_id)
+            if args.strict:
+                ok = ok and not any(f.severity == DoctorSeverity.WARNING for f in findings)
+            payload = {
+                "ok": ok,
+                "findings": findings_as_jsonable(findings),
+            }
+            json.dump(payload, sys.stdout, indent=2, sort_keys=True)
+            sys.stdout.write("\n")
+            return 0 if ok else 1
+
         api = SessionApi()
         config = _config_from_args(args)
         if args.command == "create":

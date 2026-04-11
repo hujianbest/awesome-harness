@@ -9,6 +9,7 @@ from .credential_resolution import (
     resolve_credential_refs,
 )
 from .host_bridge import HostBridgeLaunchRequest, HostBridgeSessionApi
+from .runtime_home_doctor import DoctorFinding, DoctorSeverity, diagnose_runtime_home, findings_as_jsonable
 from .launcher import (
     BootstrapConfig,
     BootstrapError,
@@ -25,6 +26,8 @@ __all__ = [
     "BootstrapConfig",
     "BootstrapError",
     "CredentialResolutionError",
+    "DoctorFinding",
+    "DoctorSeverity",
     "GarageLauncher",
     "HostBridgeLaunchRequest",
     "HostBridgeSessionApi",
@@ -38,6 +41,8 @@ __all__ = [
     "WebControlPlane",
     "WebControlPlaneConfig",
     "WebControlPlaneState",
+    "diagnose_runtime_home",
+    "findings_as_jsonable",
     "load_runtime_profile",
     "merge_credential_ref_declarations",
     "redact_text",
