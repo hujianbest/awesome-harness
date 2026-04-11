@@ -4,8 +4,10 @@ from pathlib import Path
 
 from bootstrap import HostBridgeLaunchRequest, HostBridgeSessionApi, LaunchMode
 from bootstrap.concrete_host_bridge import (
+    CLAUDE_HOST_ADAPTER_ID,
     CURSOR_HOST_ADAPTER_ID,
     GarageHostAdapterError,
+    require_claude_host_bridge,
     require_cursor_host_bridge,
 )
 
@@ -74,6 +76,25 @@ class ConcreteHostBridgeTests(unittest.TestCase):
             )
             result = HostBridgeSessionApi().create(req)
             self.assertEqual(result.services.host.adapter_id, "cursor")
+
+    def test_require_claude_accepts_claude_binding(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            ws = Path(tmp) / "ws"
+            rh = Path(tmp) / "rh"
+            req = HostBridgeLaunchRequest(
+                host_adapter_id=CLAUDE_HOST_ADAPTER_ID,
+                launch_mode=LaunchMode.CREATE,
+                source_root=self.repo_root,
+                runtime_home=rh,
+                workspace_root=ws,
+                workspace_id="w",
+                profile_id="dogfood",
+                problem_kind="implementation",
+                entry_pack="coding",
+                entry_node="coding.bridge-intake",
+                goal="g",
+            )
+            self.assertIs(require_claude_host_bridge(req), req)
 
 
 if __name__ == "__main__":

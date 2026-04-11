@@ -10,12 +10,22 @@ from .host_bridge import HostBridgeLaunchRequest
 from .launcher import BootstrapError
 
 CURSOR_HOST_ADAPTER_ID = "cursor"
+CLAUDE_HOST_ADAPTER_ID = "claude"
 
 
 def require_cursor_host_bridge(request: HostBridgeLaunchRequest) -> HostBridgeLaunchRequest:
     if request.host_adapter_id != CURSOR_HOST_ADAPTER_ID:
         raise GarageHostAdapterError(
             f"Cursor host bridge requires host_adapter_id {CURSOR_HOST_ADAPTER_ID!r}, "
+            f"got {request.host_adapter_id!r}."
+        )
+    return request
+
+
+def require_claude_host_bridge(request: HostBridgeLaunchRequest) -> HostBridgeLaunchRequest:
+    if request.host_adapter_id != CLAUDE_HOST_ADAPTER_ID:
+        raise GarageHostAdapterError(
+            f"Claude host bridge requires host_adapter_id {CLAUDE_HOST_ADAPTER_ID!r}, "
             f"got {request.host_adapter_id!r}."
         )
     return request

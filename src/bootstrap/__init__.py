@@ -17,8 +17,10 @@ from .install_layout import (
     resolve_workspace_root,
 )
 from .concrete_host_bridge import (
+    CLAUDE_HOST_ADAPTER_ID,
     CURSOR_HOST_ADAPTER_ID,
     GarageHostAdapterError,
+    require_claude_host_bridge,
     require_cursor_host_bridge,
 )
 from .host_bridge import HostBridgeLaunchRequest, HostBridgeSessionApi
@@ -47,6 +49,7 @@ __all__ = [
     "BootstrapConfig",
     "BootstrapError",
     "CredentialResolutionError",
+    "CLAUDE_HOST_ADAPTER_ID",
     "CURSOR_HOST_ADAPTER_ID",
     "DoctorFinding",
     "DoctorSeverity",
@@ -82,5 +85,6 @@ __all__ = [
     "resolve_runtime_home",
     "resolve_source_root",
     "resolve_workspace_root",
+    "require_claude_host_bridge",
     "require_cursor_host_bridge",
 ]
