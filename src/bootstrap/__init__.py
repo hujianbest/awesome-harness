@@ -16,6 +16,11 @@ from .install_layout import (
     resolve_source_root,
     resolve_workspace_root,
 )
+from .concrete_host_bridge import (
+    CURSOR_HOST_ADAPTER_ID,
+    GarageHostAdapterError,
+    require_cursor_host_bridge,
+)
 from .host_bridge import HostBridgeLaunchRequest, HostBridgeSessionApi
 from .runtime_home_doctor import DoctorFinding, DoctorSeverity, diagnose_runtime_home, findings_as_jsonable
 from .runtime_ops import (
@@ -42,8 +47,10 @@ __all__ = [
     "BootstrapConfig",
     "BootstrapError",
     "CredentialResolutionError",
+    "CURSOR_HOST_ADAPTER_ID",
     "DoctorFinding",
     "DoctorSeverity",
+    "GarageHostAdapterError",
     "GarageLauncher",
     "HealthStatus",
     "RUNTIME_HOME_SCHEMA_VERSION",
@@ -75,4 +82,5 @@ __all__ = [
     "resolve_runtime_home",
     "resolve_source_root",
     "resolve_workspace_root",
+    "require_cursor_host_bridge",
 ]
