@@ -8,6 +8,8 @@ from uuid import uuid4
 
 from execution import ExecutionContext, ExecutionOutcome, ExecutionRequest, ExecutionRuntimeError
 
+from .trace_ops import summarize_execution_trace
+
 from .launcher import BootstrapConfig, GarageLauncher, LaunchMode, LaunchResult
 
 
@@ -127,6 +129,10 @@ class SessionApi:
             credential_values=result.services.resolved_credentials.values,
         )
         return result.services.execution_runtime.execute(request, context)
+
+    @staticmethod
+    def summarize_step_outcome(outcome: ExecutionOutcome) -> dict:
+        return summarize_execution_trace(outcome)
 
     @staticmethod
     def _require_mode(config: BootstrapConfig, expected: LaunchMode) -> None:

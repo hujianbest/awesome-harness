@@ -35,6 +35,7 @@ from .launcher import (
 )
 from .profile_loader import RuntimeProfileResolutionError, load_runtime_profile
 from .session_api import SessionApi, SessionLaunchSummary
+from .trace_ops import summarize_execution_trace
 from .web import WebControlPlane, WebControlPlaneConfig, WebControlPlaneState
 
 __all__ = [
@@ -56,6 +57,7 @@ __all__ = [
     "RuntimeProfileResolutionError",
     "SessionApi",
     "SessionLaunchSummary",
+    "summarize_execution_trace",
     "WebControlPlane",
     "WebControlPlaneConfig",
     "WebControlPlaneState",
