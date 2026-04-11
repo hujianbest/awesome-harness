@@ -1,6 +1,6 @@
 ---
 name: writing-docs
-description: Use when adding, updating, or relocating Garage system documentation under docs/, especially when choosing between architecture, design, features, tasks, and wiki; deciding whether to update an existing source-of-truth doc; or assigning document IDs, filenames, H1 titles, and meta headers.
+description: Use when adding, updating, or relocating Garage system documentation under docs/, especially when choosing between architecture, design, features, tasks, and wiki; deciding whether to update an existing source-of-truth doc; checking whether a docs edit needs coordinated changes across architecture/design/features; or assigning document IDs, filenames, H1 titles, and meta headers.
 ---
 
 # Writing Docs
@@ -9,9 +9,9 @@ description: Use when adding, updating, or relocating Garage system documentatio
 
 `docs/` is the design source of truth for `Garage`.
 
-The main failure mode is not "bad prose". It is **putting the right idea in the wrong place**, or creating a second truth source when an existing document already owns that question.
+The main failure mode is not "bad prose". It is **putting the right idea in the wrong place**, creating a second truth source when an existing document already owns that question, or updating one mainline doc while leaving related `architecture / design / features` docs semantically out of sync.
 
-When writing Garage system docs, decide **placement first, then naming, then header format**.
+When writing Garage system docs, decide **placement first, then mainline consistency, then naming, then header format**.
 
 ## When to Use
 
@@ -20,6 +20,7 @@ Use this skill when:
 - The user wants to "落盘" a `Garage` system document under `docs/`
 - You need to choose between `architecture / design / features / tasks / wiki`
 - You need to decide whether to update an existing doc or create a new one
+- You are editing an existing `architecture`, `design`, or `features` doc and need to know whether adjacent mainline docs must move with it
 - You need an exact doc ID, filename, H1, and meta header
 - You are writing or reorganizing docs about `Garage` platform semantics, pack design, feature cuts, task breakdown, or reference knowledge
 
@@ -35,9 +36,10 @@ Always decide in this order:
 
 1. **Update vs new file**
 2. **Correct directory**
-3. **Correct ID namespace**
-4. **Correct filename**
-5. **Correct H1 and meta header**
+3. **Mainline consistency sweep**
+4. **Correct ID namespace**
+5. **Correct filename**
+6. **Correct H1 and meta header**
 
 ### 1. Update vs New
 
@@ -63,7 +65,21 @@ Create a **new** document only when the user is introducing a genuinely new ques
 | `docs/tasks/` | executable implementation decomposition and delivery sequencing | design rationale or long-form architecture discussion |
 | `docs/wiki/` | external analysis, historical/background references, adoption notes, path mapping, supporting references | current main-line truth source |
 
-### 3. Choose the ID Namespace
+### 3. Mainline Consistency Sweep
+
+`architecture / design / features` together own the main system truth. If you change one of them, check whether the same topic is also expressed in the other two families before you write.
+
+Use this minimum sweep:
+
+- Start from the current doc's `关联文档` header and nearby same-topic filenames; use them as the first candidate set for the sweep
+- If you change top-level boundaries, canonical objects, runtime topology, lifecycle ordering, or diagrams, check the same-topic docs in `docs/architecture/` and `docs/features/`
+- If you change stable shared semantics in `docs/features/`, check whether `docs/architecture/` still describes the same boundary story and whether any relevant `docs/design/` detail now contradicts it
+- If you change pack-specific or subsystem detail in `docs/design/`, make sure it does not silently contradict upstream `docs/architecture/` or `docs/features/`; if it does, update the upstream doc first or escalate that it must change first
+- If adjacent docs stay correct, say so explicitly in your reasoning instead of assuming they are unaffected
+
+Do not let `docs/tasks/` resolve these conflicts. `tasks` follow `architecture / features / design`; they do not override them.
+
+### 4. Choose the ID Namespace
 
 Use the current repo conventions:
 
@@ -80,7 +96,7 @@ General rules:
 - File ID, H1 ID, and meta ID must match
 - Use the next coherent slot in the same family; do not renumber existing docs
 
-### 4. Choose the Filename
+### 5. Choose the Filename
 
 Use the directory-specific filename pattern:
 
@@ -100,7 +116,7 @@ Do not leave filename placeholders like `<repo-slug>` when the user asked for an
 
 If the upstream project name is genuinely unspecified and the user still wants an exact path with no follow-up question, use a concrete generic slug such as `reference-upstream` rather than leaving a conditional note or placeholder.
 
-### 5. Choose the H1 and Meta Header
+### 6. Choose the H1 and Meta Header
 
 All docs use:
 
@@ -152,6 +168,15 @@ If the request is about one of these, prefer updating:
 - AHE externalization guidance: `docs/wiki/W120-ahe-workflow-externalization-guide.md`
 - AHE path mapping guidance: `docs/wiki/W130-ahe-path-mapping-guide.md`
 
+### Mainline Consistency Cheatsheet
+
+If the edit touches one of the mainline truth families, run this check before drafting:
+
+- `architecture`: did the change alter boundaries, layers, canonical objects, or diagrams that `features` also names?
+- `features`: did the change alter stable semantics, lifecycle, or object names that `architecture` or `design` also depends on?
+- `design`: did the change alter pack or subsystem detail in a way that now conflicts with upstream `architecture` or `features`?
+- If the answer is yes, update the adjacent owner docs or explicitly say which doc must change first
+
 ## Implementation
 
 When the user asks to write a Garage system doc:
@@ -159,11 +184,13 @@ When the user asks to write a Garage system doc:
 1. Restate the document's primary question in one sentence.
 2. Check whether an existing doc already owns that question.
 3. If yes, update that doc instead of creating a new one.
-4. If no, classify the new doc into `architecture / design / features / tasks / wiki`.
-5. Pick the next stable ID in that namespace.
-6. Generate one exact filename, one exact H1, and one exact header shape.
-7. Match the header keys to the nearest same-directory exemplar.
-8. Only then draft the body.
+4. If the edit lands in `architecture / design / features`, inspect the same-topic docs in the other mainline directories, starting from `关联文档` and nearby same-topic docs.
+5. If names, boundaries, lifecycle, diagrams, or cross-doc claims would drift, update those docs too or say which owner doc must change first.
+6. If no existing doc owns the question, classify the new doc into `architecture / design / features / tasks / wiki`.
+7. Pick the next stable ID in that namespace.
+8. Generate one exact filename, one exact H1, and one exact header shape.
+9. Match the header keys to the nearest same-directory exemplar.
+10. Only then draft the body.
 
 ### One Worked Example
 
@@ -192,6 +219,8 @@ Why:
 | "I can make the path partly concrete and then add a conditional note." | Exact path requests still require one fully concrete answer. If the upstream name is unknown, use a stable generic slug like `reference-upstream`. |
 | "This deserves a new summary doc so agents have one place to look." | If an existing doc already owns the question, update it. Duplicated entry docs split truth. |
 | "This is system-related, so `architecture/` is probably fine." | `architecture/` is only for top-level Garage architecture and boundaries. Pack or subsystem detail belongs in `design/`; stable shared semantics belong in `features/`. |
+| "I am only editing `features`, so `architecture` and `design` can catch up later." | If the edit changes names, boundaries, lifecycle, or other shared semantics, adjacent mainline docs must stay aligned now, or you must explicitly escalate which owner doc changes first. |
+| "This is only a pack detail in `design`, so it can diverge from `features` for a while." | `design` can add detail, but it must not silently contradict upstream `architecture` or `features`. If it no longer fits, the mainline truth has to move intentionally. |
 | "I can keep the header vague until later." | Header meta is part of retrieval and indexing. Choose a concrete, repository-consistent value now. |
 
 ## Red Flags
@@ -204,6 +233,8 @@ Stop and re-check if any of these happen:
 - You are using placeholders like `<slug>` or `(待定)` in a path or H1
 - You are returning a conditional path like "use X, but replace it later if..."
 - You are inventing a new header shape instead of copying the nearest same-directory pattern
+- You changed `architecture`, `design`, or `features` without checking same-topic docs in the other mainline directories
+- The edit changes object names, boundaries, lifecycle, or diagrams in one doc, but the neighboring owner docs still describe the old story
 
 ## Common Mistakes
 
@@ -212,4 +243,6 @@ Stop and re-check if any of these happen:
 - Creating a brand-new doc for numbering rules instead of updating `docs/README.md`
 - Using the old `garage-phase1-XX-...` pattern for task docs instead of `Txxx-<title-slug>.md`
 - Creating a combined wiki entry that duplicates `W120` and `W130`
+- Updating `docs/features/` semantics or terminology without checking whether related `docs/architecture/` docs now drift
+- Updating `docs/design/` to reflect a new pack behavior that contradicts stable `docs/features/` semantics
 

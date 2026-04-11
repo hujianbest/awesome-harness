@@ -51,12 +51,13 @@
 
 ## 3. 子系统总览
 
-建议把 `Garage` runtime 稳定拆成下面 10 个子系统：
+建议把 `Garage` runtime 稳定拆成下面 11 个子系统：
 
 | 子系统 | 主要作用 |
 | --- | --- |
 | `EntrySurface` | 接住用户交互与外部宿主入口 |
 | `Bootstrap` | 统一启动、恢复、profile 解析与 host 绑定 |
+| `SessionApi` | 提供 entry-facing 的 session 命令面，把外部请求翻译成统一 session-bound runtime 动作 |
 | `Session` | 统一当前工作主线、上下文和 handoff 边界 |
 | `Registry` | 统一发现 pack、role、node、artifact role 与 capability 声明 |
 | `Governance` | 执行 review、approval、gate、archive 与成长治理 |
@@ -71,9 +72,10 @@
 ```mermaid
 flowchart LR
     entry[EntrySurface] --> bootstrap[Bootstrap]
-    bootstrap --> session[Session]
+    bootstrap --> sessionApi[SessionApi]
 
     subgraph runtime [GarageRuntime]
+        sessionApi --> session[Session]
         session --> registry[Registry]
         session --> governance[Governance]
         session --> routing[ArtifactRouting]
@@ -101,8 +103,9 @@ flowchart LR
 
 这张图表示的是责任方向，而不是实现顺序：
 
-- 所有入口都先进入 `Bootstrap`
+- 所有入口都先进入 `Bootstrap`，再通过 `SessionApi` 进入统一会话边界
 - `Session` 是所有工作推进的统一边界
+- `SessionApi` 负责承接 entry-facing 的创建、恢复、提交步骤与审批请求，不让入口直接碰 `Session` / `ExecutionLayer`
 - `Registry`、`Governance`、`ArtifactRouting`、`ExecutionLayer` 与 `EvidenceAndArchive` 围绕 `Session` 协作
 - `GrowthEngine` 不直接替代 `Session` 或 `Governance`，而是消费 evidence 并提出更新路径
 - `ContinuityStores` 通过回读影响未来的 session，但不能直接篡改当前证据
@@ -140,7 +143,7 @@ flowchart LR
 
 负责：
 
-- 接住 CLI、IDE、聊天入口、轻 UI 等外部交互
+- 接住 `CLIEntry`、`WebEntry`、`HostBridgeEntry` 等外部交互 family
 - 收集启动意图和外部上下文
 
 不负责：
@@ -165,7 +168,21 @@ flowchart LR
 - memory / skill 晋升判断
 - provider 调用细节
 
-### 6.3 Session
+### 6.3 SessionApi
+
+负责：
+
+- 对外暴露统一的 create / resume / submitStep / approval / closeout / interrupt 语义
+- 把 `EntrySurface` 或 `HostAdapterContract` 的外部请求翻译成 session-bound runtime 动作
+- 保证 `CLIEntry`、`WebEntry` 与 `HostBridgeEntry` 共享同一个 entry-facing session seam
+
+不负责：
+
+- 重做 bootstrap 的 profile / workspace / host 解析
+- 绕过 `Governance` 或 `Session` 直接驱动 execution
+- 承担 provider 协议或 pack 业务语义
+
+### 6.4 Session
 
 负责：
 
@@ -179,7 +196,7 @@ flowchart LR
 - evidence 的长期判定
 - skill 的长期沉淀
 
-### 6.4 Registry
+### 6.5 Registry
 
 负责：
 
@@ -192,7 +209,7 @@ flowchart LR
 - 保存当前会话状态
 - 持久化长期资产
 
-### 6.5 Governance
+### 6.6 Governance
 
 负责：
 
@@ -206,7 +223,7 @@ flowchart LR
 - 直接生成领域内容
 - 直接编写规则原文
 
-### 6.6 ArtifactRouting
+### 6.7 ArtifactRouting
 
 负责：
 
@@ -219,7 +236,7 @@ flowchart LR
 - 决定是否进入长期资产
 - 承担 archive 或 evidence 的审计语义
 
-### 6.7 EvidenceAndArchive
+### 6.8 EvidenceAndArchive
 
 负责：
 
@@ -233,7 +250,7 @@ flowchart LR
 - 替代 session 本身
 - 变成通用历史垃圾桶
 
-### 6.8 ExecutionLayer
+### 6.9 ExecutionLayer
 
 负责：
 
@@ -249,7 +266,7 @@ flowchart LR
 - 决定当前结果是否值得长期保存
 - 定义 pack 术语
 
-### 6.9 GrowthEngine
+### 6.10 GrowthEngine
 
 负责：
 
@@ -264,7 +281,7 @@ flowchart LR
 - 把所有 observed pattern 都自动固化
 - 直接替代 pack 或人类判断
 
-### 6.10 ContinuityStores
+### 6.11 ContinuityStores
 
 负责：
 
@@ -283,15 +300,15 @@ flowchart LR
 
 ### 7.1 启动与恢复主链
 
-`EntrySurface -> Bootstrap -> Session`
+`EntrySurface -> Bootstrap -> SessionApi -> Session`
 
-这条主链确保所有入口都通过同一套 profile / workspace / host 绑定逻辑进入系统。
+这条主链确保所有入口都通过同一套 profile / workspace / host 绑定逻辑进入系统，并先汇入统一的 entry-facing session seam。
 
 ### 7.2 工作执行主链
 
-`Session -> Registry / Governance / ExecutionLayer -> ArtifactRouting -> EvidenceAndArchive`
+`SessionApi -> Session -> Registry / Governance / ExecutionLayer -> ArtifactRouting -> EvidenceAndArchive`
 
-这条主链确保系统先有会话边界，再解析能力、执行工作、留下结果和证据。
+这条主链确保系统先有统一会话边界，再解析能力、执行工作、留下结果和证据。
 
 ### 7.3 成长主链
 
@@ -309,7 +326,7 @@ flowchart LR
 
 为了避免 runtime 逐渐失控，至少要守住下面三条红线：
 
-1. `EntrySurface` 不能拥有自己的私有 runtime 语义。
+1. `EntrySurface` 不能拥有自己的私有 runtime 语义，也不能绕过 `SessionApi` 直接驱动 `Session` 或 `ExecutionLayer`。
 2. `ExecutionLayer` 不能替代 `Governance` 决定是否允许某个动作。
 3. `GrowthEngine` 不能绕开 `EvidenceAndArchive` 与 `Governance` 直接写长期资产。
 
@@ -323,7 +340,7 @@ flowchart LR
 
 - `A130`：解释 continuity 与 growth proposal 的边界
 - `A140`：解释端到端系统设计与关键 ADR
-- `F220`：解释 bootstrap 与 entrypoints
+- `F220`：解释 bootstrap、三类入口 family 与 entry-facing session seam
 - `F230`：解释 execution layer
 - `F080`：解释主动成长 loop 的稳定 capability cut
 

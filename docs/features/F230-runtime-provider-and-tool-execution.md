@@ -124,6 +124,15 @@ provider 适配层的目标是：
 - pack 不应直接绑定某个 provider name
 - host 也不应直接决定 provider 协议细节
 
+### 5.4 `RuntimeProfile` 与 provider authority
+
+围绕 provider / model 配置 authority，当前主线还应补充下面这些判断：
+
+- provider / model 默认项来自选中的 `RuntimeProfile`，而 `RuntimeProfile` 位于 `runtime home` 语义之下
+- `ExecutionRequest` 可以携带 capability、执行上下文和已解析的 provider reference，但不应直接承载宿主私有 vendor 配置
+- `ProviderAdapter` 负责在 profile authority 之下把统一请求翻译成具体协议，而不是反过来决定 runtime 主配置
+- 如果需要切换 provider family 或 model family，应先切换或覆盖 `RuntimeProfile` 选择，而不是让 host 直接篡改 execution layer
+
 ## 6. tool execution 层
 
 ### 6.1 存在目的
@@ -195,6 +204,21 @@ tool execution 层的目标是：
 - host adapter 是 ingress edge
 - provider / tool execution 是 execution edge
 
+围绕 provider authority，还应额外冻结：
+
+- host 可以提交交互提示，例如 streaming 偏好、展示格式偏好、本地能力提示或延迟 / 成本倾向
+- host 不能改写 pack 所声明的 capability 边界
+- host 不能直接把某个 vendor / model 写成当前 session 的主 authority
+- 如果 host 希望使用另一套 provider / model，必须经过 bootstrap / profile 选择，而不是越过 runtime configuration 直接下推到底层 adapter
+
+从执行前的解析顺序看，当前主线建议固定为：
+
+1. `Bootstrap` 先解析选中的 `RuntimeProfile`。
+2. `RuntimeProfile` 再从 `runtime home` 解析 provider / model / adapter 引用与默认项。
+3. `Session`、`Registry` 与 `Governance` 决定本轮允许的 capability 边界与 tool 边界。
+4. `HostAdapter` 只补充非权威的交互提示或本地限制。
+5. `ExecutionLayer` 在上述边界内选择具体 `ProviderAdapter` 与 `ToolRegistry` 绑定并执行。
+
 ## 9. 与 `Garage Core` 的关系
 
 这层不替代 `Garage Core`，而是被 `Garage Core` 调用。
@@ -211,6 +235,8 @@ tool execution 层的目标是：
 **core 决定“能不能做、为什么做、结果怎么留下”；execution 层决定“怎么真的去做”。**
 
 execution layer 产生的 traces 会进入 `evidence`，并进一步成为 learning loop 的观察输入，但 execution layer 本身不决定任何长期更新是否成立。
+
+因此，`CLIEntry`、`WebEntry` 与 `HostBridgeEntry` 都不能直接调用 `ProviderAdapter` 或 tool backend；它们只能通过统一的 session-bound runtime seam 触发 execution。
 
 ## 10. 与 packs 的关系
 
@@ -242,6 +268,7 @@ execution 层才负责：
 - provider 差异被吸收到 adapter
 - tool execution 有统一注册与结果归一化语义
 - 这层能被 `Session`、`Governance`、`Evidence` 正确约束
+- provider / model authority 由 `runtime home` 中的 `RuntimeProfile` 主导，而不是由 host 主导
 
 当前实现阶段不要求：
 

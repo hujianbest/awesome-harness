@@ -108,11 +108,27 @@
 - 运行时缓存与局部索引
 - 与安装实例绑定的元数据
 
+建议当前主线至少冻结下面这组最小目录语义：
+
+| 目录语义 | 作用 |
+| --- | --- |
+| `profiles/` | 保存可选择的 `RuntimeProfile` 定义与 profile 级默认项 |
+| `config/` | 保存 runtime 级 provider / model / adapter 配置引用与共享默认项 |
+| `cache/` | 保存安装实例级 cache、局部索引与可重建运行时派生物 |
+| `adapters/` | 保存 host / provider / tool adapters 的本地元数据、发现结果或 sidecars |
+
 它不应默认承接：
 
 - 某个具体 workspace 的主工件
 - 某个 workspace 的主要 evidence
 - 某个 workspace 的显式会话主线
+
+围绕 provider / model 配置 authority，还应额外冻结下面这些判断：
+
+- `RuntimeProfile` 是 provider / model 选择与默认项的主 authority，但它本身位于 `runtime home` 语义之下
+- `runtime home` 可以保存 provider / adapter 引用与默认配置，但不应把这些配置漂移进 workspace 主事实面
+- 宿主或入口可以提交临时交互偏好与本地能力提示，但不能取代 `RuntimeProfile` 成为 provider authority
+- packs 继续只声明 capabilities，不在 workspace 或 pack 合同里直接绑定 vendor / model
 
 ## 6. `Garage Workspace`
 
@@ -205,6 +221,12 @@ runtime bootstrap 建议按下面顺序解析拓扑：
 - 先知道程序以谁的身份和配置启动
 - 再知道它当前服务哪个 workspace
 
+围绕 provider / model 配置，当前还应补充一条顺序约束：
+
+- 先由 `RuntimeProfile` 在 `runtime home` 内解析 provider / model / adapter 引用
+- 再让入口或宿主提交非权威的交互提示
+- 最后才在当前 workspace 上装配 surfaces、恢复 session 并进入执行
+
 ## 12. 当前实现收敛范围
 
 当前实现阶段只需要先冻结这些判断：
@@ -213,6 +235,7 @@ runtime bootstrap 建议按下面顺序解析拓扑：
 - 当前仓库也可以作为默认 dogfooding workspace
 - workspace surfaces 仍然是主事实面
 - runtime home 必须在概念上与 workspace 分层
+- provider / model 默认 authority 位于 `runtime home`，而不是 workspace
 
 当前实现阶段不要求：
 

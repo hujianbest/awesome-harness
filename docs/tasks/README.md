@@ -81,8 +81,10 @@
 - workspace-first growth 优先于全局自动共享
 - 不新增独立 `BridgeContract`
 - one runtime, many entry surfaces
+- entry-facing 请求复用同一条 `Bootstrap -> SessionApi -> Session` 主链
 - `workspace facts` 不被 `runtime home` 吞并
 - packs 只声明 capabilities，不绑定 vendors
+- provider / model authority 由 `RuntimeProfile` 主导，host 只提供提示
 - provider differences stay below core
 
 ## 7. 设计到任务的映射
@@ -119,6 +121,17 @@
 - 为 `F080` 单独切出更明确的 growth engine / runtime update delivery slice
 - 把 `T060` 从 continuity baseline 扩成更完整的 proposal lifecycle implementation track
 - 在新增 capability packs 前，先明确它们复用现有 growth loop 的方式
+
+围绕三类入口与独立运行形态，下一组 implementation tracks 还应按下面顺序推进：
+
+| 顺序 | 方向 | 主要目标 | 为什么先这样排 |
+| --- | --- | --- | --- |
+| 01 | Stable CLI Shell | 先把 `GarageLauncher + RuntimeProfile + WorkspaceBinding + SessionApi` 变成最薄、稳定、可恢复的命令入口 | `CLI` 是验证统一 bootstrap 与 session seam 的最低成本路径 |
+| 02 | HostBridge Entry | 把 `Claude`、`OpenCode`、`Cursor` 一类宿主收敛到通用宿主桥，而不是每家各长一套 runtime | 先把宿主差异压成薄适配层，避免 runtime fork |
+| 03 | Web Control Plane | 让 local-first web UI 只消费共享 session/runtime seam，而不是复制新的 runtime | 等统一 session seam 稳定后再补 UI，能避免把浏览器入口提前写成第二套系统 |
+| 04 | Provider/Profile Loader | 把 `runtime home` 中的 provider / model authority 落成真实 loader 与解析器，供前三类入口共享 | 让 provider authority 跟 runtime profile 绑定，而不是被某个入口或宿主抢走 |
+
+如果后续继续切新的 task docs，建议保持同一顺序，不要把 `Web Control Plane` 提前到 `CLI` 或 `HostBridge` 之前。
 
 ## 9. 维护约定
 

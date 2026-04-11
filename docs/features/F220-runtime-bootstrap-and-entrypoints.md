@@ -3,7 +3,7 @@
 - Feature ID: `F220`
 - 状态: 草稿
 - 日期: 2026-04-11
-- 定位: 定义 `Garage` 作为独立可运行程序时的启动链与多入口统一模型，确保未来无论从 `CLI`、`IDE`、聊天入口还是轻 UI 进入，都进入同一个 runtime core，而不是各自长出独立流程。
+- 定位: 定义 `Garage` 作为独立可运行程序时的启动链与多入口统一模型，确保未来无论从稳定 `CLI`、`Web` 控制面还是宿主桥接入口进入，都进入同一个 runtime core，而不是各自长出独立流程。
 - 当前阶段: 完整架构主线，实施将按切片推进
 - 关联文档:
   - `docs/GARAGE.md`
@@ -24,6 +24,7 @@
 本文覆盖：
 
 - `Garage` 作为独立程序的运行定位
+- 三类一等入口 family 的职责边界
 - 启动链的最小分层
 - 多入口如何汇入同一 runtime
 - bootstrap 与 `Session / Registry / Governance / Artifact Routing / Evidence` 的关系
@@ -76,13 +77,30 @@
 - 不同入口共享同一套 `Session`、`Registry`、`Governance` 与主事实面语义
 - pack 不需要因为入口不同而重写内部语义
 
-## 4. 启动链的最小分层
+## 4. 一等入口 family 与启动链分层
+
+当前主线不应只停留在“入口很多”这句宽泛描述，而应先冻结三类一等入口 family：
+
+| 入口 family | 主要形态 | 解决什么问题 | 不拥有什么 |
+| --- | --- | --- | --- |
+| `CLIEntry` | 本地命令行或交互式 shell | 让个人用户以最薄、最直接的方式启动和恢复 runtime | 不拥有私有 session / execution 语义 |
+| `WebEntry` | local-first web control plane + browser UI | 让用户通过图形界面查看、恢复和推进同一个 runtime | 不把 `Garage` 默认写成 remote SaaS 或独立第二 runtime |
+| `HostBridgeEntry` | `Claude` / `OpenCode` / `Cursor` / IDE / 聊天宿主桥接入口 | 让外部宿主通过统一 adapter seam 接入 `Garage` | 不把宿主差异扩散成 core 私有流程 |
+
+这三类 family 的共同规则是：
+
+- 它们都是 `Entry Surface`
+- 它们都必须先进入统一 `GarageLauncher`
+- 它们都只能把入口差异留在 bootstrap 和 host adapter 边界
+- 它们都不能绕过同一个 runtime 去私自恢复 session 或直接驱动 execution
+
+在冻结这三类 family 之后，再看启动链的最小分层：
 
 建议把独立程序的启动链先拆成 4 层：
 
 | 层级 | 作用 | 典型对象 |
 | --- | --- | --- |
-| `Entry Surface` | 接住外部交互方式 | `CLI`、`IDE`、聊天入口、轻 UI |
+| `Entry Surface` | 接住外部交互方式 | `CLIEntry`、`WebEntry`、`HostBridgeEntry` |
 | `Bootstrap Layer` | 把外部入口翻译成统一 runtime 启动动作 | `GarageLauncher`、`RuntimeProfile`、`WorkspaceBinding`、`HostAdapterBinding` |
 | `Runtime Core` | 承接统一会话、治理、路由与追溯语义 | `Session`、`Registry`、`Governance`、`Artifact Routing`、`Evidence` |
 | `Capability Layer` | 承接 pack、执行面与成长面 | `Capability Packs`、provider/tool execution layer、growth services |
@@ -109,6 +127,8 @@
   - 描述这次启动显式传入了哪些覆盖项
 - `RuntimeServices`
   - 描述启动后需要统一可用的运行时服务集合
+- `SessionApi`
+  - 描述 bootstrap 完成后，对三类入口统一暴露的 entry-facing session seam
 
 这些对象的作用不是替代 `Garage Core`，而是：
 
@@ -125,29 +145,35 @@
 5. 初始化 `RuntimeServices`。
 6. 加载 shared contracts、packs、governance artifacts、continuity stores 与 workspace surfaces。
 7. 创建或恢复 `Session`。
-8. 把后续交互统一送入 `Garage Core`。
+8. 暴露统一的 `SessionApi` 作为后续交互入口。
+9. 把后续交互通过 `SessionApi` 送入 `Garage Core`。
 
 ```mermaid
 flowchart TD
-    entry[EntrySurface] --> launcher[GarageLauncher]
+    cli[CLIEntry] --> launcher[GarageLauncher]
+    web[WebEntry] --> launcher
+    hostEntry[HostBridgeEntry] --> launcher
     launcher --> profile[RuntimeProfile]
     launcher --> workspace[WorkspaceBinding]
     launcher --> host[HostAdapterBinding]
     profile --> services[RuntimeServices]
     workspace --> services
     host --> services
-    services --> core[GarageCore]
+    services --> sessionApi[SessionApi]
+    sessionApi --> core[GarageCore]
     core --> session[Session]
 ```
 
 ## 7. 多入口如何共享同一 runtime
 
-未来 `Garage` 可以有很多入口：
+未来 `Garage` 可以有很多入口实例，但它们默认应收敛到上面的 3 个 family：
 
-- `CLI`
-- `IDE`
-- 聊天入口
-- 轻 UI
+- `CLIEntry`
+  - 例如稳定命令行、交互式 shell 或本地命令调度入口
+- `WebEntry`
+  - 例如 local-first 的 browser UI、workspace 控制面或轻量 web app
+- `HostBridgeEntry`
+  - 例如 `Claude`、`OpenCode`、`Cursor` 或其他 IDE / 聊天宿主的桥接入口
 
 但这些入口不应各自拥有一套启动和恢复逻辑。
 
@@ -157,13 +183,20 @@ flowchart TD
 - 都要显式绑定 `RuntimeProfile`
 - 都要显式绑定 `WorkspaceBinding`
 - 都要通过 `HostAdapterBinding` 暴露自己的能力差异
+- 都要先把 entry-facing 请求交给同一个 `SessionApi`
 - 都要把真正的会话推进交给同一个 `Garage Core`
+- `WebEntry` 也只是 runtime 的一个 family，不天然高于 `CLIEntry` 或 `HostBridgeEntry`
 
 ## 8. `HostAdapter` 在启动链中的位置
 
 `HostAdapterContract` 解决的是：
 
 - 外部入口如何和 core 说话
+
+它尤其适用于：
+
+- `HostBridgeEntry`
+- 需要把浏览器、IDE 或聊天宿主差异压在边缘的 `WebEntry`
 
 但它不等于整个 bootstrap layer。
 
@@ -205,8 +238,10 @@ bootstrap layer 不应越权：
 
 当前实现阶段先只冻结这些判断：
 
+- `Garage` 默认支持 `CLIEntry`、`WebEntry` 与 `HostBridgeEntry` 三类一等入口 family
 - `Garage` 必须有统一 launcher 语义
 - 不同入口共享同一 bootstrap chain
+- entry-facing 请求统一经过 `SessionApi`，而不是让入口直接碰 `Session` / `ExecutionLayer`
 - bootstrap 必须显式解析 profile、workspace 与 host adapter
 - session 创建 / 恢复不能散落在不同入口里
 
@@ -216,13 +251,14 @@ bootstrap layer 不应越权：
 - 常驻 daemon
 - 远程控制面 API
 - 多租户入口调度器
+- 完整浏览器路由、完整命令集或某个特定宿主的专属协议冻结
 
 ## 11. 当前实现非目标
 
 - 不先设计完整命令集
-- 不先设计完整 GUI
+- 不先设计完整 web UI 或 GUI
 - 不先冻结所有 host adapter 的具体实现
-- 不先决定 `CLI-first` 还是 `IDE-first` 的最终产品姿态
+- 不先决定某个宿主是否应成为唯一主入口
 
 当前实现阶段只需要先证明：
 
