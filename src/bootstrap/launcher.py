@@ -12,6 +12,7 @@ from core import GateVerdict, ObjectRef, SessionIntent, SessionState, SessionSta
 from execution import ExecutionRuntime
 from foundation import (
     HostAdapterBinding,
+    RuntimeProfile,
     RuntimeTopology,
     TopologyBindingError,
 )
@@ -20,6 +21,7 @@ from registry import RegistryIndex, build_registry
 from session import BlockedGateError, SessionAction, SessionController
 from surfaces import ArtifactRoute, FileBackedSurfaceManager
 
+from .credential_resolution import CredentialResolutionError, ResolvedCredentials, resolve_credential_refs
 from .profile_loader import load_runtime_profile
 
 
@@ -124,6 +126,7 @@ class RuntimeServices:
     topology: RuntimeTopology
     profile: RuntimeProfile
     host: HostAdapterBinding
+    resolved_credentials: ResolvedCredentials
     registry: RegistryIndex
     governance: GovernanceRuntime
     surfaces: FileBackedSurfaceManager
@@ -165,8 +168,12 @@ class GarageLauncher:
             runtime_capabilities=config.runtime_capabilities,
             provider_hints=config.provider_hints,
         )
+        try:
+            resolved_credentials = resolve_credential_refs(profile.credential_refs, topology.runtime_home)
+        except CredentialResolutionError as exc:
+            raise BootstrapError(str(exc)) from exc
         host = self._resolve_host_binding(config)
-        services = self._build_runtime_services(topology, profile, host)
+        services = self._build_runtime_services(topology, profile, host, resolved_credentials)
         session_state = self._enter_runtime(config, services, existing_state)
         session_route = services.surfaces.write_session_state(session_state)
         return LaunchResult(
@@ -210,6 +217,7 @@ class GarageLauncher:
         topology: RuntimeTopology,
         profile: RuntimeProfile,
         host: HostAdapterBinding,
+        resolved_credentials: ResolvedCredentials,
     ) -> RuntimeServices:
         packs_root = topology.source_root.packs_root
         pack_roots = tuple(path for path in sorted(packs_root.iterdir()) if path.is_dir()) if packs_root.exists() else ()
@@ -222,6 +230,7 @@ class GarageLauncher:
             topology=topology,
             profile=profile,
             host=host,
+            resolved_credentials=resolved_credentials,
             registry=registry,
             governance=governance,
             surfaces=surfaces,

@@ -15,7 +15,7 @@ garage = "bootstrap.cli:main"
 
 [tool.setuptools]
 include-package-data = true
-py-modules = ["foundation"]
+py-modules = ["foundation", "redaction"]
 
 [tool.setuptools.package-dir]
 "" = "src"

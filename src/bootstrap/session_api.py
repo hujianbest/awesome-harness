@@ -124,6 +124,7 @@ class SessionApi:
             role_id=role_id,
             allowed_tool_capabilities=requested_tool_capabilities,
             host_adapter_id=result.services.host.adapter_id,
+            credential_values=result.services.resolved_credentials.values,
         )
         return result.services.execution_runtime.execute(request, context)
 

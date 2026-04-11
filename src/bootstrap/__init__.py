@@ -1,5 +1,13 @@
 """Unified runtime launcher and bootstrap scaffolding."""
 
+from redaction import redact_text
+
+from .credential_resolution import (
+    CredentialResolutionError,
+    ResolvedCredentials,
+    merge_credential_ref_declarations,
+    resolve_credential_refs,
+)
 from .host_bridge import HostBridgeLaunchRequest, HostBridgeSessionApi
 from .launcher import (
     BootstrapConfig,
@@ -16,11 +24,13 @@ from .web import WebControlPlane, WebControlPlaneConfig, WebControlPlaneState
 __all__ = [
     "BootstrapConfig",
     "BootstrapError",
+    "CredentialResolutionError",
     "GarageLauncher",
     "HostBridgeLaunchRequest",
     "HostBridgeSessionApi",
     "LaunchMode",
     "LaunchResult",
+    "ResolvedCredentials",
     "RuntimeServices",
     "RuntimeProfileResolutionError",
     "SessionApi",
@@ -29,4 +39,7 @@ __all__ = [
     "WebControlPlaneConfig",
     "WebControlPlaneState",
     "load_runtime_profile",
+    "merge_credential_ref_declarations",
+    "redact_text",
+    "resolve_credential_refs",
 ]

@@ -7,6 +7,7 @@ from enum import StrEnum
 from typing import Any, Callable, Mapping
 
 from contracts import WorkflowNodeContract
+from redaction import redact_text
 from core import EvidenceRecord, GateVerdict, LineageLink, LineageLinkType, ObjectRef
 from governance import GateType, GovernanceRuntime, RuntimeContext
 from surfaces import ArtifactRoute, FileBackedSurfaceManager
@@ -84,6 +85,7 @@ class ExecutionContext:
     policy_refs: tuple[str, ...] = ()
     evidence_requirements: tuple[str, ...] = ()
     host_adapter_id: str | None = None
+    credential_values: Mapping[str, str] = field(default_factory=dict)
 
 
 @dataclass(slots=True, frozen=True)
@@ -340,7 +342,9 @@ class ExecutionRuntime:
             add_event(
                 ExecutionEventType.FAILED,
                 "Execution failed.",
-                metadata={"error": str(exc)},
+                metadata={
+                    "error": redact_text(str(exc), known_values=context.credential_values),
+                },
             )
             trace = self._build_trace(
                 request=request,

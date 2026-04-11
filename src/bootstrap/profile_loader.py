@@ -8,6 +8,8 @@ from typing import Any, Mapping
 
 from foundation import RuntimeHomeBinding, RuntimeProfile
 
+from .credential_resolution import CredentialResolutionError, merge_credential_ref_declarations
+
 
 class RuntimeProfileResolutionError(RuntimeError):
     """Raised when runtime-home profile authority cannot be resolved safely."""
@@ -49,11 +51,23 @@ def load_runtime_profile(
         _string_from(defaults, "adapterId"),
     )
 
-    adapter_settings: Mapping[str, str] = {}
+    adapter_raw: Mapping[str, Any] = {}
     adapter_source: str | None = None
     if adapter_id is not None:
-        adapter_settings, adapter_source = _read_optional_json(runtime_home.adapters_root / f"{adapter_id}.json")
-        _validate_adapter_authority(adapter_settings, provider_id=provider_id, model_id=model_id, adapter_id=adapter_id)
+        adapter_raw, adapter_source = _read_optional_json(runtime_home.adapters_root / f"{adapter_id}.json")
+        _validate_adapter_authority(adapter_raw, provider_id=provider_id, model_id=model_id, adapter_id=adapter_id)
+
+    try:
+        credential_refs = merge_credential_ref_declarations(
+            profile_mapping,
+            profile_overrides,
+            defaults,
+            adapter_raw,
+        )
+    except CredentialResolutionError as exc:
+        raise RuntimeProfileResolutionError(str(exc)) from exc
+
+    adapter_settings = _string_adapter_settings(adapter_raw)
 
     capabilities = _merge_capabilities(
         runtime_capabilities,
@@ -75,7 +89,8 @@ def load_runtime_profile(
         model_id=model_id,
         adapter_id=adapter_id,
         provider_hints=hints,
-        adapter_settings={key: value for key, value in adapter_settings.items() if isinstance(value, str)},
+        adapter_settings=adapter_settings,
+        credential_refs=credential_refs,
         authority_sources=authority_sources,
     )
 
@@ -167,3 +182,17 @@ def _first_non_empty(*values: str | None) -> str | None:
         if value is not None:
             return value
     return None
+
+
+def _string_adapter_settings(adapter_raw: Mapping[str, Any]) -> dict[str, str]:
+    """Keep non-reference adapter fields as strings; credential refs live only in credential_refs."""
+
+    out: dict[str, str] = {}
+    for key, value in adapter_raw.items():
+        if key == "credentials":
+            continue
+        if isinstance(key, str) and key.endswith("Ref"):
+            continue
+        if isinstance(value, str) and value.strip():
+            out[key] = value.strip()
+    return out

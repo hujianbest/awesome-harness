@@ -83,6 +83,7 @@ class RuntimeProfile:
     adapter_id: str | None = None
     provider_hints: Mapping[str, str] = field(default_factory=dict)
     adapter_settings: Mapping[str, str] = field(default_factory=dict)
+    credential_refs: Mapping[str, str] = field(default_factory=dict)
     authority_sources: tuple[str, ...] = ()
 
 
