@@ -1,0 +1,23 @@
+{
+  "nodeId": "coding.implement",
+  "packId": "coding",
+  "contractVersion": "v1alpha1",
+  "intent": "Produce the implementation delta that realizes the current task board and design intent.",
+  "inputArtifactRoles": [
+    "task-board"
+  ],
+  "outputArtifactRoles": [
+    "implementation-delta"
+  ],
+  "allowedTransitions": [
+    "coding.review"
+  ],
+  "humanConfirmationRequired": false,
+  "parallelizable": false,
+  "evidenceRequirements": [
+    "exception-record"
+  ],
+  "policyRefs": [
+    "policies/implementation-safety.md"
+  ]
+}

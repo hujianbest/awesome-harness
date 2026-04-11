@@ -1,0 +1,11 @@
+{
+  "artifactRole": "spec-bridge",
+  "contractVersion": "v1alpha1",
+  "primaryFormat": "markdown",
+  "authorityRule": "latest-wins",
+  "readWriteSemantics": "authoritative-current-slot",
+  "bridgeHints": [
+    "coding"
+  ],
+  "lifecycleHint": "cross-pack-bridge-artifact"
+}

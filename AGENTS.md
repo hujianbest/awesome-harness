@@ -25,6 +25,7 @@
 3. **从对应入口继续深入**：查看 `Garage` 设计时从 `docs/README.md` 和 `docs/GARAGE.md` 开始；查看 phase 1 任务时从 `docs/tasks/` 开始；查看当前 pack surface 时从 `packs/` 开始；查看来源技能和工具链时从 `packs/coding/skills/`、`packs/product-insights/skills/`、`.agents/skills/` 的真实入口继续。
 4. **控制改动范围**：只修改当前任务涉及的目录与文档，不为了“统一整理”去批量改写无关分析资料，也不要在 phase 1 早期做大规模目录迁移。
 5. **保持边界稳定**：platform-neutral 语义优先留在 `docs/architecture/` 与 `docs/features/`；pack-specific 语义留在 `packs/`；来源技能与工具链继续留在 `packs/*/skills/` 与 `.agents/skills/`。
+6. **主线相关改动先做一致性检查**：当任务涉及 `docs/`、`packs/`、`.garage/`、`artifacts/`、`evidence/`、`sessions/`、`archives/` 或 `.agents/skills/` 的编辑时，默认先读取并使用 `.agents/skills/vision-obey/SKILL.md`，先检查变更是否违背 `Garage` 的愿景、架构边界、runtime surfaces、governance 与 growth 主线；如果提案只有在回写 `docs/architecture/`、`docs/features/` 或 `docs/design/` 后才成立，应先明确这一点，再继续实施。纯措辞级、且不改变系统语义的编辑可跳过。 
 
 ## 路径速查
 

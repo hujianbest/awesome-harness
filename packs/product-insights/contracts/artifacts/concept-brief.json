@@ -1,0 +1,8 @@
+{
+  "artifactRole": "concept-brief",
+  "contractVersion": "v1alpha1",
+  "primaryFormat": "markdown",
+  "authorityRule": "latest-wins",
+  "readWriteSemantics": "authoritative-current-slot",
+  "lifecycleHint": "concept-boundary-brief"
+}
