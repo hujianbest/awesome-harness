@@ -3,7 +3,7 @@
 - Task ID: `T120`
 - 状态: 待执行
 - 日期: 2026-04-11
-- 定位: 把 `Garage` 的多入口体验收敛到同一条 runtime bootstrap chain，落统一 launcher、profile / workspace / host binding 与 session create / resume 主入口。
+- 定位: 把 `Garage` 的多入口体验收敛到同一条 runtime bootstrap chain，落统一 launcher、profile / workspace / host binding 与 `SessionApi` 驱动的 session create / resume 主入口。
 - 当前阶段: 完整架构主线下的当前 bootstrap slice
 - 关联设计文档:
   - `docs/features/F220-runtime-bootstrap-and-entrypoints.md`
@@ -26,6 +26,7 @@
 
 - `GarageLauncher` 与 canonical bootstrap sequence
 - `RuntimeProfile`、`WorkspaceBinding`、`HostAdapterBinding`
+- `SessionApi` 作为 entry-facing session seam
 - one runtime, many entry surfaces
 
 ## 3. 本文范围
@@ -34,7 +35,7 @@
 - runtime profile 解析
 - workspace binding 接入
 - host adapter 选择与绑定
-- session create / resume 启动链
+- `SessionApi` 驱动的 session create / resume 启动链
 - runtime services 的最小装配顺序
 
 ## 4. 非目标
@@ -48,7 +49,7 @@
 
 - 一套统一 launcher 语义
 - 一条稳定的 bootstrap 顺序
-- create / resume / attach 的最小入口壳
+- create / resume / attach 的最小入口壳与 `SessionApi` 挂点
 - host adapter 与 runtime services 的最小装配骨架
 - 启动失败与绑定冲突的错误面
 
@@ -77,11 +78,11 @@
 
 - 新 session 如何进入 runtime。
 - 已有 session 如何恢复。
-- create / resume 后如何把交互推进交给同一个 `Garage Core`。
+- create / resume 后如何先进入同一个 `SessionApi`，再推进到统一 runtime。
 
 ### 6.5 补齐多入口与错误路径
 
-- 至少预留 `CLI`、`IDE`、聊天入口的接入壳。
+- 至少预留 `CLIEntry`、`WebEntry`、`HostBridgeEntry` 的接入壳。
 - 明确 workspace 缺失、profile 冲突、host 不兼容时如何报错。
 - 避免入口静默绕过 bootstrap。
 
@@ -97,6 +98,7 @@
 
 - 不同入口确实汇入同一 runtime bootstrap chain
 - session 创建与恢复不再散落在各入口内部
+- entry-facing 请求已经有统一的 `SessionApi` 挂点
 - host adapter 只负责入口差异，不接管 core 语义
 - 后续 execution layer 已有稳定接入点
 

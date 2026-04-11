@@ -32,6 +32,7 @@
 - `ToolRegistry`
 - `ExecutionRequest / ExecutionContext / ProviderResponse`
 - execution events 的统一语义
+- `RuntimeProfile` 作为 provider / model authority
 
 ## 3. 本文范围
 
@@ -70,6 +71,7 @@
 - 给模型或执行后端预留统一 adapter 入口。
 - 吸收厂商差异，归一化返回结果与错误。
 - 保持 vendor 差异留在 adapter 之下，而不是扩散到 core。
+- 保持 provider / model authority 由 `RuntimeProfile` 与 runtime 配置链决定，而不是由 host 决定。
 
 ### 6.3 落 tool registry 与 capability 挂点
 
@@ -93,7 +95,7 @@
 
 - 依赖 `04`、`05`、`08`、`09`、`12`
 - 建议先有 reference packs 的最小语义，再把 execution layer 接进来
-- 是当前主线朝“独立可运行程序”推进的最后一篇任务
+- 是第二组独立入口切片的共同前置，而不是整个主线的最后一篇任务
 
 ## 8. 验收与验证
 
@@ -102,9 +104,10 @@
 - provider 与 tool execution 已有统一 runtime 层
 - execution 不再散落在 host、core 或 pack 中
 - 治理与 evidence 能约束关键执行动作
+- provider / model authority 已经开始从 host 分离出来，进入统一 runtime 配置语义
 - `Garage` 已从 repo-local dogfooding 进一步推进到真正可运行程序的实现方向
 
 ## 9. 完成后进入哪一篇
 
-- 进入独立可运行程序的实现排期、打包与运维层设计
-- 或单独新增 `runtime ops / packaging / secrets` 任务文档
+- `docs/tasks/T140-garage-stable-cli-shell.md`
+- 后续再按 `T150 -> T160 -> T170` 推进三类入口与共享 authority 的第二组切片

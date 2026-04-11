@@ -62,7 +62,7 @@
 `Garage` 至少需要满足下面这些功能要求：
 
 - 让个人创作者在同一个系统里持续推进从洞察、设计、实现到表达的长期主线。
-- 让不同入口，例如 `CLI`、`IDE`、聊天入口与未来轻 UI，都进入同一套 runtime 语义。
+- 让不同入口 family，例如 `CLIEntry`、`WebEntry`、`HostBridgeEntry`，都进入同一套 runtime 语义。
 - 让 AI 团队协作以 `session` 为主线，通过角色、节点、handoff、review 与 approval 共同推进工作。
 - 让不同能力以 pack 形式接入，并通过 shared contracts 与 core 协作。
 - 让 artifacts、evidence、sessions、archives 构成 workspace-first 的主事实面。
@@ -105,7 +105,7 @@
 | 能力扩展方式 | 核心硬编码能力 / pack 接入 | `Shared Contracts + Capability Packs` | 需要长期承接新能力面，同时保持 core 中立。 |
 | 主事实面 | 数据库优先 / 文件优先 | `workspace-first` 文件面 | 需要可读、可追溯、可恢复、可迁移。 |
 | 成长方式 | 被动记忆 / 无治理自动学习 / 证据驱动成长 | `Evidence -> Proposal -> Governance -> Update` | 需要让成长主动发生，但不能失控。 |
-| 入口策略 | 各入口各自实现 runtime / 统一 bootstrap + runtime | 统一 bootstrap + runtime | 避免 CLI、IDE、聊天入口语义分叉。 |
+| 入口策略 | 各入口各自实现 runtime / 统一 bootstrap + runtime | 统一 bootstrap + runtime | 避免 `CLIEntry`、`WebEntry`、`HostBridgeEntry` 语义分叉。 |
 
 ## 4. 总体架构
 
@@ -120,7 +120,8 @@
 flowchart TB
     creator[Creator] --> entry[EntrySurfaces]
     entry --> bootstrap[Bootstrap]
-    bootstrap --> team[TeamRuntime]
+    bootstrap --> sessionApi[SessionApi]
+    sessionApi --> team[TeamRuntime]
     team --> core[GarageCore]
 
     governance[VisionAndGovernance] --> core
@@ -149,6 +150,7 @@ flowchart TB
 
 - 用户从入口进入，但入口不拥有系统真相。
 - bootstrap 把外部入口翻译成统一的 runtime 启动动作。
+- 所有入口 family 都先汇入 `SessionApi`，再进入统一会话边界。
 - team runtime 是用户感知到的协作层，真正稳定的语义收敛在 core。
 - packs 通过 contracts 接入，execution layer 负责真正执行。
 - evidence 和 workspace surfaces 共同形成主事实与追溯面。
@@ -158,9 +160,9 @@ flowchart TB
 
 把总体架构落到一次真实运行上，`Garage` 建议固定下面这条主链：
 
-1. 用户从 `CLI`、`IDE`、聊天入口或未来轻 UI 发起工作意图。
+1. 用户从 `CLIEntry`、`WebEntry` 或 `HostBridgeEntry` 发起工作意图。
 2. `Bootstrap` 解析 `RuntimeProfile`、`WorkspaceBinding` 与 `HostAdapterBinding`。
-3. 系统创建或恢复 `Session`，让当前工作进入统一会话边界。
+3. 系统暴露统一的 `SessionApi`，并通过它创建或恢复 `Session`，让当前工作进入统一会话边界。
 4. `Registry` 解析当前 pack、role、node、artifact role 与 capability 声明。
 5. `Governance` 在关键动作前判断是否允许、是否需要审批、是否缺少证据。
 6. `ExecutionLayer` 在当前 `session / role / node / policy` 边界下执行 provider 与 tool 调用。
@@ -179,11 +181,11 @@ flowchart TB
 
 #### 背景
 
-如果 `CLI`、`IDE`、聊天入口和未来 UI 都各自维护一套恢复逻辑、工具语义和状态边界，`Garage` 很快会退化成多个互不兼容的宿主壳层。
+如果 `CLIEntry`、`WebEntry` 与 `HostBridgeEntry` 都各自维护一套恢复逻辑、工具语义和状态边界，`Garage` 很快会退化成多个互不兼容的宿主壳层。
 
 #### 决策
 
-所有入口都必须先经过统一 `Bootstrap`，再进入同一个 `Garage Runtime`。
+所有入口都必须先经过统一 `Bootstrap` 与 `SessionApi`，再进入同一个 `Garage Runtime`。
 
 #### 影响
 

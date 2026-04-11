@@ -3,8 +3,8 @@
 - Task ID: `T000`
 - 状态: 草稿
 - 日期: 2026-04-11
-- 定位: `docs/architecture/`、`docs/design/` 与 `docs/features/` 负责解释 `Garage` 的完整系统边界；`docs/tasks/` 负责把这套边界按实施顺序拆成 delivery slices。当前 `T010-T130` 是第一组主要实施切片，它们不再拥有产品主线定义权，只负责承接当前实现顺序。
-- 当前阶段: 完整架构主线下的第一组实施切片
+- 定位: `docs/architecture/`、`docs/design/` 与 `docs/features/` 负责解释 `Garage` 的完整系统边界；`docs/tasks/` 负责把这套边界按实施顺序拆成 delivery slices。当前 `T010-T130` 是第一组主要实施切片，`T140-T170` 是第二组围绕三类入口与共享 provider authority 的实施切片，`T180-T230` 是第三组围绕 runtime hardening、具体入口深化与交付运维的实施切片；它们都不再拥有产品主线定义权，只负责承接当前实现顺序。
+- 当前阶段: 完整架构主线下的前三组 implementation tracks
 - 关联文档:
   - `docs/README.md`
   - `docs/GARAGE.md`
@@ -29,7 +29,7 @@
 理解这组任务文档时，请先记住下面 4 个判断：
 
 1. 先读 `docs/architecture/`、`docs/features/`、`docs/design/`，再读 `docs/tasks/`。
-2. 当前 `T010-T130` 是第一组 implementation tracks，不是完整架构的全文镜像。
+2. 当前 `T010-T130` 是第一组 implementation tracks，`T140-T170` 是第二组独立入口 implementation tracks，`T180-T230` 是第三组产品化 implementation tracks；它们都不是完整架构的全文镜像。
 3. task 文件名已经统一对齐到 `Txxx-<title-slug>.md` 规则，但这些文档仍然只是当前 implementation tracks。
 4. 当设计文档和 task 文档冲突时，应先回写设计文档，再重切任务文档。
 
@@ -38,7 +38,7 @@
 - 目录入口使用 `docs/tasks/README.md`
 - `docs/tasks/README.md` 保留目录索引入口的 canonical 文件名
 - task docs 统一使用稳定 `Txxx` 作为 identity
-- 当前 `T010-T130` 保留既有文件路径
+- 当前 `T010-T230` 保留既有文件路径
 - 未来新增 task docs 继续使用 `Txxx-<title-slug>.md`
 
 ## 4. 当前 implementation tracks
@@ -48,6 +48,10 @@
 | Runtime Foundations | `T010-T060` | 搭基础 runtime skeleton、records、contracts、governance、artifact / evidence surface 与 continuity baseline | `A110`、`A120`、`A130`、`A150`、`F010`、`F030`、`F050`、`F060`、`F070`、`F080` |
 | Reference Packs And Bridge | `T070-T100` | 搭 `Product Insights Pack`、`Coding Pack` 与当前 cross-pack bridge | `A160`、`A170`、`F110`、`F120`、`D110`、`D120`、`F070`、`F080` |
 | Standalone Runtime Surfaces | `T110-T130` | 把当前 repo-local 形态继续推进到 runtime topology、bootstrap 与 execution layer | `F210`、`F220`、`F230`、`F050`、`F060`、`F080` |
+| Entry Surfaces And Runtime Productization | `T140-T170` | 把三类入口从架构 seam 推进到可实现的产品入口，并收敛 shared provider authority | `A120`、`F210`、`F220`、`F230`、`F010` |
+| Runtime Hardening And Delivery | `T180-T201` | 把 authority、secrets、配置诊断、分发、发布与运行诊断补成可交付的 runtime 产品基线 | `F210`、`F220`、`F230`、`F050`、`A120`、`A140` |
+| Entry Depth And Product Surfaces | `T210-T222` | 把通用入口切到具体宿主适配与更完整的 WebEntry streaming / observability / governance surfaces | `T150`、`T160`、`T170`、`F220`、`F230`、`F050` |
+| Optional Runtime Orchestration | `T230` | 只在确有需求时，再补 supervisor / daemon / multi-workspace orchestration | `T191`、`T200`、`T221`、`F210`、`F220` |
 
 ## 5. 当前详细交付顺序
 
@@ -66,6 +70,23 @@
 | 11 | `T110` | `docs/tasks/T110-garage-runtime-home-and-workspace-topology.md` | 把 repo-local dogfooding 形态提升成显式 `runtime home / workspace` 拓扑 | `F210-runtime-home-and-workspace-topology.md`、`F060-artifact-and-evidence-surface.md` |
 | 12 | `T120` | `docs/tasks/T120-garage-runtime-bootstrap-and-entrypoints.md` | 落统一 launcher、profile / workspace / host binding 与 create / resume 启动链 | `F220-runtime-bootstrap-and-entrypoints.md`、`F210-runtime-home-and-workspace-topology.md` |
 | 13 | `T130` | `docs/tasks/T130-garage-runtime-provider-and-tool-execution.md` | 落 provider adapters、tool registry、execution trace 与受治理的 runtime execution layer | `F230-runtime-provider-and-tool-execution.md`、`F080-garage-self-evolving-learning-loop.md` |
+| 14 | `T140` | `docs/tasks/T140-garage-stable-cli-shell.md` | 把 `CLIEntry` 落成最薄、稳定、可恢复的统一命令入口 | `F220-runtime-bootstrap-and-entrypoints.md`、`F210-runtime-home-and-workspace-topology.md`、`A120-garage-core-subsystems-architecture.md` |
+| 15 | `T150` | `docs/tasks/T150-garage-host-bridge-entry.md` | 把宿主集成收敛到通用 `HostBridgeEntry` 与薄适配层 | `F220-runtime-bootstrap-and-entrypoints.md`、`F230-runtime-provider-and-tool-execution.md`、`F010-shared-contracts.md` |
+| 16 | `T160` | `docs/tasks/T160-garage-local-first-web-control-plane.md` | 落 local-first `WebEntry` control plane，让 UI 消费共享 runtime seam | `F220-runtime-bootstrap-and-entrypoints.md`、`F210-runtime-home-and-workspace-topology.md`、`F230-runtime-provider-and-tool-execution.md` |
+| 17 | `T170` | `docs/tasks/T170-garage-provider-profile-loader-and-authority-resolution.md` | 落 `runtime home` 内 provider / profile loader 与 authority resolution | `F210-runtime-home-and-workspace-topology.md`、`F220-runtime-bootstrap-and-entrypoints.md`、`F230-runtime-provider-and-tool-execution.md` |
+| 18 | `T180` | `docs/tasks/T180-garage-secrets-and-credential-resolution.md` | 落 `RuntimeProfile` 与 adapters 的 secrets / credential resolution seam | `T170-garage-provider-profile-loader-and-authority-resolution.md`、`F210-runtime-home-and-workspace-topology.md`、`F230-runtime-provider-and-tool-execution.md` |
+| 19 | `T181` | `docs/tasks/T181-garage-runtime-home-config-doctor.md` | 落 runtime home config 校验、doctor UX 与安全迁移钩子 | `T170-garage-provider-profile-loader-and-authority-resolution.md`、`F210-runtime-home-and-workspace-topology.md` |
+| 20 | `T190` | `docs/tasks/T190-garage-distribution-and-install-layout.md` | 落 CLI 分发、安装布局、版本化与升级路径 | `T140-garage-stable-cli-shell.md`、`T170-garage-provider-profile-loader-and-authority-resolution.md`、`T180-garage-secrets-and-credential-resolution.md` |
+| 21 | `T191` | `docs/tasks/T191-garage-release-smoke-and-compatibility-matrix.md` | 落 release smoke checks 与 host / OS 兼容矩阵 | `T190-garage-distribution-and-install-layout.md` |
+| 22 | `T200` | `docs/tasks/T200-garage-runtime-ops-and-diagnostics.md` | 落 runtime ops baseline、structured logs、diagnostics 与 local health surface | `T170-garage-provider-profile-loader-and-authority-resolution.md`、`T180-garage-secrets-and-credential-resolution.md`、`F230-runtime-provider-and-tool-execution.md` |
+| 23 | `T201` | `docs/tasks/T201-garage-execution-trace-and-evidence-ops-surface.md` | 落 execution trace / evidence 的运维观察面 | `T200-garage-runtime-ops-and-diagnostics.md`、`T130-garage-runtime-provider-and-tool-execution.md`、`F060-artifact-and-evidence-surface.md` |
+| 24 | `T210` | `docs/tasks/T210-garage-host-adapter-cursor.md` | 把 `Cursor` 落成具体 `HostBridgeEntry` adapter | `T150-garage-host-bridge-entry.md` |
+| 25 | `T211` | `docs/tasks/T211-garage-host-adapter-claude.md` | 把 `Claude` 落成具体 `HostBridgeEntry` adapter | `T150-garage-host-bridge-entry.md` |
+| 26 | `T212` | `docs/tasks/T212-garage-host-adapter-opencode.md` | 把 `OpenCode` 落成具体 `HostBridgeEntry` adapter | `T150-garage-host-bridge-entry.md` |
+| 27 | `T220` | `docs/tasks/T220-garage-webentry-streaming-and-live-updates.md` | 为 `WebEntry` 增加 streaming 与 live session updates | `T160-garage-local-first-web-control-plane.md`、`T170-garage-provider-profile-loader-and-authority-resolution.md` |
+| 28 | `T221` | `docs/tasks/T221-garage-webentry-observability-and-traces-ui.md` | 为 `WebEntry` 增加 observability、runs、traces 与错误观察面 | `T160-garage-local-first-web-control-plane.md`、`T200-garage-runtime-ops-and-diagnostics.md` |
+| 29 | `T222` | `docs/tasks/T222-garage-webentry-governance-and-review-surfaces.md` | 为 `WebEntry` 增加 review、approval 与 governance surfaces | `T160-garage-local-first-web-control-plane.md`、`F050-governance-model.md`、`T040-garage-session-lifecycle-and-governance.md` |
+| 30 | `T230` | `docs/tasks/T230-garage-runtime-supervisor-and-multi-workspace-daemon.md` | 在确有需求时补 supervisor / daemon / multi-workspace orchestration | `T191-garage-release-smoke-and-compatibility-matrix.md`、`T221-garage-webentry-observability-and-traces-ui.md`、`F210-runtime-home-and-workspace-topology.md` |
 
 ## 6. 当前 implementation guardrails
 
@@ -92,20 +113,20 @@
 | 设计文档 | 当前主要落到哪些 task docs |
 | --- | --- |
 | `A110-garage-extensible-architecture.md` | `T010`、`T070` |
-| `A120-garage-core-subsystems-architecture.md` | `T010`、`T020`、`T030`、`T040`、`T050`、`T120`、`T130` |
+| `A120-garage-core-subsystems-architecture.md` | `T010`、`T020`、`T030`、`T040`、`T050`、`T120`、`T130`、`T140`、`T150`、`T160`、`T170`、`T180`、`T181`、`T190`、`T200` |
 | `A130-garage-continuity-memory-skill-architecture.md` | `T060` |
-| `A140-garage-system-architecture.md` | 作为全部切片的 system-level 对齐输入 |
+| `A140-garage-system-architecture.md` | 作为全部切片的 system-level 对齐输入，尤其影响 `T190-T230` 的产品化顺序 |
 | `A150-garage-vision-and-governance-architecture.md` | `T040`、`T060`、`T100` |
 | `A160-garage-pack-platform-architecture.md` | `T030`、`T070`、`T080`、`T090`、`T100` |
 | `A170-garage-cross-pack-bridge-architecture.md` | `T100` |
-| `F220-runtime-bootstrap-and-entrypoints.md` | `T120` |
-| `F230-runtime-provider-and-tool-execution.md` | `T130` |
-| `F210-runtime-home-and-workspace-topology.md` | `T110`、`T120` |
+| `F220-runtime-bootstrap-and-entrypoints.md` | `T120`、`T140`、`T150`、`T160`、`T170`、`T190`、`T210`、`T211`、`T212`、`T220`、`T221`、`T222`、`T230` |
+| `F230-runtime-provider-and-tool-execution.md` | `T130`、`T150`、`T160`、`T170`、`T180`、`T190`、`T200`、`T201`、`T220`、`T221` |
+| `F210-runtime-home-and-workspace-topology.md` | `T110`、`T120`、`T140`、`T160`、`T170`、`T180`、`T181`、`T190`、`T230` |
 | `F030-core-runtime-records.md` | `T020` |
 | `F040-session-lifecycle-and-handoffs.md` | `T040`、`T100` |
-| `F050-governance-model.md` | `T040`、`T060`、`T100`、`T130` |
-| `F060-artifact-and-evidence-surface.md` | `T050`、`T100`、`T110`、`T130` |
-| `F010-shared-contracts.md` | `T030`、`T070`、`T120` |
+| `F050-governance-model.md` | `T040`、`T060`、`T100`、`T130`、`T180`、`T200`、`T222` |
+| `F060-artifact-and-evidence-surface.md` | `T050`、`T100`、`T110`、`T130`、`T201`、`T221` |
+| `F010-shared-contracts.md` | `T030`、`T070`、`T120`、`T150` |
 | `F020-shared-contract-schemas.md` | `T030` |
 | `F070-continuity-mapping-and-promotion.md` | `T060`、`T080`、`T090` |
 | `F080-garage-self-evolving-learning-loop.md` | `T060`、`T080`、`T090`、`T130` |
@@ -116,22 +137,12 @@
 
 ## 8. 后续重切建议
 
-当前任务树仍然是第一组实施切片，因此建议在主线设计稳定后优先重切下面这些方向：
+当前任务树已经把第三组产品化切片切成 `T180-T230`。在这组切片稳定后，建议优先重切下面这些方向：
 
-- 为 `F080` 单独切出更明确的 growth engine / runtime update delivery slice
-- 把 `T060` 从 continuity baseline 扩成更完整的 proposal lifecycle implementation track
-- 在新增 capability packs 前，先明确它们复用现有 growth loop 的方式
-
-围绕三类入口与独立运行形态，下一组 implementation tracks 还应按下面顺序推进：
-
-| 顺序 | 方向 | 主要目标 | 为什么先这样排 |
-| --- | --- | --- | --- |
-| 01 | Stable CLI Shell | 先把 `GarageLauncher + RuntimeProfile + WorkspaceBinding + SessionApi` 变成最薄、稳定、可恢复的命令入口 | `CLI` 是验证统一 bootstrap 与 session seam 的最低成本路径 |
-| 02 | HostBridge Entry | 把 `Claude`、`OpenCode`、`Cursor` 一类宿主收敛到通用宿主桥，而不是每家各长一套 runtime | 先把宿主差异压成薄适配层，避免 runtime fork |
-| 03 | Web Control Plane | 让 local-first web UI 只消费共享 session/runtime seam，而不是复制新的 runtime | 等统一 session seam 稳定后再补 UI，能避免把浏览器入口提前写成第二套系统 |
-| 04 | Provider/Profile Loader | 把 `runtime home` 中的 provider / model authority 落成真实 loader 与解析器，供前三类入口共享 | 让 provider authority 跟 runtime profile 绑定，而不是被某个入口或宿主抢走 |
-
-如果后续继续切新的 task docs，建议保持同一顺序，不要把 `Web Control Plane` 提前到 `CLI` 或 `HostBridge` 之前。
+- 为 `runtime update / growth promotion / continuity stores` 补更明确的交付切片
+- 为 package signing、artifact provenance 与 release automation 继续细分 release tracks
+- 为 `WebEntry` 的 authn/authz、local security hardening 与 browser persistence 再切更深任务
+- 如果具体宿主 adapter 出现明显分叉，再继续把 `Cursor`、`Claude`、`OpenCode` 下钻为更细的 integration slices
 
 ## 9. 维护约定
 

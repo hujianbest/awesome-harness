@@ -60,11 +60,13 @@
 
 `Garage` 作为独立程序时，建议至少区分 3 个稳定层次：
 
-| 层次 | 作用 | 典型内容 |
-| --- | --- | --- |
-| `Garage Source Root` | 程序源码与设计资产所在位置 | `docs/`、`garage/`、来源资产目录 |
-| `Garage Runtime Home` | 用户级 runtime home 与 profile 所在位置 | profiles、runtime config、cache、adapter metadata |
-| `Garage Workspace` | 某个创作或开发 workspace 的主事实面 | `artifacts/`、`evidence/`、`sessions/`、`archives/`、`.garage/` |
+
+| 层次                    | 作用                              | 典型内容                                                        |
+| --------------------- | ------------------------------- | ----------------------------------------------------------- |
+| `Garage Source Root`  | 程序源码与设计资产所在位置                   | `docs/`、`garage/`、来源资产目录                                    |
+| `Garage Runtime Home` | 用户级 runtime home 与 profile 所在位置 | profiles、runtime config、cache、adapter metadata              |
+| `Garage Workspace`    | 某个创作或开发 workspace 的主事实面         | `artifacts/`、`evidence/`、`sessions/`、`archives/`、`.garage/` |
+
 
 关键判断是：
 
@@ -110,12 +112,14 @@
 
 建议当前主线至少冻结下面这组最小目录语义：
 
-| 目录语义 | 作用 |
-| --- | --- |
-| `profiles/` | 保存可选择的 `RuntimeProfile` 定义与 profile 级默认项 |
-| `config/` | 保存 runtime 级 provider / model / adapter 配置引用与共享默认项 |
-| `cache/` | 保存安装实例级 cache、局部索引与可重建运行时派生物 |
+
+| 目录语义        | 作用                                                       |
+| ----------- | -------------------------------------------------------- |
+| `profiles/` | 保存可选择的 `RuntimeProfile` 定义与 profile 级默认项                 |
+| `config/`   | 保存 runtime 级 provider / model / adapter 配置引用与共享默认项       |
+| `cache/`    | 保存安装实例级 cache、局部索引与可重建运行时派生物                             |
 | `adapters/` | 保存 host / provider / tool adapters 的本地元数据、发现结果或 sidecars |
+
 
 它不应默认承接：
 
