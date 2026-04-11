@@ -1,10 +1,10 @@
-# T050: Garage Phase 1 Artifact Routing And Evidence Surface
+# T050: Garage Artifact Routing And Evidence Surface
 
 - Task ID: `T050`
 - 状态: 待执行
 - 日期: 2026-04-11
-- 定位: 把 `Garage` 在 phase 1 的 `Markdown-first`、`file-backed` artifact / evidence surface 落成稳定的目录、权威、sidecar、archive 与 lineage 机制。
-- 当前阶段: phase 1
+- 定位: 把 `Garage` 当前主线的 `Markdown-first`、`file-backed` artifact / evidence surface 落成稳定的目录、权威、sidecar、archive 与 lineage 机制。
+- 当前阶段: 完整架构主线下的当前 artifact/evidence slice
 - 关联设计文档:
   - `docs/features/F060-artifact-and-evidence-surface.md`
   - `docs/features/F210-runtime-home-and-workspace-topology.md`
@@ -82,7 +82,7 @@
 
 - 明确当前版本被替换时如何更新 authoritative slot。
 - 明确 archive 后如何保留可查历史。
-- 明确 destructive overwrite 在 phase 1 中如何被禁止。
+- 明确 destructive overwrite 在当前主线中如何被禁止。
 
 ## 7. 依赖与并行建议
 

@@ -1,19 +1,20 @@
-# T060: Garage Phase 1 Continuity And Promotion
+# T060: Garage Continuity And Promotion
 
 - Task ID: `T060`
 - 状态: 待执行
 - 日期: 2026-04-11
-- 定位: 把 phase 1 中 `memory`、`session`、`skill`、`evidence` 的分层、候选来源、promotion 规则与治理检查点落成可执行的 continuity 骨架。
-- 当前阶段: phase 1
+- 定位: 把当前主线中 `memory`、`session`、`skill`、`evidence` 的分层、候选来源、promotion 规则与治理检查点落成可执行的 continuity 骨架。
+- 当前阶段: 完整架构主线下的当前 continuity slice
 - 关联设计文档:
   - `docs/architecture/A130-garage-continuity-memory-skill-architecture.md`
+  - `docs/architecture/A150-garage-vision-and-governance-architecture.md`
   - `docs/features/F070-continuity-mapping-and-promotion.md`
   - `docs/features/F050-governance-model.md`
   - `docs/features/F060-artifact-and-evidence-surface.md`
 
 ## 1. 任务目标
 
-让 `Garage` 在 phase 1 中具备最小 continuity 能力：
+让 `Garage` 在当前主线中具备最小 continuity 能力：
 
 - 当前工作留在 `session`
 - 关键记录留在 `evidence`

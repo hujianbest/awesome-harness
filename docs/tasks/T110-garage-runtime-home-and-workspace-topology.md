@@ -1,10 +1,10 @@
-# T110: Garage Phase 1 Runtime Home And Workspace Topology
+# T110: Garage Runtime Home And Workspace Topology
 
 - Task ID: `T110`
 - 状态: 待执行
 - 日期: 2026-04-11
-- 定位: 把 `Garage` 在 phase 1 的 `source root / runtime home / workspace` 三层拓扑落成稳定的绑定规则，明确当前 repo-local dogfooding 形态与未来独立运行形态之间的关系。
-- 当前阶段: phase 1
+- 定位: 把 `Garage` 当前主线的 `source root / runtime home / workspace` 三层拓扑落成稳定的绑定规则，明确当前 repo-local dogfooding 形态与未来独立运行形态之间的关系。
+- 当前阶段: 完整架构主线下的当前 topology slice
 - 关联设计文档:
   - `docs/features/F210-runtime-home-and-workspace-topology.md`
   - `docs/features/F060-artifact-and-evidence-surface.md`
@@ -14,7 +14,7 @@
 
 ## 1. 任务目标
 
-把 phase 1 已经在设计文档中提出的三层拓扑变成明确的实现约束：
+把当前主线已经在设计文档中提出的三层拓扑变成明确的实现约束：
 
 - 什么属于 `source root`
 - 什么属于 `runtime home`
@@ -35,7 +35,7 @@
 - `Garage Source Root`
 - `Garage Runtime Home`
 - `Garage Workspace`
-- 当前仓库的 phase 1 解释
+- 当前仓库的当前 dogfooding 解释
 - session 与 workspace 的绑定规则
 - workspace surfaces 与 runtime home 的边界
 
@@ -61,10 +61,10 @@
 - 明确 `runtime home` 承载 profile、adapter metadata、cache 与安装实例级配置。
 - 明确 `workspace` 承载 `artifacts / evidence / sessions / archives / .garage` 等主事实面。
 
-### 6.2 解释当前仓库的 phase 1 形态
+### 6.2 解释当前仓库的当前 dogfooding 形态
 
 - 明确当前仓库处于 `source-coupled workspace mode`。
-- 明确这是一种 phase 1 友好的 dogfooding 形态，而不是未来唯一运行方式。
+- 明确这是一种当前主线友好的 dogfooding 形态，而不是未来唯一运行方式。
 - 明确哪些当前根目录事实属于 workspace，哪些只是 source root 文档与来源资产。
 
 ### 6.3 冻结 workspace surfaces 的归属边界

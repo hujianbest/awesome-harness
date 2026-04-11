@@ -1,11 +1,13 @@
-# T070: Garage Phase 1 Reference Pack Shells
+# T070: Garage Reference Pack Shells
 
 - Task ID: `T070`
 - 状态: 待执行
 - 日期: 2026-04-11
-- 定位: 在真正实现两个 reference packs 之前，先搭出它们共享的 pack shell、注册入口、manifest 结构、contract 对接面和验证清单。
-- 当前阶段: phase 1
+- 定位: 在真正实现两个 reference packs 之前，先搭出它们共享的 pack shell、注册入口、manifest 结构、contract 对接面和验证清单，并显式对齐 `A160` 的 pack platform。
+- 当前阶段: 完整架构主线下的当前 reference-pack shell slice
 - 关联设计文档:
+  - `docs/architecture/A160-garage-pack-platform-architecture.md`
+  - `docs/architecture/A170-garage-cross-pack-bridge-architecture.md`
   - `docs/features/F110-reference-packs.md`
   - `docs/features/F010-shared-contracts.md`
   - `docs/features/F020-shared-contract-schemas.md`
@@ -28,6 +30,7 @@
 - reference packs 的共同形状
 - shared contracts 的接入方式
 - file-backed artifact / evidence surface
+- `A160` 定义的 pack platform 与 registration 边界
 
 ## 3. 本文范围
 
@@ -36,7 +39,7 @@
 - pack-local roles / nodes / artifacts / evidence 的挂载位
 - bridge hooks 的最小挂载位
 - pack registration 流程
-- phase 1 pack validation checklist
+- 当前 reference slice 的 pack validation checklist
 
 ## 4. 非目标
 
@@ -66,7 +69,7 @@
 - 明确 `entryNodeRefs`
 - 明确 `roleRefs`、`nodeRefs`
 - 明确 `supportedArtifactRoles`
-- 预留 `bridgeRefs` 与 `handoffTargets` 这类 phase 1 bridge hooks
+- 预留 `bridgeRefs` 与 `handoffTargets` 这类当前 reference bridge hooks
 
 ### 6.3 落 pack-local contract 挂点
 

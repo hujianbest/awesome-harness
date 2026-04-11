@@ -1,10 +1,10 @@
-# T120: Garage Phase 1 Runtime Bootstrap And Entrypoints
+# T120: Garage Runtime Bootstrap And Entrypoints
 
 - Task ID: `T120`
 - 状态: 待执行
 - 日期: 2026-04-11
 - 定位: 把 `Garage` 的多入口体验收敛到同一条 runtime bootstrap chain，落统一 launcher、profile / workspace / host binding 与 session create / resume 主入口。
-- 当前阶段: phase 1
+- 当前阶段: 完整架构主线下的当前 bootstrap slice
 - 关联设计文档:
   - `docs/features/F220-runtime-bootstrap-and-entrypoints.md`
   - `docs/features/F210-runtime-home-and-workspace-topology.md`

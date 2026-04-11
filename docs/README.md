@@ -22,7 +22,7 @@
 | `docs/VISION.md` | `Garage` 的愿景、产品哲学与长期方向 |
 | `docs/GARAGE.md` | `Garage` 的项目定义、主线阅读入口与系统定位 |
 | `docs/ROADMAP.md` | `docs/features/` 的 feature map、能力分组与实施路线索引 |
-| `docs/architecture/` | 顶层平台架构、核心子系统、continuity 与整体系统设计 |
+| `docs/architecture/` | 顶层平台架构、核心子系统、治理 / pack / bridge 子系统架构、continuity 与整体系统设计 |
 | `docs/design/` | pack-specific 或子系统级详细设计，例如 `Coding Pack` 与 `Product Insights Pack` |
 | `docs/features/` | 稳定 capability cuts 与共享语义，例如 contracts、governance、artifact surface、continuity、learning loop、runtime topology |
 | `docs/tasks/` | 实施切片、开发轨道与交付顺序；它们跟随主线设计，不反向拥有主线真相 |
@@ -47,11 +47,15 @@
 7. `docs/design/`
 8. `docs/tasks/README.md`
 
+如果你想按架构主线细读，建议使用下面这条顺序：
+
+`A110 -> A120 -> A130 -> A140 -> A150 -> A160 -> A170`
+
 如果你的目标更明确，也可以直接跳到对应入口：
 
 - 想理解 `Garage` 为什么必须存在，读 `docs/VISION.md`
 - 想理解 `Garage` 是什么系统、有哪些主线阅读入口，读 `docs/GARAGE.md`
-- 想理解平台边界、长期连续性和完整系统设计，读 `docs/architecture/`
+- 想理解平台边界、治理层、pack platform、cross-pack bridge、长期连续性和完整系统设计，读 `docs/architecture/`
 - 想理解 contracts、governance、artifact surface、continuity、learning loop 与 runtime 语义，读 `docs/features/`
 - 想理解 `Coding Pack`、`Product Insights Pack` 等详细设计，读 `docs/design/`
 - 想理解能力 map、feature 分组与路线索引，读 `docs/ROADMAP.md`

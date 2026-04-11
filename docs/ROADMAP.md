@@ -30,6 +30,7 @@
 - `docs/tasks/` 负责当前 implementation slices，不反向拥有系统真相。
 - `Status` 表示文档成熟度，而不是代码完成度。
 - 当 feature 语义和 task 语义冲突时，以 `docs/features/` 为准，再回头重切 `docs/tasks/`。
+- 治理、pack platform 与 cross-pack bridge 相关 feature 现在应分别以上游架构文档 `A150`、`A160`、`A170` 为输入，再继续细化到 feature 与 task。
 
 ## 3. 编号规则
 
@@ -62,7 +63,7 @@
 | `F020` | Shared Contract Schemas | 冻结 contract schema shapes | `T030` | `docs/features/F020-shared-contract-schemas.md` |
 | `F030` | Core Runtime Records | 冻结 runtime records 与持久记录语义 | `T020` | `docs/features/F030-core-runtime-records.md` |
 | `F040` | Session Lifecycle And Handoffs | 冻结 session 主链与交接边界 | `T040`、`T100` | `docs/features/F040-session-lifecycle-and-handoffs.md` |
-| `F050` | Governance Model | 冻结 rules、gates、approval、archive 与 growth governance 语义 | `T040`、`T060`、`T100`、`T130` | `docs/features/F050-governance-model.md` |
+| `F050` | Governance Model | 冻结治理工件、gate、approval、archive 与 growth governance 语义，并承接 `A150` 的治理架构边界 | `T040`、`T060`、`T100`、`T130` | `docs/features/F050-governance-model.md` |
 | `F060` | Artifact And Evidence Surface | 冻结 workspace-first artifact / evidence surfaces | `T050`、`T100`、`T110`、`T130` | `docs/features/F060-artifact-and-evidence-surface.md` |
 | `F070` | Continuity Mapping And Promotion | 冻结 pack-specific continuity mapping 与晋升规则 | `T060`、`T080`、`T090` | `docs/features/F070-continuity-mapping-and-promotion.md` |
 | `F080` | Self-Evolving Learning Loop | 冻结主动成长 loop、本地 proposal persistence 与长期更新路径 | `T060`、`T080`、`T090`、`T130` | `docs/features/F080-garage-self-evolving-learning-loop.md` |
@@ -71,8 +72,8 @@
 
 | ID | Feature | 作用 | 当前实施切片 | 链接 |
 | --- | --- | --- | --- | --- |
-| `F110` | Reference Packs | 定义当前 reference packs 的平台角色 | `T070` | `docs/features/F110-reference-packs.md` |
-| `F120` | Cross-Pack Bridge | 定义 `product-insights -> coding` 与后续 pack handoff seam | `T100` | `docs/features/F120-cross-pack-bridge.md` |
+| `F110` | Reference Packs | 定义当前 reference packs 作为 `A160` pack platform 校准器的共同形状与平台角色 | `T070` | `docs/features/F110-reference-packs.md` |
+| `F120` | Cross-Pack Bridge | 定义当前第一条 reference bridge，并承接 `A170` 的 cross-pack bridge seam | `T100` | `docs/features/F120-cross-pack-bridge.md` |
 
 ### F200-F299 Runtime Topology And Execution
 
@@ -91,6 +92,7 @@
 - `docs/tasks/` 记录当前 implementation slices
 - 当前 `T010-T130` 是第一组主要实施切片
 - 当前 task 文件名已经对齐到 `Txxx-<title-slug>.md` 规则，但这些文档仍然只是 implementation slices
+- `F050`、`F110`、`F120` 等 feature 现在要继续服从对应上游 architecture baseline，而不是单独向下切任务
 
 因此：
 

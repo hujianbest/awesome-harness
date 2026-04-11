@@ -45,8 +45,8 @@
 
 | Track | Task IDs | 目标 | 主要输入 |
 | --- | --- | --- | --- |
-| Runtime Foundations | `T010-T060` | 搭基础 runtime skeleton、records、contracts、governance、artifact / evidence surface 与 continuity baseline | `A110`、`A120`、`A130`、`F010`、`F030`、`F050`、`F060`、`F070`、`F080` |
-| Reference Packs And Bridge | `T070-T100` | 搭 `Product Insights Pack`、`Coding Pack` 与当前 cross-pack bridge | `F110`、`F120`、`D110`、`D120`、`F070`、`F080` |
+| Runtime Foundations | `T010-T060` | 搭基础 runtime skeleton、records、contracts、governance、artifact / evidence surface 与 continuity baseline | `A110`、`A120`、`A130`、`A150`、`F010`、`F030`、`F050`、`F060`、`F070`、`F080` |
+| Reference Packs And Bridge | `T070-T100` | 搭 `Product Insights Pack`、`Coding Pack` 与当前 cross-pack bridge | `A160`、`A170`、`F110`、`F120`、`D110`、`D120`、`F070`、`F080` |
 | Standalone Runtime Surfaces | `T110-T130` | 把当前 repo-local 形态继续推进到 runtime topology、bootstrap 与 execution layer | `F210`、`F220`、`F230`、`F050`、`F060`、`F080` |
 
 ## 5. 当前详细交付顺序
@@ -55,14 +55,14 @@
 | --- | --- | --- | --- | --- |
 | 01 | `T010` | `docs/tasks/T010-garage-foundation-and-repository-layout.md` | 第一组 runtime foundation 的仓库骨架与边界起点 | `A110-garage-extensible-architecture.md` |
 | 02 | `T020` | `docs/tasks/T020-garage-core-runtime-records.md` | 落 `Garage Core` 的运行时对象与记录语义 | `F030-core-runtime-records.md` |
-| 03 | `T030` | `docs/tasks/T030-garage-shared-contracts-and-registry.md` | 落 shared contracts、校验、加载与 registry | `F010-shared-contracts.md`、`F020-shared-contract-schemas.md` |
-| 04 | `T040` | `docs/tasks/T040-garage-session-lifecycle-and-governance.md` | 落 session 主链、handoff、gate、approval 与 exception | `F040-session-lifecycle-and-handoffs.md`、`F050-governance-model.md` |
+| 03 | `T030` | `docs/tasks/T030-garage-shared-contracts-and-registry.md` | 落 shared contracts、校验、加载与 registry | `A160-garage-pack-platform-architecture.md`、`F010-shared-contracts.md`、`F020-shared-contract-schemas.md` |
+| 04 | `T040` | `docs/tasks/T040-garage-session-lifecycle-and-governance.md` | 落 session 主链、handoff、gate、approval 与 exception | `A150-garage-vision-and-governance-architecture.md`、`F040-session-lifecycle-and-handoffs.md`、`F050-governance-model.md` |
 | 05 | `T050` | `docs/tasks/T050-garage-artifact-routing-and-evidence-surface.md` | 落 workspace-first artifact / evidence surface | `F060-artifact-and-evidence-surface.md` |
 | 06 | `T060` | `docs/tasks/T060-garage-continuity-and-promotion.md` | 落 continuity、promotion baseline 与学习 loop 的第一层实现切片 | `A130-garage-continuity-memory-skill-architecture.md`、`F070-continuity-mapping-and-promotion.md`、`F080-garage-self-evolving-learning-loop.md` |
-| 07 | `T070` | `docs/tasks/T070-garage-reference-pack-shells.md` | 搭两个 reference packs 的共同骨架 | `F110-reference-packs.md` |
-| 08 | `T080` | `docs/tasks/T080-garage-product-insights-pack.md` | 落 `Product Insights Pack`，并对齐成长 loop 的 candidate mapping | `D110-garage-product-insights-pack-design.md`、`F070-continuity-mapping-and-promotion.md`、`F080-garage-self-evolving-learning-loop.md` |
-| 09 | `T090` | `docs/tasks/T090-garage-coding-pack.md` | 落 `Coding Pack`，并对齐成长 loop 的 candidate mapping | `D120-garage-coding-pack-design.md`、`F070-continuity-mapping-and-promotion.md`、`F080-garage-self-evolving-learning-loop.md` |
-| 10 | `T100` | `docs/tasks/T100-garage-cross-pack-bridge-and-walkthrough.md` | 打通当前 reference packs 主桥并做端到端走通 | `F120-cross-pack-bridge.md` |
+| 07 | `T070` | `docs/tasks/T070-garage-reference-pack-shells.md` | 搭两个 reference packs 的共同骨架 | `A160-garage-pack-platform-architecture.md`、`F110-reference-packs.md` |
+| 08 | `T080` | `docs/tasks/T080-garage-product-insights-pack.md` | 落 `Product Insights Pack`，并对齐成长 loop 的 candidate mapping | `A160-garage-pack-platform-architecture.md`、`D110-garage-product-insights-pack-design.md`、`F070-continuity-mapping-and-promotion.md`、`F080-garage-self-evolving-learning-loop.md` |
+| 09 | `T090` | `docs/tasks/T090-garage-coding-pack.md` | 落 `Coding Pack`，并对齐成长 loop 的 candidate mapping | `A160-garage-pack-platform-architecture.md`、`D120-garage-coding-pack-design.md`、`F070-continuity-mapping-and-promotion.md`、`F080-garage-self-evolving-learning-loop.md` |
+| 10 | `T100` | `docs/tasks/T100-garage-cross-pack-bridge-and-walkthrough.md` | 打通当前 reference packs 主桥并做端到端走通 | `A170-garage-cross-pack-bridge-architecture.md`、`F120-cross-pack-bridge.md` |
 | 11 | `T110` | `docs/tasks/T110-garage-runtime-home-and-workspace-topology.md` | 把 repo-local dogfooding 形态提升成显式 `runtime home / workspace` 拓扑 | `F210-runtime-home-and-workspace-topology.md`、`F060-artifact-and-evidence-surface.md` |
 | 12 | `T120` | `docs/tasks/T120-garage-runtime-bootstrap-and-entrypoints.md` | 落统一 launcher、profile / workspace / host binding 与 create / resume 启动链 | `F220-runtime-bootstrap-and-entrypoints.md`、`F210-runtime-home-and-workspace-topology.md` |
 | 13 | `T130` | `docs/tasks/T130-garage-runtime-provider-and-tool-execution.md` | 落 provider adapters、tool registry、execution trace 与受治理的 runtime execution layer | `F230-runtime-provider-and-tool-execution.md`、`F080-garage-self-evolving-learning-loop.md` |
@@ -93,6 +93,9 @@
 | `A120-garage-core-subsystems-architecture.md` | `T010`、`T020`、`T030`、`T040`、`T050`、`T120`、`T130` |
 | `A130-garage-continuity-memory-skill-architecture.md` | `T060` |
 | `A140-garage-system-architecture.md` | 作为全部切片的 system-level 对齐输入 |
+| `A150-garage-vision-and-governance-architecture.md` | `T040`、`T060`、`T100` |
+| `A160-garage-pack-platform-architecture.md` | `T030`、`T070`、`T080`、`T090`、`T100` |
+| `A170-garage-cross-pack-bridge-architecture.md` | `T100` |
 | `F220-runtime-bootstrap-and-entrypoints.md` | `T120` |
 | `F230-runtime-provider-and-tool-execution.md` | `T130` |
 | `F210-runtime-home-and-workspace-topology.md` | `T110`、`T120` |

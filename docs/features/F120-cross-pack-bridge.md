@@ -1,12 +1,14 @@
-# F120: Garage Phase 1 Cross-Pack Bridge
+# F120: Garage Cross-Pack Bridge
 
 - Feature ID: `F120`
 - 状态: 草稿
 - 日期: 2026-04-11
-- 定位: 定义 `Garage` 在 phase 1 的跨 pack bridge，明确 `Product Insights Pack -> Coding Pack` 的 handoff seam、bridge artifact、bridge evidence、acceptance 语义、回流语义与治理检查点。
-- 当前阶段: phase 1
+- 定位: 在 `A170` 已冻结 cross-pack bridge 架构之后，定义 `Garage` 当前第一条 reference bridge，明确 `Product Insights Pack -> Coding Pack` 的 handoff seam、bridge artifact、bridge evidence、acceptance 语义、回流语义与治理检查点。
+- 当前阶段: 完整架构主线，先冻结当前第一条 reference bridge
 - 关联文档:
   - `docs/GARAGE.md`
+  - `docs/architecture/A160-garage-pack-platform-architecture.md`
+  - `docs/architecture/A170-garage-cross-pack-bridge-architecture.md`
   - `docs/features/F110-reference-packs.md`
   - `docs/design/D110-garage-product-insights-pack-design.md`
   - `docs/design/D120-garage-coding-pack-design.md`
@@ -18,7 +20,7 @@
 
 这篇文档只回答一个问题：
 
-**phase 1 中，`Product Insights Pack` 如何把输出稳定地交给 `Coding Pack`，并且这条 handoff seam 不需要新增一个第七类 shared contract。**
+**在 `A170` 已冻结 cross-pack bridge 架构之后，当前第一条 `Product Insights Pack -> Coding Pack` reference bridge 应如何被定义，并且这条 handoff seam 为什么仍然不需要新增一个第七类 shared contract。**
 
 本文覆盖：
 
@@ -31,11 +33,21 @@
 
 本文不覆盖：
 
+- generic cross-pack bridge 的内部架构拆解
 - 完整 schema
 - 具体模板正文
 - 实现级自动编排细节
 
 ## 2. 为什么 bridge 需要单独文档
+
+`A170` 已经拥有了 bridge 作为平台级 seam 的内部架构：
+
+- `Bridge Surface`
+- `Acceptance Protocol`
+- `Rework Loop`
+- `Lineage`
+
+`F120` 在当前主线里不再重复定义这些泛化边界，而只继续冻结第一条 reference bridge 的 feature-level 语义。
 
 `Product Insights Pack` 和 `Coding Pack` 之间不是普通 node handoff。
 
@@ -49,13 +61,13 @@
 - 上游以为“我已经想清楚了”，下游却无法消费
 - 下游强行实现，实际上输入边界还不稳定
 
-所以，bridge 不应该被当成一句“交过去就行”，而应被当成 phase 1 的关键设计 seam。
+所以，bridge 不应该被当成一句“交过去就行”，而应被当成当前第一条 reference bridge 的关键设计 seam。
 
 ## 3. `Bridge seam` 不等于第七个 contract
 
-phase 1 中，`bridge seam` 很重要，但它不是独立的第七个 shared contract。
+当前主线中，`bridge seam` 很重要，但它不是独立的第七个 shared contract。
 
-当前阶段，它由下面几类 contract 组合表达：
+当前这条 reference bridge 里，它由下面几类 contract 组合表达：
 
 - `WorkflowNodeContract`
   - 声明哪些节点具备跨 pack handoff 能力
@@ -68,7 +80,7 @@ phase 1 中，`bridge seam` 很重要，但它不是独立的第七个 shared co
 
 这意味着：
 
-- phase 1 不额外创造 `BridgeContract`
+- 当前主线不额外创造 `BridgeContract`
 - 而是让 bridge 成为既有 contract 的组合应用
 
 ## 4. Bridge 在总体架构中的位置
@@ -85,10 +97,11 @@ flowchart LR
 
 - 它是跨 pack handoff 的组合边界
 - 它总是伴随 artifact、evidence、lifecycle 与 governance 一起出现
+- `A170` 负责这类组合边界的泛化架构，`F120` 负责当前第一条 bridge 的最小语义
 
 ## 5. `bridge artifact` 的最小责任面
 
-phase 1 中，一个可交给 `Coding Pack` 的最小 bridge artifact，至少应说明：
+当前主线里，一个可交给 `Coding Pack` 的最小 bridge artifact，至少应说明：
 
 - 当前要解决的问题
 - 目标用户或目标对象
@@ -106,7 +119,7 @@ bridge artifact 不是完整 spec，它的作用是：
 
 bridge 不能只交 artifact，不交 evidence。
 
-phase 1 的 bridge evidence 至少应说明：
+当前这条 reference bridge 的 bridge evidence 至少应说明：
 
 - 关键判断依据
 - 主要来源或信号
@@ -123,7 +136,7 @@ bridge evidence 的价值是：
 
 bridge 被交出去，不等于下游必须接住。
 
-phase 1 建议冻结下面这组 acceptance 结果：
+当前主线建议冻结下面这组 acceptance 结果：
 
 - `accepted`
 - `accepted-with-gaps`
@@ -148,7 +161,7 @@ bridge 不应是单向一次性动作。
 
 就应允许回流。
 
-phase 1 中，回流不应被视为失败，而是：
+当前主线中，回流不应被视为失败，而是：
 
 - 对 cross-pack boundary 的正常保护动作
 
@@ -197,7 +210,7 @@ bridge 前后应至少经过这组检查点：
 
 bridge 是跨 pack handoff，因此它必须和 `session lifecycle` 对齐。
 
-phase 1 中可理解为：
+当前主线中可理解为：
 
 - 上游在 `handoff-pending` 前准备 bridge
 - 下游 intake 期间做 acceptance
@@ -206,16 +219,16 @@ phase 1 中可理解为：
 
 bridge 不应绕过 lifecycle，而应成为 lifecycle 的受控转移点。
 
-## 11. Phase 1 收敛范围
+## 11. 当前第一条 reference bridge 的收敛范围
 
-phase 1 只需要证明：
+当前第一条 reference bridge 只需要证明：
 
 - `Product Insights Pack` 能稳定交出 bridge artifact 与 bridge evidence
 - `Coding Pack` 能显式给出 `accepted / accepted-with-gaps / needs-clarification / rejected-return-upstream`
 - bridge 全程可追溯
 - bridge 不依赖隐式聊天上下文
 
-phase 1 不要求：
+当前主线不要求：
 
 - 多 pack 自动编排引擎
 - 复杂跨 pack routing 系统
@@ -224,7 +237,7 @@ phase 1 不要求：
 
 ## 12. 对后续开发的意义
 
-这篇文档的作用，是把 phase 1 最关键的一次 cross-pack handoff 固定下来。
+这篇文档的作用，是把当前第一条 reference bridge 最关键的一次 cross-pack handoff 固定下来。
 
 因为只要这条 seam 不稳定，后面的开发任务就会反复摇摆：
 
@@ -243,5 +256,23 @@ phase 1 不要求：
 - Rework is normal：回流是受控保护动作，不是异常失败。
 - Governance before pack switch：跨 pack 转移先经过治理检查点。
 - Lifecycle aligned：bridge 不绕过 `session lifecycle`，而是其一部分。
-- phase 1 克制：先证明 `product-insights -> coding` 这条 bridge 成立，再谈更复杂多 pack 编排。
+- 当前主线克制：先证明 `product-insights -> coding` 这条 bridge 成立，再谈更复杂多 pack 编排。
+
+## 14. 这篇文档与其他文档的关系
+
+这篇文档负责：
+
+- 冻结当前第一条 `Product Insights Pack -> Coding Pack` reference bridge 的 feature-level 语义
+- 解释这条 bridge 的 artifact、evidence、acceptance、rework 与生命周期检查点
+- 说明这条 bridge 如何在既有 contract 组合下成立
+
+后续由不同文档继续展开：
+
+- `A170`：定义 generic cross-pack bridge 的内部架构与边界
+- `A160`：定义 pack platform、本地 pack 绑定与 reference pack 校准
+- `D110`：定义上游如何产出 bridge
+- `D120`：定义下游如何消费 bridge 并给出 acceptance
+- `F040`：定义 session lifecycle 与 handoff state 的稳定语义
+
+如果后续文档让 `F120` 开始拥有 generic bridge architecture，或把当前这条 reference bridge 误写成新的特权 contract，应以 `A170` 为准回头修正。
 

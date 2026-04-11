@@ -1,11 +1,12 @@
-# T040: Garage Phase 1 Session Lifecycle And Governance
+# T040: Garage Session Lifecycle And Governance
 
 - Task ID: `T040`
 - 状态: 待执行
 - 日期: 2026-04-11
 - 定位: 把 `Garage` 的 session 主链、状态转移、handoff、review-hold、rework、closeout 与四层治理模型落成稳定的控制流实现面。
-- 当前阶段: phase 1
+- 当前阶段: 完整架构主线下的当前 governance slice
 - 关联设计文档:
+  - `docs/architecture/A150-garage-vision-and-governance-architecture.md`
   - `docs/features/F040-session-lifecycle-and-handoffs.md`
   - `docs/features/F050-governance-model.md`
   - `docs/features/F030-core-runtime-records.md`
@@ -26,6 +27,7 @@
 - `session lifecycle` 的动作与状态语义
 - `global / core / pack / node` 四层治理
 - approval、review、archive、exception 的边界
+- `A150` 定义的 `Governance Artifacts` 与 `Governance Runtime` 分工
 
 ## 3. 本文范围
 

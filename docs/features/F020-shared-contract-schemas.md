@@ -1,13 +1,14 @@
-# F020: Garage Phase 1 Shared Contract Schemas
+# F020: Garage Shared Contract Schemas
 
 - Feature ID: `F020`
 - 状态: 草稿
 - 日期: 2026-04-11
-- 定位: 在 `F010-shared-contracts.md` 已定义共享 contract 语义的前提下，冻结 phase 1 六类 contract 的 schema shape、版本边界、引用方式与兼容演进规则。
-- 当前阶段: phase 1
+- 定位: 在 `F010-shared-contracts.md` 已定义共享 contract 语义、`A160` 已定义 pack platform 边界的前提下，冻结当前主线六类 contract 的 schema shape、版本边界、引用方式与兼容演进规则。
+- 当前阶段: 完整架构主线，先冻结当前 schema slice
 - 关联文档:
   - `docs/features/F010-shared-contracts.md`
   - `docs/architecture/A120-garage-core-subsystems-architecture.md`
+  - `docs/architecture/A160-garage-pack-platform-architecture.md`
   - `docs/features/F110-reference-packs.md`
   - `docs/features/F040-session-lifecycle-and-handoffs.md`
   - `docs/features/F050-governance-model.md`
@@ -17,7 +18,7 @@
 
 这篇文档只回答一个问题：
 
-**phase 1 里，`PackManifest`、`RoleContract`、`WorkflowNodeContract`、`ArtifactContract`、`EvidenceContract`、`HostAdapterContract` 的最小 shape 应如何冻结。**
+**在完整架构主线下，`PackManifest`、`RoleContract`、`WorkflowNodeContract`、`ArtifactContract`、`EvidenceContract`、`HostAdapterContract` 的最小 shape 应如何冻结。**
 
 本文覆盖：
 
@@ -44,15 +45,20 @@
 
 本文只负责定义：
 
-- 这些 contract 在 phase 1 至少要长成什么样
+- 这些 contract 在当前 schema slice 至少要长成什么样
 - 消费者依赖哪些维度
 - 哪些维度必须保持稳定
 
+`A160` 则继续拥有：
+
+- pack platform 的内部架构
+- `Pack Registry` 与 `Pack Runtime Binding` 的系统级分工
+
 所有示例都只是“字段骨架”，不是可执行规范。
 
-## 3. Phase 1 schema 冻结边界
+## 3. 当前 schema slice 冻结边界
 
-phase 1 只冻结 6 类 contract：
+当前 schema slice 只冻结 6 类 contract：
 
 - `PackManifest`
 - `RoleContract`
@@ -61,7 +67,7 @@ phase 1 只冻结 6 类 contract：
 - `EvidenceContract`
 - `HostAdapterContract`
 
-phase 1 明确不新增第七个 `BridgeContract`。
+当前主线明确不新增第七个 `BridgeContract`。
 
 冻结的是：
 
@@ -106,7 +112,7 @@ phase 1 明确不新增第七个 `BridgeContract`。
 
 ### 4.4 可选扩展约定
 
-未识别的可选维度在 phase 1 应默认可忽略，避免增量扩展变成 breaking change。
+未识别的可选维度在当前主线应默认可忽略，避免增量扩展变成 breaking change。
 
 ## 5. 版本化策略
 
@@ -114,7 +120,7 @@ phase 1 明确不新增第七个 `BridgeContract`。
 
 ### 5.1 文档级
 
-- `phase1` 作为 schema profile
+- `reference-slice-v1` 作为 schema profile
 
 ### 5.2 对象级
 
@@ -143,7 +149,7 @@ phase 1 明确不新增第七个 `BridgeContract`。
 - 把可选维度升级成必需维度
 - 改变既有 ref 的解释方式
 
-phase 1 先坚持：
+当前主线先坚持：
 
 - 先弃用
 - 后移除
@@ -276,7 +282,7 @@ phase 1 先坚持：
 
 - artifact 是中立事实面
 - 供 manifest 声明、node 引用、evidence 追溯
-- phase 1 不必在此冻结完整目录规范
+- 当前 schema slice 不必在此冻结完整目录规范
 
 ## 10. `EvidenceContract`
 
@@ -346,7 +352,7 @@ phase 1 先坚持：
 
 ## 12. Contract 组合规则
 
-phase 1 建议固定下面这组组合关系：
+当前主线建议固定下面这组组合关系：
 
 - `PackManifest` 是装配入口
 - `RoleContract + WorkflowNodeContract` 构成协作骨架
@@ -364,7 +370,7 @@ phase 1 建议固定下面这组组合关系：
 
 ## 13. 向后兼容演进规则
 
-phase 1 内：
+当前主线内：
 
 - 旧的最小 shape 在后续 minor 版本里仍应可被读取和理解
 - 新字段优先作为可选维度或 sidecar 扩展
@@ -377,7 +383,7 @@ phase 1 内：
 - 需要弃用窗口
 - 需要迁移说明
 
-## 14. Phase 1 非目标
+## 14. 当前 schema slice 非目标
 
 - 不写成完整 JSON Schema 文档
 - 不冻结完整目录树、路径模板全集、宿主 UI 协议
@@ -395,5 +401,22 @@ phase 1 内：
 - `Markdown-first` / `file-backed`：面向人的主事实面保持可读、可落盘、可追溯。
 - `Session` 与 `Evidence` 分离：运行时状态与追溯记录不可混桶。
 - 宿主中立：宿主差异留在 adapter，不扩散进 core 和 pack 语义。
-- phase 1 克制：先冻结小而稳的 schema 骨架，再扩展能力面。
+- 当前主线克制：先冻结小而稳的 schema 骨架，再扩展能力面。
+
+## 16. 这篇文档与其他文档的关系
+
+这篇文档负责：
+
+- 冻结 shared contract schemas 的最小字段 shape、版本边界与组合规则
+- 解释哪些维度是必需、哪些维度可选、哪些兼容演进方式被允许
+- 为 `F010` 的 contract 语义提供稳定 schema 骨架
+
+后续由不同文档继续展开：
+
+- `F010`：定义 contracts 家族本身的语义与边界
+- `A160`：定义 pack platform 与 runtime binding 的架构边界
+- `F110`：定义 reference packs 如何占据这些 schema 形状
+- `T030`：把这些 schema 形状落成 validators、loading 与 registry discovery
+
+如果后续文档让 `F020` 开始拥有 pack platform 的内部架构，或把 bridge 写成新的独立 schema contract，应以上游的 `F010 / A160` 为准回头修正。
 

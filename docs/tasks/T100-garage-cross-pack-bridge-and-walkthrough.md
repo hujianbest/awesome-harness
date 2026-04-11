@@ -1,11 +1,13 @@
-# T100: Garage Phase 1 Cross-Pack Bridge And Phase 1 Walkthrough
+# T100: Garage Cross-Pack Bridge And Walkthrough
 
 - Task ID: `T100`
 - 状态: 待执行
 - 日期: 2026-04-11
-- 定位: 在两个 reference packs 都具备最小实现形状后，打通 `Product Insights Pack -> Coding Pack` 的 bridge seam，并用一条端到端主链验证 phase 1 是否成立。
-- 当前阶段: phase 1
+- 定位: 在两个 reference packs 都具备最小实现形状后，打通 `Product Insights Pack -> Coding Pack` 的 bridge seam，并用一条端到端主链验证当前 reference slice 的平台语义是否成立。
+- 当前阶段: 完整架构主线下的当前 reference bridge slice
 - 关联设计文档:
+  - `docs/architecture/A160-garage-pack-platform-architecture.md`
+  - `docs/architecture/A170-garage-cross-pack-bridge-architecture.md`
   - `docs/features/F120-cross-pack-bridge.md`
   - `docs/features/F040-session-lifecycle-and-handoffs.md`
   - `docs/features/F050-governance-model.md`
@@ -14,7 +16,7 @@
 
 ## 1. 任务目标
 
-证明 `Garage` 的 phase 1 不是两套孤立 pack，而是一条真实可走通的主桥：
+证明 `Garage` 的当前 reference slice 不是两套孤立 pack，而是一条真实可走通的主桥：
 
 - 上游能交出 bridge artifact 与 bridge evidence
 - 下游能做 acceptance verdict
@@ -29,6 +31,8 @@
 - acceptance 结果语义
 - rework 回流语义
 - cross-pack lifecycle 与 governance checkpoints
+- `A160` 定义的 pack platform 与 reference pack 校准边界
+- `A170` 定义的 generic bridge architecture 边界
 
 ## 3. 本文范围
 
@@ -36,7 +40,7 @@
 - acceptance verdict
 - rework 回流
 - cross-pack lineage
-- 一条 phase 1 walkthrough
+- 一条当前 reference slice walkthrough
 
 ## 4. 非目标
 
@@ -49,7 +53,7 @@
 - 一套最小 bridge artifact / evidence 组合
 - 一套 `accepted / accepted-with-gaps / needs-clarification / rejected-return-upstream` 结果面
 - 一条可追溯的上游到下游 walkthrough
-- 一份 phase 1 defer list
+- 一份当前 reference slice defer list
 
 ## 6. 实施任务拆解
 
@@ -84,7 +88,7 @@
 - coding intake 如何回指 bridge evidence
 - closeout 如何保留整条链的 lineage
 
-### 6.5 做 phase 1 walkthrough
+### 6.5 做当前 reference slice walkthrough
 
 - 选一条最小但真实的 `product-insights -> coding` 路径
 - 走一遍上游主链、bridge、下游 intake、review、closeout
@@ -94,7 +98,7 @@
 
 - 强依赖 `08` 和 `09`
 - 同时依赖 `04`、`05`
-- 是当前 phase 1 平台语义验证主链的最后一篇
+- 是当前 reference slice 平台语义验证主链的最后一篇
 
 ## 8. 验收与验证
 
@@ -103,7 +107,7 @@
 - bridge 不依赖隐式聊天上下文
 - acceptance 是显式 verdict，而不是默认继续
 - 回流是受控动作，不是异常补丁
-- 一条端到端主链已经能证明 phase 1 的平台语义成立
+- 一条端到端主链已经能证明当前 reference slice 的平台语义成立
 
 ## 9. 完成后进入哪一篇
 

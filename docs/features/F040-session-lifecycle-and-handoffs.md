@@ -1,14 +1,16 @@
-# F040: Garage Phase 1 Session Lifecycle And Handoffs
+# F040: Garage Session Lifecycle And Handoffs
 
 - Feature ID: `F040`
 - 状态: 草稿
 - 日期: 2026-04-11
-- 定位: 定义 `Garage` 在 phase 1 的 `session lifecycle` 与 `handoff` 语义，确保不同 host、node、pack 在同一套 core 语义下推进、暂停、交接、评审、返工、收尾与归档准备。
-- 当前阶段: phase 1
+- 定位: 定义 `Garage` 的 `session lifecycle` 与 `handoff` 语义，确保不同 host、node、pack 在同一套 core 语义下推进、暂停、交接、评审、返工、收尾与归档准备，并显式对齐 `A150` 的治理边界与 `A170` 的跨 pack bridge 边界。
+- 当前阶段: 完整架构主线，先冻结当前 session slice
 - 关联文档:
   - `docs/GARAGE.md`
   - `docs/architecture/A110-garage-extensible-architecture.md`
   - `docs/architecture/A120-garage-core-subsystems-architecture.md`
+  - `docs/architecture/A150-garage-vision-and-governance-architecture.md`
+  - `docs/architecture/A170-garage-cross-pack-bridge-architecture.md`
   - `docs/features/F010-shared-contracts.md`
   - `docs/architecture/A130-garage-continuity-memory-skill-architecture.md`
   - `docs/features/F110-reference-packs.md`
@@ -19,7 +21,7 @@
 
 这篇文档只回答一个问题：
 
-**`Garage` 在 phase 1 应先冻结怎样的 `session lifecycle` 和 `handoff semantics`，才能让 `Garage Core`、`Shared Contracts` 和 `reference packs` 共享同一套运行时边界。**
+**在 `A150` 与 `A170` 已分别冻结治理边界和 cross-pack bridge 边界之后，`Garage` 应先冻结怎样的 `session lifecycle` 和 `handoff semantics`，才能让 `Garage Core`、`Shared Contracts` 和 `reference packs` 共享同一套运行时边界。**
 
 本文覆盖：
 
@@ -30,6 +32,8 @@
 
 本文不覆盖：
 
+- `Governance Runtime` 的内部架构
+- generic cross-pack bridge 的内部架构
 - 具体 schema 字段全集
 - UI / CLI 交互细节
 - 数据库化、调度器或服务化实现
@@ -45,6 +49,12 @@
 - 跨 pack handoff 继续依赖隐式聊天上下文
 
 因此，这篇文档的价值，是把 `Session`、`WorkflowNodeContract`、`ArtifactContract`、`EvidenceContract`、`Governance` 之间的运行时 glue layer 说清楚。
+
+在文档分工上：
+
+- `A150` 已经定义了 `Governance Artifacts` 与 `Governance Runtime` 的架构边界。
+- `A170` 已经定义了 cross-pack bridge 作为平台级 seam 的内部结构。
+- `F040` 只继续拥有 lifecycle state、handoff state 与 transition semantics 的 feature-level 语义。
 
 ## 3. Session 在总体架构中的位置
 
@@ -67,7 +77,7 @@
 
 ## 4. Lifecycle 动作与持久状态
 
-为了避免语义混写，phase 1 应明确区分：
+为了避免语义混写，当前主线应明确区分：
 
 - 生命周期动作
 - 持久状态
@@ -186,7 +196,7 @@ flowchart TD
 
 表示已满足归档前条件，但不等于已归档。
 
-phase 1 中，真正的 archive 动作仍可保持显式和保守。
+当前主线中，真正的 archive 动作仍可保持显式和保守。
 
 ### 5.8 `closed`
 
@@ -220,7 +230,7 @@ phase 1 中，真正的 archive 动作仍可保持显式和保守。
 
 目标 pack 再通过自己的 `PackManifest`、`WorkflowNodeContract` 和 `ArtifactContract` 重新映射成自身入口语义。
 
-phase 1 中，最关键的是把：
+当前主线中，最关键的是把：
 
 - `product-insights -> coding`
 
@@ -277,16 +287,16 @@ phase 1 中，最关键的是把：
 
 而不是让 `session` 越权替代 `memory`、`skill` 或 archive record。
 
-## 10. Phase 1 收敛范围
+## 10. 当前 session slice 的收敛范围
 
-phase 1 在 lifecycle 上只做这些事：
+当前 session slice 在 lifecycle 上只做这些事：
 
 - 冻结 `session` 的稳定状态语义
 - 冻结 handoff 的最小责任面
 - 保证 review / rework / closeout / archive-ready 的边界不混写
 - 让两个 reference packs 共享同一套 session 语义
 
-phase 1 不做这些事：
+当前 session slice 不做这些事：
 
 - 不做实时多人协作
 - 不做复杂并发锁
@@ -294,7 +304,7 @@ phase 1 不做这些事：
 - 不做强同步多设备会话
 - 不做自动 archive pipeline
 
-## 11. 对 phase 1 reference packs 的意义
+## 11. 对当前 reference packs 的意义
 
 对 `Product Insights Pack`：
 
@@ -315,7 +325,25 @@ phase 1 不做这些事：
 - Handoff by artifacts and evidence：交接优先依赖显式工件与证据。
 - Governance before transition：关键状态转移先经过规则、审批或 gate 判断。
 - Pack-neutral core：core 只理解 `session / pack / node / artifact / evidence` 等中立对象。
-- `Markdown-first` / `file-backed`：phase 1 优先保证人可读、系统可指向、后续可恢复。
+- `Markdown-first` / `file-backed`：当前主线优先保证人可读、系统可指向、后续可恢复。
 - `Pause` 不等于 `review-hold`，`closeout` 不等于 `archive-ready`，`rework` 不等于普通 `resume`。
-- phase 1 克制：先冻结小而稳的 session semantics，再扩展自动化和多 pack 编排复杂度。
+- 当前主线克制：先冻结小而稳的 session semantics，再扩展自动化和多 pack 编排复杂度。
+
+## 13. 这篇文档与其他文档的关系
+
+这篇文档负责：
+
+- 冻结 lifecycle state、lifecycle action 与 handoff semantics 的 feature-level 语义
+- 解释节点内、跨节点、跨 pack 的状态转移与最小交接责任面
+- 说明 lifecycle 如何与 `Governance`、`ArtifactRouting`、`Evidence` 和 continuity 保持一致
+
+后续由不同文档继续展开：
+
+- `A150`：定义治理边界与 `Governance Runtime` 的内部架构
+- `A170`：定义 cross-pack bridge 的内部架构与 lineage seam
+- `F050`：定义治理工件、gate、approval、archive 与 exception 语义
+- `F120`：定义当前第一条 reference bridge 的具体 feature-level 语义
+- `T040 / T100`：把这些生命周期与 handoff 语义落成实现切片
+
+如果后续文档让 `F040` 开始拥有治理子系统架构，或把 cross-pack bridge 当成隐式 handoff 的特例，应以 `A150 / A170` 为准回头修正。
 

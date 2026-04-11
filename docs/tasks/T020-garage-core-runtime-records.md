@@ -1,12 +1,13 @@
-# T020: Garage Phase 1 Core Runtime Records
+# T020: Garage Core Runtime Records
 
 - Task ID: `T020`
 - 状态: 待执行
 - 日期: 2026-04-11
-- 定位: 把 `Garage Core` 在 phase 1 的运行时对象、持久记录、当前位对象与追加式对象落成可实现的数据层和写入语义。
-- 当前阶段: phase 1
+- 定位: 把 `Garage Core` 当前主线的运行时对象、持久记录、当前位对象与追加式对象落成可实现的数据层和写入语义。
+- 当前阶段: 完整架构主线下的当前 runtime-record slice
 - 关联设计文档:
   - `docs/architecture/A120-garage-core-subsystems-architecture.md`
+  - `docs/architecture/A140-garage-system-architecture.md`
   - `docs/features/F030-core-runtime-records.md`
   - `docs/features/F040-session-lifecycle-and-handoffs.md`
   - `docs/features/F050-governance-model.md`
@@ -14,7 +15,7 @@
 
 ## 1. 任务目标
 
-把 phase 1 中已经定义好的 core runtime objects 变成稳定的数据实现面，避免 session、handoff、gate、artifact authority 和 evidence 各自长出不同 shape。
+把当前主线中已经定义好的 core runtime objects 变成稳定的数据实现面，避免 session、handoff、gate、artifact authority 和 evidence 各自长出不同 shape。
 
 ## 2. 输入设计文档
 

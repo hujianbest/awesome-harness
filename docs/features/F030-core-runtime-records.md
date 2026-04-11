@@ -1,13 +1,14 @@
-# F030: Garage Phase 1 Core Runtime Records
+# F030: Garage Core Runtime Records
 
 - Feature ID: `F030`
 - 状态: 草稿
 - 日期: 2026-04-11
-- 定位: 在 `A120-garage-core-subsystems-architecture.md` 已定义 `Garage Core` 五个稳定子系统的基础上，进一步冻结 phase 1 的 core 运行时对象、持久记录与写入语义，避免后续实现时各自发明不同的 session、governance、artifact routing 与 evidence 记录形状。
-- 当前阶段: phase 1
+- 定位: 在 `A120-garage-core-subsystems-architecture.md` 已定义 `Garage` 的稳定子系统地图之后，进一步冻结当前主线的 core 运行时对象、持久记录与写入语义，避免后续实现时各自发明不同的 session、governance、artifact routing 与 evidence 记录形状。
+- 当前阶段: 完整架构主线，先冻结当前 runtime-record slice
 - 关联文档:
   - `docs/GARAGE.md`
   - `docs/architecture/A120-garage-core-subsystems-architecture.md`
+  - `docs/architecture/A140-garage-system-architecture.md`
   - `docs/features/F040-session-lifecycle-and-handoffs.md`
   - `docs/features/F050-governance-model.md`
   - `docs/features/F060-artifact-and-evidence-surface.md`
@@ -17,7 +18,7 @@
 
 这篇文档只回答一个问题：
 
-**phase 1 中，`Garage Core` 自己有哪些必须稳定存在的运行时对象与记录对象，它们如何被写入、如何互相引用、哪些是当前权威位、哪些是追加式历史。**
+**在完整架构主线下，`Garage Core` 自己有哪些必须稳定存在的运行时对象与记录对象，它们如何被写入、如何互相引用、哪些是当前权威位、哪些是追加式历史。**
 
 本文覆盖：
 
@@ -70,9 +71,15 @@
 
 上各自长出不同 shape。
 
+在文档分工上：
+
+- `A120` 已经拥有 runtime 子系统地图与对象清单。
+- `A140` 已经拥有完整系统主链和 ADR 语义。
+- `F030` 只继续拥有 core runtime records 的 feature-level 语义与最小写入边界。
+
 ## 3. Core runtime objects 的分层
 
-phase 1 建议把 core runtime objects 分成 4 层：
+当前主线建议把 core runtime objects 分成 4 层：
 
 | 层级 | 作用 | 对象 |
 | --- | --- | --- |
@@ -155,7 +162,7 @@ phase 1 建议把 core runtime objects 分成 4 层：
 
 ### 7.1 存在目的
 
-表达当前 session 在 phase 1 下真正依赖哪些上下文入口，而不是把上下文混成一个大桶。
+表达当前 session 在当前主线下真正依赖哪些上下文入口，而不是把上下文混成一个大桶。
 
 ### 7.2 最小语义
 
@@ -309,7 +316,7 @@ phase 1 建议把 core runtime objects 分成 4 层：
 
 ## 13. 当前位对象与追加式对象
 
-phase 1 建议明确区分：
+当前主线建议明确区分：
 
 ### 13.1 当前位对象
 
@@ -334,11 +341,11 @@ phase 1 建议明确区分：
 
 - 发生过什么
 
-这种区分很重要，因为 phase 1 最容易犯的错误之一，就是把“当前状态”和“历史记录”混写成一个文件。
+这种区分很重要，因为当前主线最容易犯的错误之一，就是把“当前状态”和“历史记录”混写成一个文件。
 
 ## 14. 最小引用关系
 
-phase 1 建议固定下面这组最小引用关系：
+当前主线建议固定下面这组最小引用关系：
 
 - `SessionState -> SessionIntent`
 - `SessionState -> ContextPointer`
@@ -357,16 +364,16 @@ phase 1 建议固定下面这组最小引用关系：
 - bridge 能追溯
 - closeout 能归档
 
-## 15. Phase 1 收敛范围
+## 15. 当前 runtime-record slice 收敛范围
 
-phase 1 只需要做到：
+当前 runtime-record slice 只需要做到：
 
 - 冻结这些 core runtime objects 的存在目的
 - 冻结它们是当前位还是追加式
 - 冻结它们的最小引用关系
 - 冻结关键写入语义
 
-phase 1 不要求：
+当前 runtime-record slice 不要求：
 
 - 写出完整 JSON Schema
 - 做复杂索引服务
@@ -393,6 +400,23 @@ phase 1 不要求：
 - `Artifact identity` 与 `artifact authority` 分离：对象身份和当前有效性分别建模。
 - Governance 留痕：`GateDecision`、`ExceptionRecord` 等治理动作必须形成显式 record。
 - Lineage by default：关键对象之间默认保留可追溯关系。
-- `Markdown-first` / `file-backed`：phase 1 的 record 语义优先服务可见文件面，而不是隐藏式服务状态。
-- phase 1 克制：先冻结最小对象集合和写入语义，再扩展更复杂的数据层。
+- `Markdown-first` / `file-backed`：当前主线的 record 语义优先服务可见文件面，而不是隐藏式服务状态。
+- 当前主线克制：先冻结最小对象集合和写入语义，再扩展更复杂的数据层。
+
+## 18. 这篇文档与其他文档的关系
+
+这篇文档负责：
+
+- 冻结 core runtime objects 与 record objects 的最小语义
+- 解释当前位对象、追加式对象、引用关系与写入边界
+- 为 session persistence、handoff record、gate decision、evidence record 和 lineage 提供共同语言
+
+后续由不同文档继续展开：
+
+- `A120`：定义 runtime 子系统地图与稳定对象列表
+- `A140`：定义端到端系统主链与 ADR
+- `F040 / F050 / F060`：分别定义 lifecycle、governance 与 artifact/evidence surface 语义
+- `T020`：把这些 runtime records 落成实现切片
+
+如果后续文档让 `F030` 开始拥有 runtime 子系统架构本身，或把当前位对象和历史记录重新混成一个桶，应以 `A120 / A140` 为准回头修正。
 

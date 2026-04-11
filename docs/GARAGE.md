@@ -13,6 +13,9 @@
   - `docs/architecture/A120-garage-core-subsystems-architecture.md`
   - `docs/architecture/A130-garage-continuity-memory-skill-architecture.md`
   - `docs/architecture/A140-garage-system-architecture.md`
+  - `docs/architecture/A150-garage-vision-and-governance-architecture.md`
+  - `docs/architecture/A160-garage-pack-platform-architecture.md`
+  - `docs/architecture/A170-garage-cross-pack-bridge-architecture.md`
   - `docs/features/F010-shared-contracts.md`
   - `docs/features/F020-shared-contract-schemas.md`
   - `docs/features/F030-core-runtime-records.md`
@@ -47,9 +50,12 @@
 6. 再读 `docs/architecture/A120-garage-core-subsystems-architecture.md`，理解完整 runtime 的核心子系统。
 7. 再读 `docs/architecture/A130-garage-continuity-memory-skill-architecture.md`，理解 `memory / session / skill / evidence` 如何分层。
 8. 再读 `docs/architecture/A140-garage-system-architecture.md`，理解端到端系统设计与关键架构决策。
-9. 再读 `docs/features/`，理解 contracts、governance、artifact surface、continuity、learning loop、runtime topology 与 execution 语义。
-10. 再读 `docs/design/`，理解 `Product Insights Pack` 与 `Coding Pack` 等 pack 设计如何挂到完整架构上。
-11. 最后再读 `docs/tasks/README.md`，理解完整架构会如何被拆成实施切片。
+9. 再读 `docs/architecture/A150-garage-vision-and-governance-architecture.md`，理解 `VisionAndGovernance` 这一层如何展开成稳定子系统。
+10. 再读 `docs/architecture/A160-garage-pack-platform-architecture.md`，理解 pack platform、shared contracts、registry 与 reference packs 如何形成扩展主线。
+11. 再读 `docs/architecture/A170-garage-cross-pack-bridge-architecture.md`，理解跨 pack handoff 为什么是正式 architecture seam。
+12. 再读 `docs/features/`，理解 contracts、governance、artifact surface、continuity、learning loop、runtime topology 与 execution 语义。
+13. 再读 `docs/design/`，理解 `Product Insights Pack` 与 `Coding Pack` 等 pack 设计如何挂到完整架构上。
+14. 最后再读 `docs/tasks/README.md`，理解完整架构会如何被拆成实施切片。
 
 ## 1. 为什么叫 Garage
 
@@ -211,7 +217,7 @@
 
 - `docs/VISION.md` 解释为什么要做 `Garage`
 - `docs/GARAGE.md` 解释 `Garage` 是什么、应该从哪里读起
-- `docs/architecture/` 解释顶层平台边界、完整 runtime 与长期 continuity
+- `docs/architecture/` 解释顶层平台边界、治理 / pack / bridge 子系统、完整 runtime 与长期 continuity
 - `docs/features/` 解释稳定 capability cuts 与共享语义
 - `docs/design/` 解释 pack-specific 详细设计
 - `docs/tasks/` 解释完整架构如何按实施切片逐步落地

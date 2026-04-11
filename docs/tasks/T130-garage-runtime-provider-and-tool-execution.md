@@ -1,13 +1,14 @@
-# T130: Garage Phase 1 Runtime Provider And Tool Execution
+# T130: Garage Runtime Provider And Tool Execution
 
 - Task ID: `T130`
 - 状态: 待执行
 - 日期: 2026-04-11
 - 定位: 把 `Garage` 的 provider adapters、tool registry、execution trace 与治理挂点落成统一 execution layer，让平台从“可编排”进一步推进到“可真正执行”。
-- 当前阶段: phase 1
+- 当前阶段: 完整架构主线下的当前 execution-layer slice
 - 关联设计文档:
   - `docs/features/F230-runtime-provider-and-tool-execution.md`
   - `docs/features/F220-runtime-bootstrap-and-entrypoints.md`
+  - `docs/architecture/A120-garage-core-subsystems-architecture.md`
   - `docs/features/F050-governance-model.md`
   - `docs/features/F060-artifact-and-evidence-surface.md`
   - `docs/design/D120-garage-coding-pack-design.md`
@@ -92,7 +93,7 @@
 
 - 依赖 `04`、`05`、`08`、`09`、`12`
 - 建议先有 reference packs 的最小语义，再把 execution layer 接进来
-- 是 phase 1 朝“独立可运行程序”推进的最后一篇任务
+- 是当前主线朝“独立可运行程序”推进的最后一篇任务
 
 ## 8. 验收与验证
 

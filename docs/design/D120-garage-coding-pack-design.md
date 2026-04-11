@@ -8,6 +8,8 @@
 - 关联文档:
   - `docs/GARAGE.md`
   - `docs/architecture/A130-garage-continuity-memory-skill-architecture.md`
+  - `docs/architecture/A160-garage-pack-platform-architecture.md`
+  - `docs/architecture/A170-garage-cross-pack-bridge-architecture.md`
   - `docs/features/F010-shared-contracts.md`
   - `docs/features/F050-governance-model.md`
   - `docs/features/F070-continuity-mapping-and-promotion.md`
@@ -33,6 +35,8 @@
 
 本文不覆盖：
 
+- pack platform 的内部架构
+- generic cross-pack bridge 的内部架构
 - 具体 prompt 文案
 - 具体模板正文
 - 详细 schema 字段
@@ -53,6 +57,12 @@
 
 **一个带显式质量门禁、显式证据链和显式收尾语义的构建型协作 pack。**
 
+在文档分工上：
+
+- `A160` 已经定义了 pack platform、本地 pack 绑定与 reference pack calibration。
+- `A170 / F120` 已经定义了 cross-pack bridge 为什么成立，以及当前第一条 bridge 该具备哪些 feature-level 语义。
+- `D120` 只继续定义 `Coding Pack` 如何以内生的 roles、nodes、artifacts、evidence、review、verification 与 closeout 去消费这些上游边界。
+
 ## 3. 为什么它是 `reference pack`
 
 `Coding Pack` 被放进当前主线，是因为它能验证 `Garage` 是否具备下面这些能力：
@@ -67,6 +77,8 @@
 - `Coding Pack` 更偏下游构建交付
 
 两者共同证明的是：`Garage` 不只是能想清楚，也能真的把事情做出来并收尾。
+
+换句话说，它也是 `A160` 中 `Reference Pack Calibration` 是否成立的关键校准器之一。
 
 ## 4. 稳定身份与边界
 
@@ -144,6 +156,8 @@ flowchart LR
 - resumed in-pack handoff
 
 ### 7.2 它如何消费 `Product Insights Pack` 的 bridge
+
+这一节默认建立在 `A170 / F120` 已经冻结的 bridge seam 之上；`D120` 只回答 `Coding Pack` 在自己的 pack-local 语义里如何消费这条 bridge。
 
 来自 `Product Insights Pack` 的 bridge 至少应提供：
 
@@ -315,3 +329,20 @@ flowchart LR
 - `Contract-first`：先冻结接入形状和边界，再讨论具体 skills、模板和实现工具。
 - `Markdown-first` / `file-backed`：优先保证人可读、可落盘、可追溯。
 - Open for extension, closed for modification：未来新增 pack 时，优先通过 pack 扩展，而不是修改 core 来适配 coding 语义。
+
+## 15. 这篇文档与其他文档的关系
+
+这篇文档负责：
+
+- 定义 `Coding Pack` 自身的详细设计边界
+- 解释它如何组织 roles、nodes、accepted inputs、artifact families、evidence、review、verification 与 closeout
+- 说明它如何消费上游 bridge 并贡献下游 reference pack 的校准价值与成长候选
+
+后续由不同文档继续展开：
+
+- `A160`：定义 pack platform 与 reference pack calibration 的架构边界
+- `A170` / `F120`：定义 cross-pack bridge 的架构与 feature 语义
+- `F110`：定义 reference packs 的共同形状与平台映射关系
+- `D110`：定义上游 `Product Insights Pack` 如何产出 bridge
+
+如果后续文档让 `D120` 开始拥有 pack platform 的内部架构，或开始重定义 generic bridge seam，应以上游的 `A160 / A170` 为准回头修正。

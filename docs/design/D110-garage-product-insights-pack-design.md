@@ -8,6 +8,8 @@
 - 关联文档:
   - `docs/GARAGE.md`
   - `docs/architecture/A130-garage-continuity-memory-skill-architecture.md`
+  - `docs/architecture/A160-garage-pack-platform-architecture.md`
+  - `docs/architecture/A170-garage-cross-pack-bridge-architecture.md`
   - `docs/features/F010-shared-contracts.md`
   - `docs/features/F050-governance-model.md`
   - `docs/features/F070-continuity-mapping-and-promotion.md`
@@ -33,6 +35,8 @@
 
 本文不覆盖：
 
+- pack platform 的内部架构
+- generic cross-pack bridge 的内部架构
 - 具体 prompt 文案
 - 具体模板正文
 - 详细 schema 字段
@@ -53,6 +57,12 @@
 
 **把上游思考变成下游 pack 可以继续消费的结构化工件、证据和交接面。**
 
+在文档分工上：
+
+- `A160` 已经定义了 pack platform、本地 pack 绑定与 reference pack calibration。
+- `A170 / F120` 已经定义了 cross-pack bridge 为什么成立以及当前第一条 bridge 的 feature-level 语义。
+- `D110` 只继续定义 `Product Insights Pack` 如何以内生的 roles、nodes、artifacts、evidence 和 governance overlay 去占据这些上游边界。
+
 ## 3. 为什么它是 `reference pack`
 
 `Product Insights Pack` 被放进当前主线，不是因为它只是 `Coding Pack` 的前置附件，而是因为它能验证 `Garage` 的三个关键判断：
@@ -62,6 +72,8 @@
 3. 跨 pack handoff 能否依赖 `artifact + evidence`，而不是依赖隐式聊天上下文。
 
 如果 `Garage` 只能承接 coding，就还不能证明自己是一个长期 `Creator OS Runtime`。
+
+换句话说，它也是 `A160` 中 `Reference Pack Calibration` 是否成立的关键校准器之一。
 
 ## 4. 稳定身份与边界
 
@@ -282,3 +294,20 @@ flowchart LR
 - `Contract-first`：先冻结身份、角色面、节点边界、工件面和证据面，再谈实现。
 - `Markdown-first` / `file-backed`：优先保证人可读、可落盘、可追溯。
 - Open for extension, closed for modification：新增 pack 时优先通过注册和映射扩展，而不是修改 core。
+
+## 14. 这篇文档与其他文档的关系
+
+这篇文档负责：
+
+- 定义 `Product Insights Pack` 自身的详细设计边界
+- 解释它如何在 pack-local 语义内组织 roles、nodes、artifacts、evidence 与 bridge 输出
+- 说明它如何贡献上游 reference pack 的校准价值与成长候选
+
+后续由不同文档继续展开：
+
+- `A160`：定义 pack platform 与 reference pack calibration 的架构边界
+- `A170` / `F120`：定义 cross-pack bridge 的架构与 feature 语义
+- `F110`：定义 reference packs 的共同形状与平台映射关系
+- `D120`：定义下游 `Coding Pack` 如何消费 bridge
+
+如果后续文档让 `D110` 开始拥有 pack platform 的内部架构，或开始重定义 generic bridge seam，应以上游的 `A160 / A170` 为准回头修正。

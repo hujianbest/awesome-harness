@@ -9,6 +9,7 @@
   - `docs/GARAGE.md`
   - `docs/architecture/A110-garage-extensible-architecture.md`
   - `docs/architecture/A120-garage-core-subsystems-architecture.md`
+  - `docs/architecture/A150-garage-vision-and-governance-architecture.md`
   - `docs/architecture/A140-garage-system-architecture.md`
   - `docs/features/F010-shared-contracts.md`
   - `docs/architecture/A130-garage-continuity-memory-skill-architecture.md`
@@ -31,6 +32,8 @@
 
 本文不覆盖：
 
+- `VisionAndGovernance` 这一层的内部架构拆解
+- `Governance Runtime` 的子系统职责分配
 - 复杂策略 DSL
 - 组织级 RBAC
 - 数据库控制面
@@ -38,16 +41,39 @@
 
 ## 2. 治理模型在总体架构中的位置
 
-`Governance` 是 `Garage Core` 的稳定子系统之一。
+`A150` 已经把 `VisionAndGovernance` 冻结成：
 
-它负责回答的问题是：
+`Vision Sources + Governance Artifacts + Governance Runtime`
+
+因此，`F050` 在当前主线里只继续拥有其中一部分：
+
+- `Governance Artifacts` 的稳定 capability cut
+- 这些工件如何形成 `PolicySet`
+- `gate / review / approval / archive / exception` 的 feature-level 语义
+
+它不重新定义：
+
+- `Vision Sources` 的上游方向工件
+- `Governance Runtime` 的内部架构
+- `Governance` 与 `ExecutionLayer`、`ArtifactRouting`、`EvidenceAndArchive`、`GrowthEngine` 的系统级分工
+
+换句话说，`F050` 回答的是：
 
 - 当前动作可不可以发生
 - 还缺什么
 - 谁需要确认
 - 何时能进入 closeout 或 archive
 
-它不负责：
+而这些判断在系统里怎样被子系统化、怎样被接进 runtime，则继续由 `A150` 和 `A120` 负责。
+
+### 2.1 与其他文档的 ownership 分工
+
+- `A150`：拥有 `VisionAndGovernance` 的内部架构与边界。
+- `F050`：拥有治理工件、分层、verdict 与例外语义。
+- `D110 / D120`：拥有各自 pack 的治理 overlay 和 pack-specific 细则。
+- `T040 / T060 / T100 / T130`：拥有这些治理语义的实施切片。
+
+`F050` 不负责：
 
 - 生成内容
 - 注册角色
@@ -59,7 +85,7 @@
 
 **Governance as artifacts**
 
-也就是说，规则、门禁、审批与归档语义应先写成工件，而不是藏在 prompt 或聊天习惯里。
+也就是说，规则、门禁、审批与归档语义应先写成工件，而不是藏在 prompt 或聊天习惯里；`Governance Runtime` 消费这些工件，但不替代它们成为唯一真相源。
 
 ## 3. 治理分层与优先级
 
@@ -71,6 +97,8 @@
 | `core` | `Garage Core` 的统一治理语义 | `session` 转移、artifact 权威写入、evidence 最小要求 |
 | `pack` | 某个能力包的治理 overlay | `Coding Pack` 的 verification，`Product Insights Pack` 的 bridge 完整性 |
 | `node` | 某个节点或阶段的局部门禁 | 进入条件、完成条件、handoff 条件 |
+
+这里的 4 层，本质上都是 `A150` 所说的 `Governance Artifacts` 在不同作用域下的展开，而不是 4 个独立 runtime 子系统。
 
 ### 3.1 优先级规则
 
@@ -266,4 +294,22 @@
 - `Evidence-linked governance`：所有关键治理动作都应留下可回指的证据链。
 - Pack 语义留在 pack：核心治理只定义中立语汇，不吸收领域细则进入 `Garage Core`。
 - 当前主线克制：先把治理语义写稳，再决定是否需要更重实现。
+
+## 12. 这篇文档与其他文档的关系
+
+这篇文档负责：
+
+- 冻结治理工件、分层、gate 类型与 verdict 语义
+- 解释 `approval / review / archive / exception` 的稳定 feature-level 边界
+- 说明治理工件如何与 `Evidence`、pack overlays 和长期更新路径关联
+
+后续由不同文档继续展开：
+
+- `A150`：定义 `VisionAndGovernance` 的内部架构与 ownership
+- `A120`：定义 `Governance` 在完整 runtime 子系统图中的位置
+- `A140`：把治理放回完整系统主链与 ADR 中讨论
+- `D110 / D120`：定义 reference packs 的治理 overlay
+- `T040 / T060 / T100 / T130`：把治理语义落成实现切片
+
+如果后续文档让 `F050` 开始拥有 `Governance Runtime` 的内部架构，或让 pack 细则反向进入 core feature 语义，应以 `A150` 为准回头修正。
 

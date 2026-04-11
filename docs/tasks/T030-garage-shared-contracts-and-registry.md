@@ -1,11 +1,12 @@
-# T030: Garage Phase 1 Shared Contracts And Registry
+# T030: Garage Shared Contracts And Registry
 
 - Task ID: `T030`
 - 状态: 待执行
 - 日期: 2026-04-11
-- 定位: 把 `Garage` 在 phase 1 的 6 类 shared contracts、最小 schema shape、加载校验与 registry discovery 落成可执行平台骨架。
-- 当前阶段: phase 1
+- 定位: 把 `Garage` 当前 contract slice 中的 6 类 shared contracts、最小 schema shape、加载校验与 registry discovery 落成可执行平台骨架，并显式对齐 `A160` 的 pack platform。
+- 当前阶段: 完整架构主线下的当前 contract slice
 - 关联设计文档:
+  - `docs/architecture/A160-garage-pack-platform-architecture.md`
   - `docs/features/F010-shared-contracts.md`
   - `docs/features/F020-shared-contract-schemas.md`
   - `docs/architecture/A120-garage-core-subsystems-architecture.md`
@@ -20,8 +21,9 @@
 这一篇主要承接：
 
 - 6 类 shared contracts 的语义边界
-- phase 1 的最小 schema shape
+- 当前 contract slice 的最小 schema shape
 - `Registry` 在平台中的角色
+- `A160` 定义的 pack platform 接入边界
 
 ## 3. 本文范围
 
@@ -53,7 +55,7 @@
 
 - 将 6 类 contracts 分别定义清楚。
 - 显式区分 required dimensions 与 optional dimensions。
-- 先支持 phase 1 需要的最小 shape，不追求字段全集。
+- 先支持当前 contract slice 需要的最小 shape，不追求字段全集。
 
 ### 6.2 实现 schema 校验
 
@@ -90,7 +92,7 @@
 
 完成这篇任务后，应能验证：
 
-- registry 能发现并加载 phase 1 pack definitions
+- registry 能发现并加载当前 reference pack definitions
 - contract refs 可以被正确解析
 - 错误 pack 不会静默进入 registry
 - 后续 reference pack 有统一接入入口

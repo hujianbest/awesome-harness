@@ -1,11 +1,13 @@
-# T080: Garage Phase 1 Product Insights Pack
+# T080: Garage Product Insights Pack
 
 - Task ID: `T080`
 - 状态: 待执行
 - 日期: 2026-04-11
-- 定位: 把 `Product Insights Pack` 作为 `Garage` 的上游 reference pack 落地，重点实现 framing、research、opportunity、concept、probe、bridge 这条主链。
-- 当前阶段: phase 1
+- 定位: 把 `Product Insights Pack` 作为 `Garage` 的上游 reference pack 落地，重点实现 framing、research、opportunity、concept、probe、bridge 这条主链，并显式对齐 `A160 / A170` 的 pack 与 bridge 边界。
+- 当前阶段: 完整架构主线下的当前 product-insights slice
 - 关联设计文档:
+  - `docs/architecture/A160-garage-pack-platform-architecture.md`
+  - `docs/architecture/A170-garage-cross-pack-bridge-architecture.md`
   - `docs/design/D110-garage-product-insights-pack-design.md`
   - `docs/features/F110-reference-packs.md`
   - `docs/features/F120-cross-pack-bridge.md`
@@ -27,6 +29,7 @@
 - artifact taxonomy 与 evidence model
 - bridge-ready 输出要求
 - continuity candidates 的来源约束
+- `A160 / A170` 定义的 pack registration 与 bridge seam 边界
 
 ## 3. 本文范围
 
