@@ -8,6 +8,9 @@
   - `docs/README.md`
   - `docs/garage/garage-extensible-architecture.md`
   - `docs/garage/garage-core-subsystems-architecture.md`
+  - `docs/garage/garage-runtime-bootstrap-and-entrypoints.md`
+  - `docs/garage/garage-runtime-provider-and-tool-execution.md`
+  - `docs/garage/garage-runtime-home-and-workspace-topology.md`
   - `docs/garage/garage-phase1-core-runtime-records.md`
   - `docs/garage/garage-phase1-session-lifecycle-and-handoffs.md`
   - `docs/garage/garage-phase1-governance-model.md`
@@ -33,20 +36,23 @@
 1. 先读本文，理解 `Garage` 的品牌语义、项目定位和愿景。
 2. 再读 `docs/garage/garage-extensible-architecture.md`，理解 phase 1 的可扩展分层架构。
 3. 再读 `docs/garage/garage-core-subsystems-architecture.md`，理解 `Garage Core` 的五个稳定子系统与主链交互。
-4. 再读 `docs/garage/garage-phase1-core-runtime-records.md`，冻结 `Garage Core` 在 phase 1 的运行时对象、持久记录与写入语义。
-5. 再读 `docs/garage/garage-phase1-session-lifecycle-and-handoffs.md`，冻结 `session` 的推进、暂停、交接、返工、收尾与归档准备语义。
-6. 再读 `docs/garage/garage-phase1-governance-model.md`，冻结 `global / core / pack / node` 四层治理与 gate 语义。
-7. 再读 `docs/garage/garage-phase1-artifact-and-evidence-surface.md`，冻结 phase 1 的文件表面、权威规则与归档语义。
-8. 再读 `docs/garage/garage-shared-contracts.md`，理解 `Garage` 用什么共享 contract 承接 pack、role、node、artifact、evidence 与 host。
-9. 再读 `docs/garage/garage-phase1-shared-contract-schemas.md`，冻结 6 类 contract 的最小 schema shape。
-10. 再读 `docs/garage/garage-continuity-memory-skill-architecture.md`，理解 `memory`、`session`、`skill`、`evidence` 的持续性分层。
-11. 再读 `docs/garage/garage-phase1-continuity-mapping-and-promotion.md`，冻结 phase 1 的 continuity 候选来源与 promotion 规则。
-12. 再读 `docs/garage/garage-phase1-reference-packs.md`，理解为什么 phase 1 先用 `Coding Pack` 与 `Product Insights Pack` 验证平台中立性。
-13. 再读 `docs/garage/garage-product-insights-pack-design.md` 与 `docs/garage/garage-coding-pack-design.md`，理解两个 reference packs 的详细设计。
-14. 再读 `docs/garage/garage-phase1-cross-pack-bridge.md`，冻结 `product-insights -> coding` 的 bridge seam。
-15. 再读 `docs/tasks/README.md`，按开发顺序进入 phase 1 的实现任务拆解。
-16. 再读 `garage/README.md`，理解 phase 1 的实现骨架、workspace surfaces 与目录边界。
-17. 最后再进入 `ahe-coding-skills/README.md` 与 `ahe-product-skills/README.md`，判断现有 `coding` / `product insights` 资产如何逐步转译成 `Garage` 下的 reference packs。
+4. 再读 `docs/garage/garage-runtime-bootstrap-and-entrypoints.md`，理解 `Garage` 作为独立可运行程序时的启动链与多入口统一模型。
+5. 再读 `docs/garage/garage-runtime-provider-and-tool-execution.md`，理解 provider / tool execution 层如何作为 runtime 内部执行面存在。
+6. 再读 `docs/garage/garage-runtime-home-and-workspace-topology.md`，理解 `source root / runtime home / workspace` 的分层与当前 repo-local dogfooding 形态。
+7. 再读 `docs/garage/garage-phase1-core-runtime-records.md`，冻结 `Garage Core` 在 phase 1 的运行时对象、持久记录与写入语义。
+8. 再读 `docs/garage/garage-phase1-session-lifecycle-and-handoffs.md`，冻结 `session` 的推进、暂停、交接、返工、收尾与归档准备语义。
+9. 再读 `docs/garage/garage-phase1-governance-model.md`，冻结 `global / core / pack / node` 四层治理与 gate 语义。
+10. 再读 `docs/garage/garage-phase1-artifact-and-evidence-surface.md`，冻结 phase 1 的文件表面、权威规则与归档语义。
+11. 再读 `docs/garage/garage-shared-contracts.md`，理解 `Garage` 用什么共享 contract 承接 pack、role、node、artifact、evidence 与 host。
+12. 再读 `docs/garage/garage-phase1-shared-contract-schemas.md`，冻结 6 类 contract 的最小 schema shape。
+13. 再读 `docs/garage/garage-continuity-memory-skill-architecture.md`，理解 `memory`、`session`、`skill`、`evidence` 的持续性分层。
+14. 再读 `docs/garage/garage-phase1-continuity-mapping-and-promotion.md`，冻结 phase 1 的 continuity 候选来源与 promotion 规则。
+15. 再读 `docs/garage/garage-phase1-reference-packs.md`，理解为什么 phase 1 先用 `Coding Pack` 与 `Product Insights Pack` 验证平台中立性。
+16. 再读 `docs/garage/garage-product-insights-pack-design.md` 与 `docs/garage/garage-coding-pack-design.md`，理解两个 reference packs 的详细设计。
+17. 再读 `docs/garage/garage-phase1-cross-pack-bridge.md`，冻结 `product-insights -> coding` 的 bridge seam。
+18. 再读 `docs/tasks/README.md`，按开发顺序进入 phase 1 的实现任务拆解。
+19. 再读 `garage/README.md`，理解 phase 1 的实现骨架、workspace surfaces 与目录边界。
+20. 最后再进入 `ahe-coding-skills/README.md` 与 `ahe-product-skills/README.md`，判断现有 `coding` / `product insights` 资产如何逐步转译成 `Garage` 下的 reference packs。
 
 ## 1. 为什么叫 Garage
 

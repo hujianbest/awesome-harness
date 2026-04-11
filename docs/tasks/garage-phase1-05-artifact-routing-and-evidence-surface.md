@@ -6,6 +6,7 @@
 - 当前阶段: phase 1
 - 关联设计文档:
   - `docs/garage/garage-phase1-artifact-and-evidence-surface.md`
+  - `docs/garage/garage-runtime-home-and-workspace-topology.md`
   - `docs/garage/garage-phase1-core-runtime-records.md`
   - `docs/garage/garage-shared-contracts.md`
   - `docs/garage/garage-phase1-governance-model.md`
@@ -56,6 +57,7 @@
 - 明确 `artifacts / evidence / sessions / archives / .garage` 的角色。
 - 明确哪些目录承载当前位，哪些目录承载历史位。
 - 明确 pack 维度如何进入这些 surface，而不是自造顶层目录。
+- 明确这 5 个 surface 属于 workspace facts，而不是未来 `runtime home` 的默认承载面。
 
 ### 6.2 落 artifact routing
 
@@ -85,7 +87,7 @@
 
 - 依赖 `02`、`03`、`04`
 - `04` 先冻结语义与触发点，`05` 再冻结文件表面与写入细节
-- 是 `06`、`07`、`08`、`09`、`10` 的前置
+- 是 `06`、`07`、`08`、`09`、`10`、`11` 的前置
 
 ## 8. 验收与验证
 
@@ -100,3 +102,4 @@
 
 - `docs/tasks/garage-phase1-06-continuity-and-promotion.md`
 - `docs/tasks/garage-phase1-07-reference-pack-shells.md`
+- `docs/tasks/garage-phase1-11-runtime-home-and-workspace-topology.md`

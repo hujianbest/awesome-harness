@@ -42,6 +42,9 @@
 | 08 | `docs/tasks/garage-phase1-08-product-insights-pack.md` | 落 `Product Insights Pack` | `garage-product-insights-pack-design.md` |
 | 09 | `docs/tasks/garage-phase1-09-coding-pack.md` | 落 `Coding Pack` | `garage-coding-pack-design.md` |
 | 10 | `docs/tasks/garage-phase1-10-cross-pack-bridge-and-phase1-walkthrough.md` | 打通 `product-insights -> coding` 主桥并做端到端走通 | `garage-phase1-cross-pack-bridge.md` |
+| 11 | `docs/tasks/garage-phase1-11-runtime-home-and-workspace-topology.md` | 把当前 repo-local dogfooding 形态提升成可显式绑定 `runtime home / workspace` 的运行时拓扑 | `garage-runtime-home-and-workspace-topology.md`、`garage-phase1-artifact-and-evidence-surface.md` |
+| 12 | `docs/tasks/garage-phase1-12-runtime-bootstrap-and-entrypoints.md` | 落统一 launcher、profile / workspace / host binding 与 create / resume 启动链 | `garage-runtime-bootstrap-and-entrypoints.md`、`garage-runtime-home-and-workspace-topology.md` |
+| 13 | `docs/tasks/garage-phase1-13-runtime-provider-and-tool-execution.md` | 落 provider adapters、tool registry、execution trace 与可治理的 runtime execution layer | `garage-runtime-provider-and-tool-execution.md` |
 
 ## 4. phase 1 guardrails
 
@@ -56,6 +59,10 @@
 - continuity 默认保守，不做自动晋升
 - 不先做重型 database-first 控制面
 - 不先做多租户、多人实时协作和复杂权限系统
+- one runtime, many entry surfaces
+- `workspace facts` 不被 `runtime home` 吞并
+- packs 只声明 capabilities，不绑定 vendor
+- provider differences stay below core
 
 ## 5. 统一文档结构
 
@@ -76,12 +83,15 @@
 | 设计文档 | 主要落到哪些 task docs |
 | --- | --- |
 | `garage-extensible-architecture.md` | `01`、`07` |
-| `garage-core-subsystems-architecture.md` | `01`、`02`、`03`、`04`、`05` |
+| `garage-core-subsystems-architecture.md` | `01`、`02`、`03`、`04`、`05`、`12`、`13` |
+| `garage-runtime-bootstrap-and-entrypoints.md` | `12` |
+| `garage-runtime-provider-and-tool-execution.md` | `13` |
+| `garage-runtime-home-and-workspace-topology.md` | `11`、`12` |
 | `garage-phase1-core-runtime-records.md` | `02` |
 | `garage-phase1-session-lifecycle-and-handoffs.md` | `04`、`10` |
-| `garage-phase1-governance-model.md` | `04`、`06`、`10` |
-| `garage-phase1-artifact-and-evidence-surface.md` | `05`、`10` |
-| `garage-shared-contracts.md` | `03`、`07` |
+| `garage-phase1-governance-model.md` | `04`、`06`、`10`、`13` |
+| `garage-phase1-artifact-and-evidence-surface.md` | `05`、`10`、`11`、`13` |
+| `garage-shared-contracts.md` | `03`、`07`、`12` |
 | `garage-phase1-shared-contract-schemas.md` | `03` |
 | `garage-continuity-memory-skill-architecture.md` | `06` |
 | `garage-phase1-continuity-mapping-and-promotion.md` | `06`、`08`、`09` |
@@ -96,8 +106,8 @@
 
 1. 先从 `01` 到 `03` 搭出平台最小骨架。
 2. 再从 `04` 到 `06` 落地 core 的控制流、文件表面和 continuity 规则。
-3. 再从 `07` 到 `09` 搭 reference packs。
-4. 最后用 `10` 验证整条 phase 1 主桥。
+3. 再从 `07` 到 `10` 验证两个 reference packs 与主桥的 phase 1 平台语义。
+4. 最后从 `11` 到 `13` 把当前 repo-local dogfooding 形态往“独立可运行程序”方向推进。
 
 如果开发中发现某篇 task doc 变得过长，优先新增新的 phase 1 task 文档，而不是继续把所有细节塞回现有文档里。
 

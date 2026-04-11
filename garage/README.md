@@ -5,6 +5,7 @@
 - 定位: `garage/` 是 `Garage` 在 phase 1 的实现根目录，承接 core、shared contracts、reference packs 和 host adapter stubs 的代码骨架，不承接设计长文，也不直接等同现有 `ahe-*` 资产。
 - 关联文档:
   - `docs/garage/README.md`
+  - `docs/garage/garage-runtime-home-and-workspace-topology.md`
   - `docs/tasks/README.md`
   - `docs/tasks/garage-phase1-01-foundation-and-repository-layout.md`
 
@@ -31,6 +32,13 @@
 
 - `garage/` 放实现骨架
 - 根目录 surfaces 放当前工件、证据、会话与归档
+
+当前仓库采用的是：
+
+- source-coupled workspace mode
+
+也就是当前 repo 同时承接 `Garage` source root 与默认 dogfooding workspace。  
+如果后续走向独立安装运行，`Garage Runtime Home` 与 `Garage Workspace` 的更完整拓扑见 `docs/garage/garage-runtime-home-and-workspace-topology.md`。
 
 ## 3. 与现有 AHE 资产的关系
 

@@ -8,6 +8,7 @@
   - `docs/garage/README.md`
   - `docs/garage/garage-extensible-architecture.md`
   - `docs/garage/garage-core-subsystems-architecture.md`
+  - `docs/garage/garage-runtime-home-and-workspace-topology.md`
   - `docs/garage/garage-phase1-reference-packs.md`
   - `garage/README.md`
 
@@ -122,6 +123,7 @@
 - 更新 `README.md`，把 `garage/` 与 5 个 workspace surfaces 纳入仓库结构说明
 - 更新 `docs/garage/README.md`，把设计链接到 `garage/README.md`
 - 新增 `garage/README.md`，明确实现边界与 AHE 资产定位
+- 明确当前仓库采用 `source-coupled workspace mode`，即 repo 同时承接 `Garage` source root 与默认 dogfooding workspace
 
 当前阶段已经能够明确回答：
 

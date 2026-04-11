@@ -44,6 +44,9 @@
 - `garage/README.md`
 - `garage/garage-extensible-architecture.md`
 - `garage/garage-core-subsystems-architecture.md`
+- `garage/garage-runtime-bootstrap-and-entrypoints.md`
+- `garage/garage-runtime-provider-and-tool-execution.md`
+- `garage/garage-runtime-home-and-workspace-topology.md`
 - `garage/garage-phase1-core-runtime-records.md`
 - `garage/garage-phase1-session-lifecycle-and-handoffs.md`
 - `garage/garage-phase1-governance-model.md`
@@ -71,6 +74,9 @@
 - `tasks/garage-phase1-08-product-insights-pack.md`
 - `tasks/garage-phase1-09-coding-pack.md`
 - `tasks/garage-phase1-10-cross-pack-bridge-and-phase1-walkthrough.md`
+- `tasks/garage-phase1-11-runtime-home-and-workspace-topology.md`
+- `tasks/garage-phase1-12-runtime-bootstrap-and-entrypoints.md`
+- `tasks/garage-phase1-13-runtime-provider-and-tool-execution.md`
 
 ### `guides/`
 

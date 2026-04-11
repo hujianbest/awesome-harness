@@ -21,3 +21,8 @@
 ## phase 1 说明
 
 phase 1 先把这里当成稳定内核目录预留出来，不在 `01` 中提前写入 pack 领域词。
+
+当前已经落地的最小实现包括：
+
+- `runtime_records.py`：phase 1 的 core runtime objects、写入模式与最小序列化能力
+- `runtime_record_examples.py`：session 创建、handoff、gate、evidence lineage 的最小验证夹具

@@ -93,7 +93,7 @@
 
 - 强依赖 `08` 和 `09`
 - 同时依赖 `04`、`05`
-- 是当前 phase 1 任务链的最后一篇
+- 是当前 phase 1 平台语义验证主链的最后一篇
 
 ## 8. 验收与验证
 
@@ -106,5 +106,6 @@
 
 ## 9. 完成后进入哪一篇
 
-- 进入实际开发执行与里程碑跟踪
-- 或单独新增 `implementation sequencing / acceptance matrix` 文档
+- `docs/tasks/garage-phase1-11-runtime-home-and-workspace-topology.md`
+- `docs/tasks/garage-phase1-12-runtime-bootstrap-and-entrypoints.md`
+- `docs/tasks/garage-phase1-13-runtime-provider-and-tool-execution.md`

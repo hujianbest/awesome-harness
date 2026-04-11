@@ -121,3 +121,27 @@
 - `docs/tasks/garage-phase1-04-session-lifecycle-and-governance.md`
 - `docs/tasks/garage-phase1-05-artifact-routing-and-evidence-surface.md`
 - `docs/tasks/garage-phase1-06-continuity-and-promotion.md`
+
+## 10. 本轮完成结果
+
+本轮已经落地：
+
+- `garage/__init__.py`，将 `garage/` 变成可导入的 Python package
+- `garage/core/__init__.py`，统一导出 phase 1 runtime records 与示例夹具
+- `garage/core/runtime_records.py`，实现 `SessionIntent`、`SessionState`、`SessionSnapshot`、`ContextPointer`、`HandoffRecord`、`ArtifactIntent`、`ArtifactDescriptor`、`AuthorityMarker`、`PolicySet`、`GateDecision`、`ExceptionRecord`、`EvidenceRecord`、`LineageLink`
+- `garage/core/runtime_record_examples.py`，提供 session 创建、handoff、gate decision、evidence lineage 的最小验证夹具
+- `garage/tests/test_runtime_records.py`，为当前位 / 追加式写入模式、最小引用关系与序列化增加回归检查
+- `garage/core/README.md`，补充当前已落地的 core 模块说明
+
+当前阶段已经能够明确回答：
+
+- phase 1 的 core runtime objects 已有统一 Python shape，而不是继续散落在文档里
+- 当前位对象与追加式对象已通过 `WriteMode` 和分组常量显式区分
+- session、artifact、governance、evidence 的最小引用关系已有可复用实现
+- 后续 `04`、`05`、`06` 已有稳定的 record 对象和示例夹具可复用
+
+本轮验证情况：
+
+- `ReadLints` 检查通过，当前改动文件没有 IDE 级别告警
+- 已编写 `unittest` 回归用例
+- 当前环境里 `python` / `py` 都不在 `PATH` 中，因此未能实际执行 unittest
