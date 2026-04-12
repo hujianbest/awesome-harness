@@ -16,7 +16,11 @@
 
 Garage 的入口如何在不分叉系统真相的前提下进入同一个 runtime。
 
-## 2. stable capability family
+## 2. owner question
+
+哪些 capability 属于 shared topology and bootstrap family，哪些只是某个入口自己的 UX 细节。
+
+## 3. stable capability family
 
 - `runtime home`
 - `workspace`
@@ -25,7 +29,26 @@ Garage 的入口如何在不分叉系统真相的前提下进入同一个 runtim
 - `SessionApi`
 - shared entry binding for CLI / Web / HostBridge
 
-## 3. 下游 specs
+## 4. family 内部关系
+
+- `F102` 负责解释独立工作环境入口
+- `F103` 负责解释 HostBridge 作为 capability injection
+- `F113` 负责把三类入口汇入同一条 `SessionApi` 主链
+- `F111` 与 `F112` 负责 topology 与 authority baseline
+
+因此，本 family 的核心不是“入口功能列表”，而是：
+
+- topology truth
+- bootstrap truth
+- entry binding truth
+
+## 5. 非目标
+
+- 不定义具体 Web UX
+- 不定义具体 CLI 参数表
+- 不让某一个入口自己的展示层变成主线 owner
+
+## 6. 下游 specs
 
 - `F111`：runtime home 与 workspace 拓扑
 - `F112`：bootstrap 与 runtime profile authority

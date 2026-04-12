@@ -25,6 +25,16 @@ Garage Team runtime 如何统一执行 provider/tool work，并把 authority 放
 - execution trace
 - evidence-linked execution outcomes
 
+本 family 内部的最小端到端链应理解为：
+
+`provider/tool invocation -> execution trace -> evidence-linked execution outcome`
+
+其中：
+
+- `F163` 定义 trace 本身
+- `F164` 定义 trace / outcome / evidence 的绑定关系
+- `F133` 负责 evidence surface 的 owner 语义
+
 ## 3. 下游 specs
 
 - `F161`：provider authority placement

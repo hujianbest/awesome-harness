@@ -25,9 +25,12 @@
 - handoff and review boundaries
 - registry-backed capability discovery
 
+`SessionApi` 的规范 owner 在 `F113`，本 family 只把它视为 team runtime core 的一个关键组成部分，而不重复定义它的 entry-facing seam。
+
 ## 3. 下游 specs
 
 - `F121`：neutral runtime records
 - `F122`：session lifecycle
 - `F123`：handoff and review boundaries
 - `F124`：registry-backed capability discovery
+- `F113`：SessionApi 与 shared entry binding（跨 family 依赖）
