@@ -114,6 +114,7 @@ Read these if you want the current runtime model:
 
 Read this if you want the implementation sequence:
 
+- `docs/design/README.md`
 - `docs/tasks/README.md`
 
 Repository structure:

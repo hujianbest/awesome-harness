@@ -114,6 +114,7 @@ python -m unittest discover -s tests
 
 如果你想看实现顺序与任务拆解，读：
 
+- `docs/design/README.md`
 - `docs/tasks/README.md`
 
 仓库结构：

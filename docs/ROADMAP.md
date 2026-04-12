@@ -61,17 +61,20 @@
 2. `docs/GARAGE.md`
 3. `docs/architecture/`
 4. `docs/features/F100 -> F160`
-5. `docs/tasks/README.md`
+5. `docs/design/README.md`
+6. `docs/tasks/README.md`
 
 ## 6. Feature 与 Task 的关系
 
 `docs/features/` 负责稳定 capability cuts。  
+`docs/design/` 负责把这些 capability cuts 进一步解释成产品/交互与详细设计。  
 `docs/tasks/` 负责把这些 capability cuts 按交付顺序拆成 implementation slices。
 
 这意味着：
 
 - 先用 features 理解系统应该具备什么能力
-- 再用 tasks 理解当前先交付哪一部分
+- 再用 design 理解这些能力如何被产品化和详细化
+- 最后用 tasks 理解当前先交付哪一部分
 
 ## 7. 后续 feature 扩展建议
 
