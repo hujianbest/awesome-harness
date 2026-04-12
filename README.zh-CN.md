@@ -105,11 +105,12 @@ python -m unittest discover -s tests
 
 如果你想理解当前 runtime 结构，优先看：
 
-- `docs/architecture/A120-garage-core-subsystems-architecture.md`
-- `docs/architecture/A140-garage-system-architecture.md`
-- `docs/features/F210-runtime-home-and-workspace-topology.md`
-- `docs/features/F220-runtime-bootstrap-and-entrypoints.md`
-- `docs/features/F230-runtime-provider-and-tool-execution.md`
+- `docs/architecture/1-garage-system-overview.md`
+- `docs/architecture/2-garage-runtime-reference-model.md`
+- `docs/architecture/10-entry-and-host-injection-layer.md`
+- `docs/features/F100-agent-teams-product-surface.md`
+- `docs/features/F110-runtime-topology-and-entry-bootstrap.md`
+- `docs/features/F160-execution-and-provider-tool-plane.md`
 
 如果你想看实现顺序与任务拆解，读：
 

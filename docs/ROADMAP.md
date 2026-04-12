@@ -3,7 +3,7 @@
 - Document ID: `M040`
 - 状态: 草稿
 - 日期: 2026-04-11
-- 定位: `docs/ROADMAP.md` 维护 `docs/features/` 的稳定 feature IDs、当前 capability map 与实施切片映射，帮助读者先按完整架构理解 `Garage` 的能力切面，再进入 `docs/tasks/` 查看当前交付顺序。
+- 定位: `docs/ROADMAP.md` 维护新的 feature families、它们和 architecture 主线的关系，以及这些 capability docs 当前由哪些任务切片承接。
 - 关联文档:
   - `docs/README.md`
   - `docs/VISION.md`
@@ -14,116 +14,76 @@
 
 这份文档主要回答 3 个问题：
 
-- `docs/features/` 的编号规则是什么
-- 当前完整架构已经冻结了哪些 feature cuts
-- 这些 feature cuts 当前由哪些 implementation slices 承接
+- 新的 `docs/features/` 主线怎么切
+- 各 capability family 对应哪些 architecture owner docs
+- 当前任务链大致承接了哪些 capability family
 
 它不替代：
 
-- `docs/GARAGE.md` 的当前产品定义
+- `docs/GARAGE.md` 的产品定义
 - `docs/tasks/README.md` 的实施顺序索引
-- 具体 feature 文档自身的详细设计
+- 每篇 feature 文档自身的详细语义
 
-## 2. 读这份路线图时要先记住的事
+## 2. 新的 feature 原则
 
-- `docs/features/` 负责稳定 capability cuts，不负责阶段性开发故事。
-- `docs/tasks/` 负责当前 implementation slices，不反向拥有系统真相。
-- `Status` 表示文档成熟度，而不是代码完成度。
+- `docs/features/` 跟随新的 architecture 主线，不再继承旧 `F010-F230` 的切分逻辑。
+- 它讲的是稳定 capability families，不是阶段性开发故事。
 - 当 feature 语义和 task 语义冲突时，以 `docs/features/` 为准，再回头重切 `docs/tasks/`。
-- 治理、pack platform 与 cross-pack bridge 相关 feature 现在应分别以上游架构文档 `A150`、`A160`、`A170` 为输入，再继续细化到 feature 与 task。
+- feature 文档应回答 “系统需要具备什么能力语义”，而不是 “当前代码已经怎么写”。
 
 ## 3. 编号规则
 
-`docs/features/` 统一使用：
+新的 `docs/features/` 仍使用：
 
 - `FNNN-<topic>.md`
 
-规则如下：
+但当前主线改成围绕新的 capability families 展开，统一收口在：
 
-1. `F` 代表 feature doc。
-2. `NNN` 是稳定编号，一旦分配就不应因目录整理而重新编号。
-3. 编号的主要作用是让目录有序、让引用稳定、为后续插入新 feature 留空位。
-4. 编号表达的是 feature family 的稳定位置，不等于实现完成时间。
-5. 每篇 `docs/features/` 文档头部都应包含显式的 `Feature ID` 元数据，并与文件名中的 `FNNN` 保持一致。
-6. 每篇 `docs/features/` 文档的一级标题都应使用 `# FNNN: 标题` 形式，与文件名和 `Feature ID` 保持一致。
+- `F100-F199`
 
-当前保留下面这些号段：
+## 4. 当前 Feature Families
 
-- `F000-F099`：core semantics、contracts、governance、artifact、continuity 与 learning
-- `F100-F199`：reference packs 与 cross-pack collaboration
-- `F200-F299`：runtime topology、bootstrap、execution 与 runtime evolution
-
-## 4. 当前 Feature Map
-
-### F000-F099 Core Semantics And Learning
-
-| ID | Feature | 作用 | 当前实施切片 | 链接 |
+| ID | Feature family | 作用 | 对应 architecture 主线 | 当前实施切片 |
 | --- | --- | --- | --- | --- |
-| `F010` | Shared Contracts | 冻结 core 与 packs 的共同语言 | `T030`、`T070`、`T120` | `docs/features/F010-shared-contracts.md` |
-| `F020` | Shared Contract Schemas | 冻结 contract schema shapes | `T030` | `docs/features/F020-shared-contract-schemas.md` |
-| `F030` | Core Runtime Records | 冻结 runtime records 与持久记录语义 | `T020` | `docs/features/F030-core-runtime-records.md` |
-| `F040` | Session Lifecycle And Handoffs | 冻结 session 主链与交接边界 | `T040`、`T100` | `docs/features/F040-session-lifecycle-and-handoffs.md` |
-| `F050` | Governance Model | 冻结治理工件、gate、approval、archive 与 growth governance 语义，并承接 `A150` 的治理架构边界 | `T040`、`T060`、`T100`、`T130` | `docs/features/F050-governance-model.md` |
-| `F060` | Artifact And Evidence Surface | 冻结 workspace-first artifact / evidence surfaces | `T050`、`T100`、`T110`、`T130` | `docs/features/F060-artifact-and-evidence-surface.md` |
-| `F070` | Continuity Mapping And Promotion | 冻结 pack-specific continuity mapping 与晋升规则 | `T060`、`T080`、`T090` | `docs/features/F070-continuity-mapping-and-promotion.md` |
-| `F080` | Self-Evolving Learning Loop | 冻结主动成长 loop、本地 proposal persistence 与长期更新路径 | `T060`、`T080`、`T090`、`T130` | `docs/features/F080-garage-self-evolving-learning-loop.md` |
+| `F100` | Agent Teams Product Surface | 定义产品入口、团队对象、独立工作环境与能力注入层 | `1`、`10` | `T140`、`T150`、`T160` |
+| `F110` | Runtime Topology And Entry Bootstrap | 定义 runtime home / workspace / bootstrap / SessionApi 的共享主线 | `10`、`11`、`101` | `T110`、`T120`、`T140`、`T150`、`T160`、`T170` |
+| `F120` | Garage Team Runtime Core | 定义 neutral records、session、handoff、registry 与团队协作核心 | `2`、`11`、`102` | `T020`、`T030`、`T040` |
+| `F130` | Governance And Workspace Truth | 定义 governance、artifact routing、workspace-first facts 与 evidence surface | `20`、`30`、`104`、`105` | `T040`、`T050`、`T100`、`T110` |
+| `F140` | Continuity And Growth | 定义 `memory / skill / evidence / GrowthProposal` 与长期成长主线 | `21`、`31`、`106` | `T060`、`T080`、`T090`、`T130` |
+| `F150` | Pack Platform And Collaboration | 定义 packs、contracts、reference packs 与 cross-pack collaboration | `40`、`41`、`107`、`111` | `T030`、`T070`、`T080`、`T090`、`T100` |
+| `F160` | Execution And Provider Tool Plane | 定义 provider authority、tool execution、execution trace 与 evidence-linked outcomes | `12`、`103` | `T130`、`T170`、`T180`、`T200`、`T201` |
 
-### F100-F199 Packs And Cross-Pack Collaboration
+## 5. 阅读顺序
 
-| ID | Feature | 作用 | 当前实施切片 | 链接 |
-| --- | --- | --- | --- | --- |
-| `F110` | Reference Packs | 定义当前 reference packs 作为 `A160` pack platform 校准器的共同形状与平台角色 | `T070` | `docs/features/F110-reference-packs.md` |
-| `F120` | Cross-Pack Bridge | 定义当前第一条 reference bridge，并承接 `A170` 的 cross-pack bridge seam | `T100` | `docs/features/F120-cross-pack-bridge.md` |
+建议这样读：
 
-### F200-F299 Runtime Topology And Execution
+1. `docs/VISION.md`
+2. `docs/GARAGE.md`
+3. `docs/architecture/`
+4. `docs/features/F100 -> F160`
+5. `docs/tasks/README.md`
 
-| ID | Feature | 作用 | 当前实施切片 | 链接 |
-| --- | --- | --- | --- | --- |
-| `F210` | Runtime Home And Workspace Topology | 定义 `source root / runtime home / workspace` 拓扑 | `T110`、`T120` | `docs/features/F210-runtime-home-and-workspace-topology.md` |
-| `F220` | Runtime Bootstrap And Entrypoints | 定义多入口统一 bootstrap 链 | `T120` | `docs/features/F220-runtime-bootstrap-and-entrypoints.md` |
-| `F230` | Runtime Provider And Tool Execution | 定义 execution layer 与 provider / tool 边界 | `T130` | `docs/features/F230-runtime-provider-and-tool-execution.md` |
+## 6. Feature 与 Task 的关系
 
-## 5. Feature 与 Task 的关系
+`docs/features/` 负责稳定 capability cuts。  
+`docs/tasks/` 负责把这些 capability cuts 按交付顺序拆成 implementation slices。
 
-这份路线图按 feature family 排序，方便理解系统边界和能力分层。
+这意味着：
 
-真正进入开发时，建议这样理解 `docs/tasks/`：
+- 先用 features 理解系统应该具备什么能力
+- 再用 tasks 理解当前先交付哪一部分
 
-- `docs/tasks/` 记录当前 implementation slices
-- 当前 `T010-T130` 是第一组主要实施切片
-- 当前 task 文件名已经对齐到 `Txxx-<title-slug>.md` 规则，但这些文档仍然只是 implementation slices
-- `F050`、`F110`、`F120` 等 feature 现在要继续服从对应上游 architecture baseline，而不是单独向下切任务
+## 7. 后续 feature 扩展建议
 
-因此：
+未来新增 feature docs 时，建议继续按 capability family 扩展，而不是恢复旧的 runtime-first 清单式切法。
 
-- 先读 `docs/features/` 理解系统应该具备什么能力
-- 再读 `docs/tasks/README.md` 理解当前先交付哪一部分
+优先扩展方向包括：
 
-## 6. 当前实施切片的三组主线
-
-当前任务链大致可以看成 3 组：
-
-1. `T010-T060`
-   - 搭 runtime foundation、contracts、session、governance、artifact / evidence surface、continuity baseline
-2. `T070-T100`
-   - 搭 reference packs 与 cross-pack bridge
-3. `T110-T130`
-   - 把 repo-local 形态继续推向独立 runtime topology、bootstrap 与 execution layer
-
-其中 `F080` 是一个跨切片 feature：
-
-- 它当前由 `T060`、`T080`、`T090`、`T130` 分散承接
-- 后续当实现语义稳定后，再考虑单独切出更明确的 growth-engine delivery slice
-
-## 7. 后续新增 Feature 的分配建议
-
-未来新增 `docs/features/` 文档时，建议遵守：
-
-- 不修改已有 ID
-- 优先在对应号段内补空号
-- pack-specific 详细设计继续放在 `docs/design/`
-- 如果一个主题已经明显变成 implementation track，而不是 capability cut，应新增到 `docs/tasks/`，而不是塞回 `docs/features/`
+- 更完整的 WebEntry capability family
+- 更细的 host injection / host adapter family
+- release / ops / diagnostics family
+- 更明确的 runtime update / evolution family
 
 ## 8. 一句话总结
 
-`docs/ROADMAP.md` 的作用，不是替代详细设计或任务拆解，而是给 `docs/features/` 提供一套稳定、可排序、可引用的 feature family 视图，并明确这些能力当前由哪些 implementation slices 承接。
+新的 `docs/ROADMAP.md` 不再维护旧 `F010-F230` feature map，而是维护跟随新 architecture 主线的 capability families，让 features 真正从产品与架构源头推导出来。
