@@ -4,19 +4,13 @@
 
 `Garage` 是一个面向 `solo creator` 的开源 `Agent Teams` 工作环境。
 
-在产品层，`Garage` 应该首先被理解为一个让创作者能够直接进入、使用并培养自己 `Garage Team` 的工作环境。在系统层，它仍然是一个共享 runtime，但这个 runtime 的意义是支撑一个可直接使用的产品，而不是只服务开发者手工集成的基础设施。
+它遵循一个核心原则：**one runtime, many entry surfaces**。
 
-它围绕一个核心判断设计：**one runtime, many entry surfaces**。`Garage` 应该先作为独立的 CLI / Web 工作环境成立，再把自己的 agents、skills 和长期能力注入到用户已经在使用的工具里，例如 `Claude`、`OpenCode` 或 `Cursor`。
+- CLI、Web、HostBridge 共用同一套 runtime truth
+- runtime/governance/continuity/contracts/packs 以可组合 Python 模块实现
+- 仓库通过任务、评审、门禁、批准工件驱动开发流程
 
-当前仓库已经包含：
-
-- 可运行的 `garage` CLI shell
-- 最小可用的 local-first Web control plane
-- 面向 `Claude` / `OpenCode` / `Cursor` 一类集成的共享 host-bridge seam
-- 基于 `runtime home` 的 profile loading 与 authority resolution
-- 落在 `artifacts/`、`evidence/`、`sessions/`、`archives/`、`.garage/` 下的 file-backed workspace surfaces
-
-但它仍然是一个持续演进中的产品环境，不是已经完成打磨的终端产品。核心方向已经稳定，产品深度仍在继续推进。
+当前状态：已具备可运行的开发基线与完整自动化任务证据链，但还不是生产级发布版本。
 
 ## Quick Install
 
@@ -50,60 +44,86 @@ $env:PYTHONPATH = "src"
 
 ## Quick Start
 
-使用 CLI 创建一个新 session：
+创建 session：
 
 ```bash
-garage create \
-  --source-root . \
-  --runtime-home .runtime-home \
-  --workspace-root .workspace \
-  --problem-kind implementation \
-  --entry-pack coding \
-  --entry-node coding.bridge-intake \
-  --goal "Bootstrap a Garage session."
+garage create --team garage --workspace default --profile dev
 ```
 
 恢复一个已有 session：
 
 ```bash
-garage resume \
-  --source-root . \
-  --runtime-home .runtime-home \
-  --workspace-root .workspace \
-  --session-id session.<your-id>
+garage resume --session <session-id>
 ```
 
-运行当前测试集：
+附着 workspace：
 
 ```bash
-python -m unittest discover -s tests
+garage attach --session <session-id> --workspace default
 ```
 
-这意味着你今天已经可以拿到：
+提交一步：
 
-- 一个真实可运行的 CLI 工作环境入口
-- 一条共享的 bootstrap + `SessionApi` 主链
-- 一个最小可用的 local-first Web control plane
-- 一个可注入现有工具的共享 host-bridge seam
-- 基于 `runtime home` 的 profile loading
+```bash
+garage step --session <session-id> --input "hello"
+```
 
-但今天还没有：
+查询状态：
+
+```bash
+garage status --session <session-id>
+```
+
+运行测试：
+
+```bash
+pytest
+```
+
+## 已实现能力
+
+- **入口层**
+  - CLI 入口（`create/resume/attach/step/status`）
+  - Web control-plane 基线与 web-depth guardrails
+  - HostBridge handoff/rework seam
+- **Runtime 核心**
+  - runtime home/profile authority 基线
+  - session lifecycle runtime core
+  - execution authority + trace/evidence 引用
+- **Workspace Truth 与 Governance**
+  - workspace surfaces 的 file-backed artifact routing
+  - governance gate 判定与 evidence 引用输出
+- **Continuity 与 Growth**
+  - continuity stores（memory/skills buckets）
+  - growth proposal 生命周期（`accepted/rejected/deferred`）
+- **Contracts/Registry/Packs**
+  - shared contract validation
+  - registry discovery
+  - reference pack metadata catalog
+- **Hardening 与 Ops**
+  - credential resolution 基线
+  - runtime home doctor 基线
+  - runtime diagnostics event ops
+
+## 当前限制
 
 - 面向终端用户的完整发布版
-- 更完整的 Web 产品层和 UX 打磨
-- 生产级的 secrets 管理与 provider backend
-- daemon / supervisor / multi-workspace orchestration
+- 完整 Web 产品深度与 UX 打磨
+- 全部 runtime stores 的持久化实现
+- 更高级 provider backend 与 secrets 分层来源
+- daemon/supervisor/multi-workspace orchestration
+- 分布式或远程控制面
 
 ## Documentation
 
-如果你想先看项目主线，建议从这里开始：
+建议从这里开始：
 
 - `docs/README.md`
 - `docs/VISION.md`
 - `docs/GARAGE.md`
 - `docs/ROADMAP.md`
 
-如果你想理解当前 runtime 结构，优先看：
+架构与特性真相：
 
 - `docs/architecture/1-garage-system-overview.md`
 - `docs/architecture/2-garage-runtime-reference-model.md`
@@ -112,28 +132,33 @@ python -m unittest discover -s tests
 - `docs/features/F11-runtime-topology-and-entry-bootstrap.md`
 - `docs/features/F16-execution-and-provider-tool-plane.md`
 
-如果你想看实现顺序与任务拆解，读：
+设计与任务：
 
+- `docs/design/`
 - `docs/tasks/README.md`
+- `docs/tasks/2026-04-13-garage-mainline-tasks.md`
+- `docs/tasks/2026-04-13-garage-mainline-task-board.md`
 
 仓库结构：
 
 | 路径 | 用途 |
 | --- | --- |
-| `src/` | runtime 实现 |
-| `docs/` | source-of-truth 文档树 |
-| `packs/` | 当前 reference packs |
-| `tests/` | 回归测试 |
-| `artifacts/`、`evidence/`、`sessions/`、`archives/`、`.garage/` | workspace-first file-backed surfaces |
+| `src/` | runtime/entry/governance/continuity/contracts/packs 实现 |
+| `tests/` | 基于 pytest 的回归测试 |
+| `docs/reviews/` | 评审阶段证据记录 |
+| `docs/verification/` | 门禁/finalize 证据记录 |
+| `docs/approvals/` | 批准步骤记录（含 auto 模式） |
+| `docs/tasks/` | 任务计划与队列投影 |
+| `task-progress.md` | 当前 workflow 状态快照 |
 
 ## Contributing
 
-`Garage` 仍处于活跃建设阶段，所以当前最有价值的贡献通常包括：
+`Garage` 仍在持续演进，当前高价值贡献包括：
 
-- 收紧产品背后的共享 runtime seams
-- 改进 docs 和 task decomposition
-- 扩展 entry surfaces、authority resolution 和 workspace facts 周边测试
-- 帮助 reference packs 和 bridge 持续与平台主线保持一致
+- 强化共享 runtime seams
+- 改进任务/评审/门禁证据质量
+- 扩展失败路径与可恢复性测试覆盖
+- 保持 docs/features/design/tasks 一致性
 
 一个基础的贡献者流程：
 
@@ -141,10 +166,10 @@ python -m unittest discover -s tests
 git clone <your-fork-or-repo-url>
 cd Garage
 python -m pip install -e .
-python -m unittest discover -s tests
+pytest
 ```
 
-在做范围更大的改动前，建议先读：
+做较大改动前，建议先读：
 
 - `AGENTS.md`
 - `docs/README.md`
@@ -152,4 +177,4 @@ python -m unittest discover -s tests
 - `docs/features/`
 - `docs/tasks/README.md`
 
-这个项目是 documentation-led 的：`docs/architecture/`、`docs/features/` 和 `docs/design/` 定义系统主真相；`docs/tasks/` 定义由这些真相推导出来的实现切片。
+这个项目是 documentation-led：`docs/architecture/`、`docs/features/`、`docs/design/` 定义系统真相，`docs/tasks/` 定义可执行交付切片。
