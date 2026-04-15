@@ -7,7 +7,19 @@
 ## 当前 reference packs
 
 - `packs/product-insights/`
+- `packs/experience-design/`
 - `packs/coding/`
+
+## 默认 handoff 形状
+
+- `product-insights` 负责机会、wedge、probe 与 `spec-bridge`
+- `experience-design` 负责 non-trivial UI 的 `experience-bridge` 与 `UCD`
+- `coding` 负责 formal spec、engineering design、tasks、implementation、review 与 gate
+
+默认链路：
+
+- 无 UI 或 trivial UI：`product-insights -> coding`
+- non-trivial UI：`product-insights -> experience-design -> coding`
 
 ## 边界
 
