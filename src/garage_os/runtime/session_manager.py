@@ -205,6 +205,70 @@ class SessionManager:
 
         return sessions
 
+    def archive_expired_sessions(self, timeout_seconds: int) -> list[str]:
+        """Archive sessions that have exceeded the timeout period.
+
+        Args:
+            timeout_seconds: Timeout threshold in seconds
+
+        Returns:
+            List of archived session IDs
+        """
+        archived_ids: list[str] = []
+        now = datetime.now()
+
+        # Get all active sessions
+        active_sessions = self.list_active_sessions()
+
+        for session in active_sessions:
+            # Calculate time since last update
+            time_since_update = (now - session.updated_at).total_seconds()
+
+            # Check if session has expired
+            if time_since_update > timeout_seconds:
+                session_id = session.session_id
+
+                # Check if session exists
+                session_path = f"sessions/active/{session_id}/session.json"
+                data = self._storage.read_json(session_path)
+
+                if data is None:
+                    continue
+
+                # Create archive.json with archive metadata
+                archive_data = {
+                    "session_id": session_id,
+                    "archived_at": now.isoformat(),
+                    "reason": "session_timeout",
+                }
+
+                # Ensure archived directory exists
+                archived_dir = f"sessions/archived/{session_id}"
+                self._storage.ensure_dir(archived_dir)
+
+                # Write archive.json
+                self._storage.write_json(f"{archived_dir}/archive.json", archive_data)
+
+                # Move session directory
+                dst_path = f"sessions/archived/{session_id}/session.json"
+
+                # Read the session data first
+                session_data = self._storage.read_json(f"sessions/active/{session_id}/session.json")
+
+                # Write to new location
+                self._storage.write_json(dst_path, session_data)
+
+                # Remove old directory
+                old_session_dir = self._storage._get_full_path(f"sessions/active/{session_id}")
+                if old_session_dir.exists():
+                    for item in old_session_dir.iterdir():
+                        item.unlink()
+                    old_session_dir.rmdir()
+
+                archived_ids.append(session_id)
+
+        return archived_ids
+
     def create_checkpoint(
         self, session_id: str, node_id: str, state_snapshot: dict
     ) -> Checkpoint:

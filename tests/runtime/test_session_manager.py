@@ -294,3 +294,94 @@ def test_session_checksum(session_manager: SessionManager, tmp_path: Path):
     assert "checksum" in data
     assert isinstance(data["checksum"], str)
     assert len(data["checksum"]) == 64  # SHA-256 hex length
+
+
+def test_archive_expired_sessions(session_manager: SessionManager, tmp_path: Path):
+    """Test archiving sessions that have exceeded the timeout period."""
+    from datetime import timedelta
+
+    # Create a session
+    metadata = session_manager.create_session("test-pack", "Test topic")
+    session_id = metadata.session_id
+
+    active_dir = tmp_path / "sessions" / "active" / session_id
+    archived_dir = tmp_path / "sessions" / "archived" / session_id
+
+    # Manually set updated_at to be older than timeout
+    session_file = active_dir / "session.json"
+    data = json.loads(session_file.read_text())
+    expired_time = datetime.now() - timedelta(seconds=7201)
+    data["updated_at"] = expired_time.isoformat()
+    session_file.write_text(json.dumps(data))
+
+    # Archive expired sessions with 7200 second timeout
+    archived_ids = session_manager.archive_expired_sessions(7200)
+
+    # Verify the session was archived
+    assert session_id in archived_ids
+    assert not active_dir.exists()
+    assert archived_dir.exists()
+    assert (archived_dir / "session.json").exists()
+    assert (archived_dir / "archive.json").exists()
+
+    # Verify archive reason
+    archive_data = json.loads((archived_dir / "archive.json").read_text())
+    assert archive_data["reason"] == "session_timeout"
+
+
+def test_archive_expired_sessions_keeps_active(
+    session_manager: SessionManager, tmp_path: Path
+):
+    """Test that only expired sessions are archived, active ones remain."""
+    from datetime import timedelta
+
+    # Create two sessions
+    session1 = session_manager.create_session("pack-1", "Topic 1")
+    session2 = session_manager.create_session("pack-2", "Topic 2")
+
+    # Make session1 expired
+    session1_file = tmp_path / "sessions" / "active" / session1.session_id / "session.json"
+    data1 = json.loads(session1_file.read_text())
+    expired_time = datetime.now() - timedelta(seconds=7201)
+    data1["updated_at"] = expired_time.isoformat()
+    session1_file.write_text(json.dumps(data1))
+
+    # Keep session2 active (recent update)
+    session2_file = tmp_path / "sessions" / "active" / session2.session_id / "session.json"
+    data2 = json.loads(session2_file.read_text())
+    recent_time = datetime.now() - timedelta(seconds=1000)
+    data2["updated_at"] = recent_time.isoformat()
+    session2_file.write_text(json.dumps(data2))
+
+    # Archive expired sessions
+    archived_ids = session_manager.archive_expired_sessions(7200)
+
+    # Verify only session1 was archived
+    assert session1.session_id in archived_ids
+    assert session2.session_id not in archived_ids
+
+    # Verify session1 is archived
+    assert not (tmp_path / "sessions" / "active" / session1.session_id).exists()
+    assert (tmp_path / "sessions" / "archived" / session1.session_id).exists()
+
+    # Verify session2 is still active
+    assert (tmp_path / "sessions" / "active" / session2.session_id).exists()
+    assert not (tmp_path / "sessions" / "archived" / session2.session_id).exists()
+
+
+def test_archive_expired_sessions_no_expired(session_manager: SessionManager):
+    """Test that archiving works correctly when no sessions are expired."""
+    # Create multiple sessions
+    session1 = session_manager.create_session("pack-1", "Topic 1")
+    session2 = session_manager.create_session("pack-2", "Topic 2")
+
+    # Archive with a very long timeout (no sessions should be expired)
+    archived_ids = session_manager.archive_expired_sessions(999999)
+
+    # Verify no sessions were archived
+    assert len(archived_ids) == 0
+
+    # Verify all sessions are still active
+    active_sessions = session_manager.list_active_sessions()
+    active_ids = {s.session_id for s in active_sessions}
+    assert active_ids == {session1.session_id, session2.session_id}
