@@ -181,3 +181,13 @@ Handoff：`ahe-design-review`。
 ```
 
 如果设计稿仍未达评审门槛，不伪造 handoff；明确还缺什么，继续修订。
+
+## Verification
+
+- [ ] 设计草稿已保存到约定路径（非规格文件、非任务文件）
+- [ ] 至少两个候选方案已比较，选定理由已用 ADR 格式记录
+- [ ] NFR 逐项落实到具体模块/机制（不是只在概述中出现）
+- [ ] 关键路径失败模式已分析，缓解策略已给出
+- [ ] `task-progress.md` 已更新 Current Stage 和 Next Action
+- [ ] handoff 目标唯一指向 `ahe-design-review`
+- [ ] 设计草稿不含任务拆解或实现伪代码
