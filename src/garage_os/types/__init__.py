@@ -135,6 +135,49 @@ class ExperienceRecord:
     updated_at: datetime = field(default_factory=datetime.now)
 
 
+class ErrorCategory(Enum):
+    """Categories of errors that can occur during execution."""
+
+    RETRYABLE = "retryable"
+    USER_INTERVENTION = "user_intervention"
+    FATAL = "fatal"
+    IGNORABLE = "ignorable"
+
+
+@dataclass
+class StateTransition:
+    """Record of a state transition in a workflow session."""
+
+    from_state: SessionState
+    to_state: SessionState
+    timestamp: datetime
+    reason: str
+    metadata: Dict[str, Any] = field(default_factory=dict)
+
+
+@dataclass
+class Checkpoint:
+    """A checkpoint representing a snapshot of execution state."""
+
+    checkpoint_id: str
+    node_id: str
+    timestamp: datetime
+    state_snapshot: Dict[str, Any]
+    checksum: Optional[str] = None
+
+
+@dataclass
+class SyncLogEntry:
+    """A log entry for artifact synchronization operations."""
+
+    artifact_path: Path
+    board_status: str
+    file_exists: bool
+    checksum_match: Optional[bool]
+    timestamp: datetime
+    resolution: Optional[str] = None
+
+
 __all__ = [
     "SessionState",
     "ArtifactRole",
@@ -145,4 +188,8 @@ __all__ = [
     "KnowledgeType",
     "KnowledgeEntry",
     "ExperienceRecord",
+    "ErrorCategory",
+    "StateTransition",
+    "Checkpoint",
+    "SyncLogEntry",
 ]

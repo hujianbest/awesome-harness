@@ -4,8 +4,8 @@ Storage infrastructure for Garage Agent OS.
 This module provides file storage, atomic writes, and file locking capabilities.
 """
 
-# Import will be implemented in T4
-# from garage_os.storage.file_storage import FileStorage
-# from garage_os.storage.atomic_writer import AtomicWriter
+from garage_os.storage.file_storage import FileStorage
+from garage_os.storage.atomic_writer import AtomicWriter
+from garage_os.storage.front_matter import FrontMatterParser
 
-__all__ = []
+__all__ = ["FileStorage", "AtomicWriter", "FrontMatterParser"]

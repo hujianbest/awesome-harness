@@ -1,6 +1,15 @@
 /.idea/
 /references/
 
+# Python
+__pycache__/
+*.pyc
+.venv/
+*.egg-info/
+.pytest_cache/
+dist/
+build/
+
 # Garage OS runtime data
 .garage/sessions/active/*/
 .garage/sessions/archived/*/
