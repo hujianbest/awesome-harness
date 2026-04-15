@@ -1,12 +1,16 @@
 """Tests for StateMachine module."""
 
+import threading
+import time
+from concurrent.futures import ThreadPoolExecutor
+
 import pytest
 
 from garage_os.runtime.state_machine import (
     StateMachine,
     InvalidStateTransitionError,
 )
-from garage_os.types import SessionState
+from garage_os.types import SessionState, StateTransition
 
 
 class TestInitialState:
@@ -305,3 +309,178 @@ class TestReset:
         assert sm.can_transition(SessionState.RUNNING) is True
         sm.transition(SessionState.RUNNING)
         assert sm.current_state == SessionState.RUNNING
+
+
+class TestTransitionCallbacks:
+    """Test side-effect callback functionality."""
+
+    def test_on_transition_callback(self):
+        """on_transition callback should be invoked on any transition."""
+        sm = StateMachine()
+        received_transitions = []
+
+        def callback(transition: StateTransition):
+            received_transitions.append(transition)
+
+        sm.on_transition(callback)
+        sm.transition(SessionState.RUNNING, "Starting")
+
+        assert len(received_transitions) == 1
+        assert received_transitions[0].from_state == SessionState.IDLE
+        assert received_transitions[0].to_state == SessionState.RUNNING
+        assert received_transitions[0].reason == "Starting"
+
+    def test_on_enter_callback(self):
+        """on_enter callback should only fire when entering the specific state."""
+        sm = StateMachine()
+        received_transitions = []
+
+        def callback(transition: StateTransition):
+            received_transitions.append(transition)
+
+        # Register callback for PAUSED state only
+        sm.on_enter(SessionState.PAUSED, callback)
+
+        # IDLE -> RUNNING (should NOT trigger callback)
+        sm.transition(SessionState.RUNNING, "Start")
+        assert len(received_transitions) == 0
+
+        # RUNNING -> PAUSED (should trigger callback)
+        sm.transition(SessionState.PAUSED, "Pause")
+        assert len(received_transitions) == 1
+        assert received_transitions[0].to_state == SessionState.PAUSED
+
+        # PAUSED -> RUNNING (should NOT trigger callback)
+        sm.transition(SessionState.RUNNING, "Resume")
+        assert len(received_transitions) == 1  # Still 1
+
+    def test_multiple_callbacks(self):
+        """All registered callbacks should be invoked."""
+        sm = StateMachine()
+        call_count = {"value": 0}
+
+        def callback1(transition: StateTransition):
+            call_count["value"] += 1
+
+        def callback2(transition: StateTransition):
+            call_count["value"] += 1
+
+        def callback3(transition: StateTransition):
+            call_count["value"] += 1
+
+        sm.on_transition(callback1)
+        sm.on_transition(callback2)
+        sm.on_transition(callback3)
+
+        sm.transition(SessionState.RUNNING, "Start")
+
+        assert call_count["value"] == 3
+
+    def test_callback_receives_correct_transition(self):
+        """Callback should receive StateTransition with correct fields."""
+        sm = StateMachine()
+        received = None
+
+        def callback(transition: StateTransition):
+            nonlocal received
+            received = transition
+
+        sm.on_transition(callback)
+        # First go to RUNNING (IDLE -> FAILED is invalid)
+        sm.transition(SessionState.RUNNING, "Start")
+        metadata = {"error_code": 500, "retry_count": 3}
+        sm.transition(SessionState.FAILED, "Server error", metadata=metadata)
+
+        assert received is not None
+        assert received.from_state == SessionState.RUNNING
+        assert received.to_state == SessionState.FAILED
+        assert received.reason == "Server error"
+        assert received.metadata == metadata
+        assert received.timestamp is not None
+
+    def test_callback_exception_does_not_break_transition(self):
+        """Callback exceptions should be caught and not affect state transition."""
+        sm = StateMachine()
+
+        def failing_callback(transition: StateTransition):
+            raise RuntimeError("Callback failed!")
+
+        sm.on_transition(failing_callback)
+
+        # Transition should still succeed despite callback exception
+        sm.transition(SessionState.RUNNING, "Start")
+        assert sm.current_state == SessionState.RUNNING
+        assert len(sm.history) == 1
+
+
+class TestConcurrency:
+    """Test thread-safe concurrent state transitions."""
+
+    def test_concurrent_transitions(self):
+        """Concurrent transitions should be serialized by lock."""
+        sm = StateMachine()
+        results = {"success_count": 0, "error_count": 0}
+
+        def try_transition():
+            try:
+                sm.transition(SessionState.RUNNING, "Concurrent attempt")
+                results["success_count"] += 1
+            except InvalidStateTransitionError:
+                results["error_count"] += 1
+
+        # Launch two threads simultaneously
+        t1 = threading.Thread(target=try_transition)
+        t2 = threading.Thread(target=try_transition)
+
+        t1.start()
+        t2.start()
+
+        t1.join()
+        t2.join()
+
+        # One should succeed, one should fail
+        assert results["success_count"] == 1
+        assert results["error_count"] == 1
+        assert sm.current_state == SessionState.RUNNING
+
+    def test_concurrent_history_integrity(self):
+        """Concurrent transitions should maintain history integrity."""
+        sm = StateMachine(SessionState.IDLE)
+        num_threads = 10
+        transitions_per_thread = 5
+
+        def do_transitions(thread_id: int):
+            for i in range(transitions_per_thread):
+                # Create a simple pattern: IDLE -> RUNNING -> IDLE
+                try:
+                    sm.transition(SessionState.RUNNING, f"Thread {thread_id} up {i}")
+                    time.sleep(0.001)  # Tiny delay to increase interleaving
+                    sm.transition(SessionState.IDLE, f"Thread {thread_id} down {i}")
+                except InvalidStateTransitionError:
+                    # Expected during concurrent access
+                    pass
+
+        threads = []
+        for i in range(num_threads):
+            t = threading.Thread(target=do_transitions, args=(i,))
+            threads.append(t)
+            t.start()
+
+        for t in threads:
+            t.join()
+
+        # Final state should be either IDLE or RUNNING (valid states)
+        assert sm.current_state in {SessionState.IDLE, SessionState.RUNNING}
+
+        # History should be internally consistent
+        # Each transition should have a valid sequence
+        for i, transition in enumerate(sm.history):
+            assert transition.from_state in SessionState
+            assert transition.to_state in SessionState
+            assert transition.timestamp is not None
+
+            # Verify transition validity (except for the very first one
+            # which starts from initial state)
+            if i > 0:
+                prev_transition = sm.history[i - 1]
+                assert transition.from_state == prev_transition.to_state
