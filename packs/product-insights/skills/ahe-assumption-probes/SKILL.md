@@ -1,44 +1,34 @@
 ---
 name: ahe-assumption-probes
-description: Turn risky unknowns into cheap, disposable product probes with kill criteria. Use when a concept looks promising but key desirability, usability, viability, or feasibility assumptions still need evidence before you enter specs or implementation.
+description: 适用于已有 concept brief 但关键假设尚无证据、需要设计低成本验证探针并明确 kill criteria 的场景。不适用于方向未选清（→ ahe-concept-shaping）或已有充分验证只需交接（→ ahe-spec-bridge）的场景。
 ---
 
 # AHE Assumption Probes
 
-## Overview
-
-这个 skill 的职责是在进入 `ahe-coding-skills` 之前，先暴露和缩小危险未知项。
-
-它默认假设：
-
-- 现在最缺的不是更多功能想法
-- 而是更便宜、更残酷的 truth test
+负责在进入实现之前，把危险假设转化为可快速证伪的一次性探针。不替代 spec 编写或功能设计。
 
 ## When to Use
 
-在这些场景使用：
-
+**正向触发：**
 - 已有 concept brief，但没有明确 kill criteria
-- 你担心团队会直接把一个未经验证的方向送进实现
-- 需要区分 desirability、usability、viability、feasibility 风险
+- 团队正准备把未验证方向直接送进实现
+- 需要区分 desirability / usability / viability / feasibility 风险
 
-不要在这些场景使用：
+**不适用：**
+- 方向还没选清楚 → `ahe-concept-shaping`
+- 已验证充分，只差 handoff → `ahe-spec-bridge`
 
-- 方向还没选清楚，先回到 `ahe-concept-shaping`
-- 已经验证得足够充分，当前只差 handoff，改用 `ahe-spec-bridge`
+**Direct invoke：** 用户明确说"先做个 smoke test""验证一下再说""这个方向有风险"
 
-## Default Agents
-
-按需读取并复用：
-
-- `agents/probe-designer.md`
-- `agents/product-contrarian.md`
+**相邻边界：** 若当前缺的不是验证而是概念方向本身，回到 `ahe-concept-shaping`。
 
 ## Workflow
 
-按以下顺序执行。
+### 1. 先读取已有 concept brief 和上游证据
 
-### 1. 先列出完整风险栈
+读取项目中的 concept brief、opportunity map、insight pack 等已有工件。若无上游工件，reroute 到 `ahe-concept-shaping`。
+
+### 2. 列出完整风险栈
 
 至少区分：
 
@@ -47,7 +37,7 @@ description: Turn risky unknowns into cheap, disposable product probes with kill
 - viability：这件事对业务有价值吗
 - feasibility：技术和流程上真的可行吗
 
-### 2. 只选最危险的 1 到 3 个假设
+### 3. 只选最危险的 1 到 3 个假设
 
 不要一口气设计十几个 probe。
 
@@ -56,7 +46,9 @@ description: Turn risky unknowns into cheap, disposable product probes with kill
 - 一旦被证伪，整条方向都要重来
 - 或者会直接改变 scope 和 spec 写法
 
-### 3. 为每个关键假设设计最便宜 probe
+**决策点：** 若所有假设都同等危险，说明 concept 本身收敛不够，回到 `ahe-concept-shaping`。
+
+### 4. 为每个关键假设设计最便宜 probe
 
 默认优先：
 
@@ -69,7 +61,7 @@ description: Turn risky unknowns into cheap, disposable product probes with kill
 
 不是所有问题都要写代码。
 
-### 4. 明确 harsh truth
+### 5. 明确 harsh truth 和 kill criteria
 
 每个 probe 都应写清：
 
@@ -77,33 +69,27 @@ description: Turn risky unknowns into cheap, disposable product probes with kill
 - fail 条件
 - 哪个结果会让你停止继续下注
 
-如果 probe 没有 kill criteria，它大概率只是“给自己打气”。
+如果 probe 没有 kill criteria，它大概率只是"给自己打气"。
 
-### 5. 明确 disposal plan
+### 6. 明确 disposal plan
 
 默认把 probe 当 disposable artifact，而不是 proto-MVP。
 
-### 6. 落盘成 `probe-plan`
+### 7. 落盘成 probe-plan
 
-默认使用：
+使用 pack 内模板 `../templates/probe-plan-template.md`，至少补齐：
 
-- `ahe-product-skills/templates/probe-plan-template.md`
+- Risk Stack
+- Selected Probe
+- Success / Failure
+- Minimal Setup
 
-至少补齐：
+## Output Contract
 
-- `Risk Stack`
-- `Selected Probe`
-- `Success / Failure`
-- `Minimal Setup`
-
-## Quality Bar
-
-高质量 probe plan 至少应满足：
-
-- 只针对少量高杠杆未知项
-- 每个 probe 都能回答一个明确问题
-- 有明确的 pass / fail / kill criteria
-- 方案足够便宜，不会天然诱导团队继续硬做
+- **写什么：** probe-plan 文档
+- **写到哪里：** 项目约定位置（参考 AGENTS.md），默认示例 `docs/insights/YYYY-MM-DD-<topic>-probe-plan.md`
+- **状态同步：** probe-plan 包含 risk stack、selected probes、kill criteria
+- **下一步：** 执行 probe 后回到本节点更新结果；若已有足够 bridge 信息 → `ahe-spec-bridge`
 
 ## Red Flags
 
@@ -112,10 +98,38 @@ description: Turn risky unknowns into cheap, disposable product probes with kill
 - 完全没有 failure threshold
 - 所谓验证其实只是收集正反馈
 
-## Recommended Next Step
+## Common Mistakes
 
-若 probe 已完成或已有足够 bridge 信息，默认下一步：
+| 错误 | 后果 | 修复 |
+|------|------|------|
+| probe 设计成 MVP | 投入过大，舍不得停 | 限制每个 probe < 1 天工作量 |
+| 只有 pass 条件 | 验证退化为"给自己打气" | 每条必须写明 kill 条件 |
+| 一次验证太多假设 | 结论不清晰 | 只选 1-3 个最危险假设 |
 
-- `ahe-spec-bridge`
+## 和其他 Skill 的区别
 
-若 probe 尚未执行，则先执行 probe，再回到本节点更新结果。
+| 对比项 | ahe-assumption-probes | ahe-concept-shaping | ahe-spec-bridge |
+|--------|----------------------|---------------------|-----------------|
+| 核心任务 | 设计验证探针 | 发散收敛概念方向 | 压缩上游输出为 spec 输入 |
+| 输入 | concept brief + 假设 | opportunity map | 所有上游工件 |
+| 输出 | probe-plan | concept-brief | spec-bridge |
+| 何时用 | 方向已选但假设未验证 | 方向泛泛需要分化 | 已验证完毕准备交接 |
+
+## Reference Guide
+
+| 材料 | 路径 | 用途 |
+|------|------|------|
+| Probe Plan 模板 | `../templates/probe-plan-template.md` | 落盘格式 |
+| 产品洞察共享约定 | `../docs/product-insight-shared-conventions.md` | 家族级术语和约定 |
+| 产品辩论协议 | `../docs/product-debate-protocol.md` | 多 agent 讨论规范 |
+| 产品洞察基础 | `../docs/product-insight-foundations.md` | 方法论背景 |
+| Agent: probe-designer | `../../agents/probe-designer.md` | 探针设计辅助 |
+| Agent: product-contrarian | `../../agents/product-contrarian.md` | 反向挑战 |
+
+## Verification
+
+- [ ] probe-plan 已落盘
+- [ ] 每个关键假设都有对应 probe
+- [ ] 每个 probe 都有明确的 pass / fail / kill criteria
+- [ ] probe 方案足够便宜（不会诱导团队继续硬做）
+- [ ] 下一步 skill 已明确（执行 probe / ahe-spec-bridge）
