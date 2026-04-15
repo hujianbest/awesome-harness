@@ -12,6 +12,14 @@ AHE workflow family 的 **public shell**。帮助你决定：
 
 本 skill 是 public entry，不是 runtime handoff。不替代 router 的 authoritative routing。
 
+## Methodology
+
+本 skill 融合以下已验证方法：
+
+- **Front Controller Pattern**: 作为统一入口点，解析用户意图后分发到对应处理节点，避免调用方需要了解内部拓扑。
+- **Evidence-Based Dispatch**: 通过读取 task-progress.md 和工件状态判断 entry vs recovery，避免无状态假设。
+- **Separation of Concerns**: 入口层只负责意图识别和分发，不做 authoritative routing 或状态修改。
+
 ## When to Use
 
 适用：

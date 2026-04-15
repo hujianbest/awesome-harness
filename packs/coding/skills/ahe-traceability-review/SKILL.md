@@ -7,6 +7,14 @@ description: 评审规格→设计→任务→实现→测试/验证的证据链
 
 评审证据链追溯完整性：spec→design→tasks→impl→test/verification→status。防止"代码能跑但不再匹配已批准工件"。运行在 `ahe-code-review` 之后，决定是否可进入 `ahe-regression-gate`。
 
+## Methodology
+
+本 skill 融合以下已验证方法：
+
+- **End-to-End Traceability (IEEE 830/ISO 26550)**: 检查从需求到实现的完整追溯链，确保每条需求可通过设计决策、任务、实现、验证四层逐级追溯。
+- **Zigzag Validation**: 每条 FR 必须前向追溯到设计决策，设计决策必须后向追溯到需求——双向验证防止断链。
+- **Impact Analysis**: 当发现不一致时，判断影响范围是局部还是需要回流到上游节点。
+
 ## When to Use
 
 适用：code review 通过后判断追溯完整性、用户要求追溯评审。

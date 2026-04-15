@@ -9,6 +9,14 @@ description: 执行正式回归门禁。防止"本地修好了但旁边模块坏
 
 不是 completion gate（判断当前任务完成），也不是 finalize（收尾）。
 
+## Methodology
+
+本 skill 融合以下已验证方法：
+
+- **Regression Testing Best Practice (ISTQB)**: 定义回归范围时区分 full/standard/lightweight 三级覆盖，确保投入与风险匹配。
+- **Impact-Based Testing**: 回归范围基于 traceability review 识别的影响区域，而非机械运行全部测试。
+- **Fresh Evidence Principle**: 回归证据必须在当前会话内实际产生，不接受历史运行结果替代。
+
 ## When to Use
 
 适用：traceability review 通过后需回归验证；用户要求 regression check。
