@@ -1,6 +1,6 @@
 ---
 name: ahe-design
-description: 产出可评审实现设计。适用于需求规格已批准、设计尚未批准，且当前需要在任务规划或编码前明确架构、模块边界、关键接口、数据流、技术决策和测试策略的场景；若规格仍未稳定、当前阶段不清或仍需 authoritative workflow routing，先回到 `ahe-workflow-router`。
+description: 适用于需求规格已批准但设计尚未批准、或设计评审返回需修改/阻塞需修订的场景。不适用于规格仍是草稿/待批准（→ ahe-specify）、设计已批准需拆任务（→ ahe-tasks）、仅需执行设计评审（→ ahe-design-review）、阶段不清或证据冲突（→ ahe-workflow-router）。
 ---
 
 # AHE 设计
@@ -67,7 +67,7 @@ Handoff：`ahe-design-review`。
 - 在没理解需求前就开始画架构图
 - 跳过安全性和隐私考量
 
-## Core Workflow
+## Workflow
 
 ### 1. 阅读已批准规格并提取设计驱动因素
 
@@ -154,6 +154,15 @@ Handoff：`ahe-design-review`。
 - 决策理由含"未来可能需要"而无当前需求支撑
 - 没分析关键路径失败模式
 - handoff 缺失却声称"设计可以直接往下走"
+
+## 和其他 Skill 的区别
+
+| 易混淆 skill | 区别 |
+|-------------|------|
+| `ahe-tasks` | 设计阶段回答"如何实现"；任务阶段回答"分几步做"。设计未批准前不拆任务。 |
+| `ahe-design-review` | 本 skill 负责起草设计；design-review 负责独立评审。不能自审自交。 |
+| `ahe-specify` | specify 回答"做什么"；design 回答"如何做"。规格未稳定时不进入设计。 |
+| `ahe-workflow-router` | router 负责阶段判断和路由；本 skill 假设阶段已确定为"设计"。 |
 
 ## Output Contract
 
