@@ -67,6 +67,16 @@ Profile-aware 证据矩阵：
 - `full` / `standard`：需要 closeout 所依赖的 reviews + gates 已落盘
 - `lightweight`：至少 regression + completion 已落盘
 
+### 1.5 Precheck
+
+在判断 closeout type 前，先确认：
+
+- `completion` / `regression` 记录已落盘，且与当前 stage / active task / worktree 语义一致
+- 当前 profile 所需的 review / verification 记录要么已落盘，要么能明确写成 `N/A（按 profile 跳过）`
+- “是否还有剩余 approved tasks” 的证据足够稳定，不存在 queue / task board / progress 互相打架
+
+若不满足，不进入 `task closeout` 或 `workflow closeout`，而是明确写成 `blocked`，并把唯一下一步交回 `ahe-workflow-router`。
+
 ### 2. 判断 closeout 类型
 
 显式写出：
@@ -126,9 +136,11 @@ Profile-aware 证据矩阵：
 ```markdown
 ## Closeout Summary
 
-- Closeout Type: `task-closeout` | `workflow-closeout`
+- Closeout Type: `task-closeout` | `workflow-closeout` | `blocked`
 - Scope:
 - Conclusion:
+- Based On Completion Record:
+- Based On Regression Record:
 
 ## Evidence Matrix
 
@@ -161,6 +173,7 @@ Profile-aware 证据矩阵：
 Closeout type-specific 约束：
 - `task closeout`：`Next Action Or Recommended Skill` 必须是 `ahe-workflow-router`
 - `workflow closeout`：`Next Action Or Recommended Skill` 必须是 `null` 或项目 null 约定
+- `blocked`：`Next Action Or Recommended Skill` 必须是 `ahe-workflow-router`，且不得声称 closeout 已完成
 
 `workflow closeout` 在 `interactive` 模式下追加：
 
@@ -198,6 +211,7 @@ Closeout type-specific 约束：
 
 ## Verification
 
+- [ ] precheck 已完成；若证据缺失或 queue 冲突，已返回 `blocked` + `ahe-workflow-router`
 - [ ] 已判断 closeout type
 - [ ] gate 证据已引用
 - [ ] evidence matrix 已落盘

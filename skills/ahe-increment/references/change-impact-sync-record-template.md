@@ -13,9 +13,11 @@
 ## 使用原则
 
 - 聚焦“实质变化”，不要把所有微小改字都上升为完整影响分析。
+- 先固定当前基线，再做影响分析；不要一边分析一边让 stage / profile / worktree 漂移。
 - 变化一旦可能影响需求、设计、任务、测试、发布说明或状态记录，就应留下记录。
 - 记录要能支持后续审查，而不是只写“已同步”。
-- 对小变更可以简写，但不能跳过受影响工件判断。
+- 若变化仍不稳定到足以写成 `New / Modified / Deprecated`，不要硬写完整影响矩阵；先阻塞并回到正确节点。
+- 对小变更可以简写，但不能跳过受影响工件判断和唯一 next action。
 
 ## 建议使用时机
 
@@ -28,46 +30,39 @@
 ```markdown
 ## 变更摘要
 
-- 变更内容：
-- 变更原因：
+- 变更摘要：
+- 当前判断：真实 increment | 更像 hotfix | 仍需进一步规格化 | blocked
 - 影响级别：high | medium | low
 
-## 影响面
+## 基线快照
 
-### 需求 / 规格
+- `Workflow Profile`：
+- `Current Stage`：
+- `Current Active Task`：
+- `Pending Reviews And Gates`：
+- `Worktree Path`：
+- `Worktree Branch`：
 
-- 是否受影响：
-- 受影响内容：
+## 变更包
 
-### 设计
+- New：
+- Modified：
+- Deprecated：
 
-- 是否受影响：
-- 受影响内容：
+## 影响矩阵
 
-### 任务计划
+- 受影响工件：
+- 失效的批准状态：
+- 失效的任务 / `Current Active Task`：
+- 失效的测试设计 / 验证证据 / review 结论：
+- 需重新派发的 reviewer / review 节点：
+- Profile 升级信号：
 
-- 是否受影响：
-- 受影响内容：
-
-### 测试 / 验证策略
-
-- 是否受影响：
-- 受影响内容：
-
-### 已实现行为
-
-- 是否受影响：
-- 受影响内容：
-
-### 发布说明 / 状态记录
-
-- 是否受影响：
-- 受影响内容：
-
-## 已完成同步
+## 同步更新项
 
 - 已更新工件：
 - 已回写内容：
+- 明确不做的内容：
 
 ## 待同步项
 
@@ -75,14 +70,13 @@
   - 原因：
   - 建议动作：
 
-## 批准状态判断
+## 状态回流
 
-- 哪些原批准仍然有效：
-- 哪些需要重新评审：
-
-## 下一步
-
-`ahe-spec-review` | `ahe-design-review` | `ahe-tasks-review` | `ahe-test-driven-dev`
+- `Current Stage`：
+- `Workflow Profile`：
+- `Current Active Task`：
+- `Pending Reviews And Gates`：
+- `Next Action Or Recommended Skill`：`ahe-specify` | `ahe-hotfix` | `ahe-spec-review` | `ahe-design` | `ahe-design-review` | `ahe-tasks` | `ahe-test-driven-dev` | `ahe-workflow-router`
 ```
 
 ## 简化版模板
@@ -93,22 +87,23 @@
 ## 变更摘要
 
 - 本次变化：
+- 当前判断：
 
-## 受影响工件
-
-- 条目
-
-## 已同步项
+## 基线快照
 
 - 条目
 
-## 待同步项
+## 变更包 / 受影响工件
+
+- 条目
+
+## 已同步项 / 状态回流
 
 - 条目
 
 ## 下一步
 
-`ahe-spec-review` | `ahe-design-review` | `ahe-tasks-review` | `ahe-test-driven-dev`
+`ahe-specify` | `ahe-hotfix` | `ahe-spec-review` | `ahe-design` | `ahe-design-review` | `ahe-tasks` | `ahe-test-driven-dev` | `ahe-workflow-router`
 ```
 
 ## 评审提示
@@ -116,6 +111,7 @@
 记录时优先回答这些问题：
 
 - 当前变化有没有改变需求含义或验收标准？
+- 当前基线（profile / stage / active task / worktree）是否已经被固定？
 - 当前变化有没有改变“如何实现”或接口边界？
 - 当前任务计划、DoD、验证策略还成立吗？
 - 现有实现里有没有被这次变更反向打穿的部分？
@@ -124,6 +120,7 @@
 ## 常见遗漏
 
 - 规格改了，但设计没回写
+- 变化还没稳定，就硬写完整影响分析并直接推进实现
 - 设计改了，但任务和验证策略没刷新
 - 任务范围变了，但 DoD 和测试仍按旧标准执行
 - 代码已经按新逻辑实现，但文档仍是旧结论
@@ -134,46 +131,39 @@
 ```markdown
 ## 变更摘要
 
-- 变更内容：登录失败锁定次数从 5 次改为 3 次，并增加管理员解锁入口
-- 变更原因：安全策略调整
+- 变更摘要：登录失败锁定次数从 5 次改为 3 次，并增加管理员解锁入口
+- 当前判断：真实 increment
 - 影响级别：high
 
-## 影响面
+## 基线快照
 
-### 需求 / 规格
+- `Workflow Profile`：standard
+- `Current Stage`：`ahe-increment`
+- `Current Active Task`：T21
+- `Pending Reviews And Gates`：`ahe-design-review`, `ahe-tasks-review`
+- `Worktree Path`：`<path-if-any>`
+- `Worktree Branch`：`feature/T21-login-lockout`
 
-- 是否受影响：是
-- 受影响内容：失败次数阈值、解锁规则、管理员角色能力
+## 变更包
 
-### 设计
+- New：管理员解锁入口
+- Modified：锁定阈值从 5 次改为 3 次
+- Deprecated：旧的 5 次阈值说明和对应验证结论
 
-- 是否受影响：是
-- 受影响内容：锁定策略、管理员操作接口、审计日志要求
+## 影响矩阵
 
-### 任务计划
+- 受影响工件：需求规格、设计说明、任务计划、测试策略、发布说明
+- 失效的批准状态：旧规格批准、旧设计批准
+- 失效的任务 / `Current Active Task`：T21 原执行边界不足以覆盖管理员解锁
+- 失效的测试设计 / 验证证据 / review 结论：锁定阈值相关验证与旧设计评审结论失效
+- 需重新派发的 reviewer / review 节点：`ahe-spec-review`, `ahe-design-review`
+- Profile 升级信号：无
 
-- 是否受影响：是
-- 受影响内容：原任务未覆盖管理员解锁和审计记录
-
-### 测试 / 验证策略
-
-- 是否受影响：是
-- 受影响内容：需要补管理员解锁路径、阈值变化、审计验证
-
-### 已实现行为
-
-- 是否受影响：是
-- 受影响内容：已有 5 次锁定逻辑失效
-
-### 发布说明 / 状态记录
-
-- 是否受影响：是
-- 受影响内容：用户侧行为变化，需补发布说明与当前任务状态更新
-
-## 已完成同步
+## 同步更新项
 
 - 已更新工件：规格草案、设计草案
-- 已回写内容：锁定阈值和管理员解锁说明
+- 已回写内容：锁定阈值与管理员解锁说明
+- 明确不做的内容：不在 increment 内直接修改生产代码
 
 ## 待同步项
 
@@ -184,12 +174,11 @@
   - 原因：原验证不足以覆盖新策略
   - 建议动作：补失败次数边界与解锁验证
 
-## 批准状态判断
+## 状态回流
 
-- 哪些原批准仍然有效：登录主流程说明
-- 哪些需要重新评审：需求规格、设计、任务计划
-
-## 下一步
-
-`ahe-spec-review`
+- `Current Stage`：`ahe-spec-review`
+- `Workflow Profile`：standard
+- `Current Active Task`：`pending reselection`
+- `Pending Reviews And Gates`：`ahe-design-review`, `ahe-tasks-review`
+- `Next Action Or Recommended Skill`：`ahe-spec-review`
 ```

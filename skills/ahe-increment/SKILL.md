@@ -34,47 +34,14 @@ description: 适用于用户明确要求增删改需求/范围/验收/约束、a
 - `ahe-workflow-router` 已判定当前属于 increment 分支
 - 已批准规格 / 设计 / 任务 / 验证依据发生了实质性变化
 - 当前需要先完成影响分析与工件同步，再决定回到哪个主链节点
+- 当前变化已经稳定到足以形成结构化变更包，而不是直接改实现
 
 不要在这些场景使用：
 
 - 当前问题本质上是“原本应成立的行为没有被正确实现”，改用 `ahe-hotfix`
 - 当前已经明确进入实现阶段，需要继续实现，改用 `ahe-test-driven-dev`
 - 当前请求只是阶段不清、profile 不稳或证据链冲突，先回到 `ahe-workflow-router`
-
-## Standalone Contract
-
-当用户直接点名 `ahe-increment` 时，至少确认以下条件：
-
-- 存在明确的变更请求或实质性变化信号
-- 当前变化本质上是范围 / 规则 / 验收 / 约束变化，而不是实现缺陷
-- 能读取 `AGENTS.md` 中与工件路径、批准规则、状态字段和 re-entry 约定有关的内容
-- 当前请求确实是做变更分析与回流，而不是直接改实现
-
-如果前提不满足：
-
-- 当前问题更像实现缺陷修复：回到 `ahe-hotfix`
-- 变更仍然含糊、route / stage 判断不清或输入证据冲突：回到 `ahe-workflow-router`
-- 已经完成变更分析并需要继续具体产出 / 实现：进入正确的 canonical re-entry 节点
-
-## Chain Contract
-
-当本 skill 作为分支节点被带入时，默认在父会话 / 当前执行上下文中运行，而不是按 reviewer subagent return contract 消费。
-
-默认读取：
-
-- 当前变更请求本身
-- `task-progress.md` 中的 `Workflow Profile`、`Current Stage`、`Current Active Task`、`Pending Reviews And Gates`，以及 `Workspace Isolation` / `Worktree Path` / `Worktree Branch`
-- 当前已批准规格、设计、任务工件
-- 当前已存在的 review / gate / 验证证据（如受影响）
-- `AGENTS.md` 中与工件路径、批准规则、状态字段和 re-entry 约定有关的内容
-
-本节点完成后应写回：
-
-- 结构化变更包
-- 受影响工件与失效项矩阵
-- 同步更新项
-- 若当前 workflow 已分配或要求 worktree，则保留 / 写回对应状态字段
-- canonical `Next Action Or Recommended Skill`
+- 当前变化仍然含糊、无法稳定结构化，先回 `ahe-specify` 或 `ahe-workflow-router`
 
 这个 skill 的职责是把变化重新锚定回正确阶段，而不是自己替代 `ahe-specify`、`ahe-design`、`ahe-tasks` 或 `ahe-test-driven-dev`。
 
@@ -83,48 +50,6 @@ description: 适用于用户明确要求增删改需求/范围/验收/约束、a
 - 在完成影响分析与失效判断前，不得把当前 increment 直接交给下游实现节点。
 - 如果当前输入工件还不足以判定 stage / route，不直接开始 increment 分析。
 - `ahe-increment` 不直接替代规格、设计、任务、实现、review 或 gate 节点；它只负责同步变化并选唯一 re-entry 节点。
-
-## Quality Bar
-
-高质量 increment 结果至少应做到：
-
-- 开始前已经固定当前 profile、当前阶段、当前活跃任务和已批准工件基线
-- 变化不是口头描述，而是整理成 `New / Modified / Deprecated` 的结构化变更包
-- 失效的批准、任务、验证证据和 review 结论被显式列出
-- 只更新最小必要工件，不把 increment 写成第二次从零规格化
-- 回到主链时写的是唯一 canonical `ahe-*` handoff，而不是自然语言阶段名
-
-## Inputs / Required Artifacts
-
-变更影响分析完成后，默认应将本次分析记录到项目变更记录中；若没有专门路径，可至少同步到：
-
-- `docs/reviews/increment-<topic>.md`
-- `task-progress.md`
-- 相关规格 / 设计 / 任务工件
-
-如 `AGENTS.md` 为当前项目声明了等价路径，按其中映射路径保存。
-
-如果团队还没有统一的变更影响同步记录格式，可先使用当前 skill 的 `references/change-impact-sync-record-template.md` 模板；若 `AGENTS.md` 为当前项目声明了等价模板路径，优先遵循。
-
-开始前，先固定以下状态基线：
-
-- `Workflow Profile`
-- `Current Stage`
-- `Current Active Task`
-- `Workspace Isolation` / `Worktree Path` / `Worktree Branch`（若存在）
-- 当前已批准规格 / 设计 / 任务工件
-- 当前已存在的验证 / review 证据（如受影响）
-
-如果变更影响了已批准工件，应明确记录：
-
-- 哪些批准状态失效
-- 哪些任务计划不再可执行
-- 哪些测试设计、验证证据或 review 结论已经失效
-- 哪些失效的 review 结论需要由父会话重新派发对应 reviewer subagent
-- 当前活跃任务是否仍然有效；若失效，是否必须清空为待重选
-- 当前阶段是否需要回退
-- `Next Action Or Recommended Skill` 应该改成什么
-- 是否出现需要升级 profile 的新信号
 
 ## Workflow
 
@@ -144,6 +69,20 @@ description: 适用于用户明确要求增删改需求/范围/验收/约束、a
 - 哪些内容仍然有效
 - 当前变化更像 increment 还是 hotfix
 - 当前是否已经出现 profile 升级信号
+
+### 1.5 Precheck
+
+在继续形成 `New / Modified / Deprecated` 变更包前，先确认：
+
+- 当前基线已经固定：`Workflow Profile`、`Current Stage`、`Current Active Task`、`Pending Reviews And Gates`、worktree 字段、已批准工件和受影响验证证据都可回读
+- 当前变化已经稳定到足以结构化，而不是仍停留在模糊意图或口头方向
+- route / stage / worktree / evidence 之间没有明显冲突，不会一边做 increment 分析一边继续漂移
+
+若不满足，不继续补脑产出完整影响矩阵，而是写出阻塞原因和唯一下一步：
+
+- 更像实现缺陷：`ahe-hotfix`
+- 变化仍需重新收敛需求表达：`ahe-specify`
+- route / stage / profile / worktree 仍不清：`ahe-workflow-router`
 
 ### 2. 形成结构化变更包与影响矩阵
 
@@ -216,6 +155,14 @@ description: 适用于用户明确要求增删改需求/范围/验收/约束、a
 
 ### 5. 写回状态与回流说明
 
+变更影响分析完成后，默认应把本次记录同步到项目变更记录；若 `AGENTS.md` 无项目覆写，可至少落到：
+
+- `docs/reviews/increment-<topic>.md`
+- `task-progress.md`
+- 相关规格 / 设计 / 任务工件
+
+模板优先使用 `references/change-impact-sync-record-template.md`；若 `AGENTS.md` 为当前项目声明了等价模板路径，优先遵循。
+
 至少同步：
 
 1. `Current Stage`
@@ -236,8 +183,17 @@ description: 适用于用户明确要求增删改需求/范围/验收/约束、a
 ## 变更摘要
 
 - 变更摘要
+- 当前判断：真实 increment | 更像 hotfix | 仍需进一步规格化 | blocked
 - 当前 workflow profile / 当前阶段
-- 当前判断：真实 increment | 更像 hotfix | 仍需进一步规格化
+
+## 基线快照
+
+- `Workflow Profile`
+- `Current Stage`
+- `Current Active Task`
+- `Pending Reviews And Gates`
+- `Worktree Path`
+- `Worktree Branch`
 
 ## 变更包
 
@@ -259,6 +215,11 @@ description: 适用于用户明确要求增删改需求/范围/验收/约束、a
 - 更新项
 - 明确不做的内容
 
+## 待同步项
+
+- 工件
+- 原因 / 建议动作
+
 ## 状态回流
 
 - `Current Stage`
@@ -267,16 +228,6 @@ description: 适用于用户明确要求增删改需求/范围/验收/约束、a
 - `Pending Reviews And Gates`
 - `Next Action Or Recommended Skill`: `ahe-specify` | `ahe-hotfix` | `ahe-spec-review` | `ahe-design` | `ahe-design-review` | `ahe-tasks` | `ahe-test-driven-dev` | `ahe-workflow-router`
 ```
-
-## Common Rationalizations
-
-| Rationalization | Reality |
-|---|---|
-| “这只是个小改动，直接改实现就好” | 只要需求、范围或验收变了，就先做影响分析。 |
-| “先把代码改了，文档后面再补” | increment 的职责就是先同步变化，再决定回到哪个阶段。 |
-| “旧批准应该还能沿用，不用重审” | 实质内容变化后，必须重新判断批准与 review 结论是否仍有效。 |
-| “先推进，回头再决定回哪个阶段” | increment 完成时必须选定唯一 canonical re-entry 节点。 |
-| “这更像实现修复，但先按 increment 走也没关系” | hotfix / increment 选错分支会直接污染后续工件与路由。 |
 
 ## 和其他 Skill 的区别
 
@@ -305,5 +256,7 @@ description: 适用于用户明确要求增删改需求/范围/验收/约束、a
 
 无论属于哪种完成路径，还应满足：
 
+- [ ] 当前基线快照已固定，后续会话可回读 profile / stage / active task / worktree 语义
 - [ ] `Current Stage`、`Workflow Profile`、`Current Active Task` 与 `Pending Reviews And Gates` 已按需要同步
+- [ ] 若存在多个失效 review / gate，唯一最早节点已写入 `Next Action Or Recommended Skill`，其余已保留在 `Pending Reviews And Gates`
 - [ ] 当前结论已经足以让父会话恢复到正确主链节点，而不是继续补脑推进

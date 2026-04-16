@@ -27,6 +27,31 @@
         "The response does not invent a new downstream skill after finalize.",
         "The response clearly records workflow completion as state rather than as a fake canonical skill."
       ]
+    },
+    {
+      "id": 3,
+      "prompt": "User request:\ninteractive mode，completion gate 已经通过，继续正式收尾当前工作周期。\n\nProject snapshot:\n- `Workflow Profile`: standard.\n- `Execution Mode`: interactive.\n- `Current Active Task`: T32.\n- Fresh on-disk `ahe-regression-gate` and `ahe-completion-gate` records are present, and there are no remaining approved unfinished tasks.\n- The user has not yet explicitly confirmed that this workflow cycle should be closed.\n\nAs `ahe-finalize`, decide what to output next.",
+      "expected_output": "Finalize should treat this as a workflow-closeout candidate, but in interactive mode it must first present the closeout summary / evidence matrix and ask for final confirmation before writing `Next Action Or Recommended Skill: null`. It should not silently close the workflow in the same step without that confirmation.",
+      "files": [],
+      "expectations": [
+        "Treats the scenario as workflow-closeout rather than task-closeout",
+        "Requests explicit final confirmation from the user",
+        "Does not immediately write `Next Action Or Recommended Skill: null` before confirmation",
+        "Uses the closeout summary / evidence matrix framing rather than a casual one-line answer"
+      ]
+    },
+    {
+      "id": 4,
+      "prompt": "User request:\nauto mode，completion gate 说可以 finalize 了，你继续收尾。\n\nProject snapshot:\n- `Workflow Profile`: full.\n- `Execution Mode`: auto.\n- `Current Active Task`: T24.\n- `task-progress.md` says there are no remaining approved tasks, but the task board still shows two approved unfinished tasks waiting in queue.\n- The `ahe-completion-gate` record exists, but the remaining-work evidence is inconsistent.\n\nAs `ahe-finalize`, decide how to proceed.",
+      "expected_output": "Finalize should fail precheck and return a blocked closeout rather than pretending to know whether this is task-closeout or workflow-closeout. It should route back to `ahe-workflow-router`, preserve the inconsistency as the blocker reason, and avoid writing `null` or claiming workflow completion.",
+      "files": [],
+      "expectations": [
+        "Recognizes the remaining-work evidence conflict as a precheck blocker",
+        "Returns or recommends a blocked closeout state",
+        "Routes back to `ahe-workflow-router` as the unique next action",
+        "Does not claim workflow completion",
+        "Does not write `Next Action Or Recommended Skill: null` in this conflicted scenario"
+      ]
     }
   ]
 }

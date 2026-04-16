@@ -23,7 +23,7 @@
 | `Workflow Profile` | 当前 workflow 密度 | 仅使用 `full` / `standard` / `lightweight` |
 | `Execution Mode` | 当前 workflow 的交互 / 自动推进方式 | 仅使用 `interactive` / `auto` |
 | `Current Active Task` | 当前唯一活跃任务 | 必须可唯一指向一个任务；未锁定时留空或写项目约定占位值 |
-| `Pending Reviews And Gates` | 仍未完成的 review / gate 节点 | 用 canonical 节点名列出剩余链路 |
+| `Pending Reviews And Gates` | 仍未完成的 review / gate 节点 | 用 canonical 节点名列出剩余链路；若存在多个待恢复节点，保留完整列表 |
 | `Next Action Or Recommended Skill` | 当前显式下一步 | 只能写一个 canonical 节点值，不得写自由文本 |
 
 ### `Current Stage`
@@ -80,6 +80,7 @@
 - 只能写一个 canonical 值
 - 不得使用 `done`、`继续推进`、`看情况`、`工作流完成` 这类自然语言
 - workflow 已结束时，留空或使用项目约定 null 值；不要伪造新的下游节点
+- 若同时保留多个待恢复节点，`Next Action Or Recommended Skill` 只写当前立即恢复的 canonical 节点；其余节点继续保留在 `Pending Reviews And Gates`
 
 ## Canonical Verdict And Severity
 
@@ -300,6 +301,7 @@ reviewer subagent 的最小结构化摘要统一使用：
 - [ ] progress schema 使用 canonical 字段名
 - [ ] verdict 与 severity vocabulary 没有漂移
 - [ ] `Next Action Or Recommended Skill` / `next_action_or_recommended_skill` 只写唯一 canonical 值
+- [ ] 若多个 review / gate 同时待恢复，`Next Action Or Recommended Skill` 只写最早节点，其余保留在 `Pending Reviews And Gates`
 - [ ] review / gate 结论会落盘到仓库工件
 - [ ] 依赖 fresh evidence 的节点明确写出新鲜度锚点
 - [ ] route / stage / profile / 上游证据冲突会回到 `ahe-workflow-router`

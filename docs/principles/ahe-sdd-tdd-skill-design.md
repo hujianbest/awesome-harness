@@ -246,6 +246,8 @@ ahe-hotfix    -> 先复现、收敛边界，再 handoff 回实现主链
 ahe-increment -> 先影响分析、同步工件，再重入正确主链节点
 ```
 
+支线和 closeout 的设计判断应保持在“职责边界”层，而不是把 live runtime 细则再次抄进原则文档。也就是说：branch 节点负责分析和 re-entry，closeout 节点负责正式收口；更细的 precheck / reroute / closeout record contract 应留在各自 `SKILL.md` 与 family shared docs。
+
 这条设计的核心是：
 
 - `SDD` 负责把任务变得“可正确实现”
@@ -263,7 +265,9 @@ ahe-increment -> 先影响分析、同步工件，再重入正确主链节点
 | `ahe-tasks` | 产出可执行任务、DoD、验证方式、测试种子 | 提前开始编码 |
 | `ahe-test-driven-dev` | 先测什么、如何 fail、最小实现、fresh evidence、handoff | 换任务、跳过测试、串起完整下游质量链 |
 | review skills | 发现问题、给出 verdict 与唯一下一步 | 顺手回修正文或实现 |
+| `ahe-hotfix` / `ahe-increment` | 做分支分析、边界收敛与 canonical re-entry | 直接改代码，或在证据冲突时伪造 handoff |
 | gate skills | 消费 fresh evidence，判断能否继续 | 用对话记忆代替证据 |
+| `ahe-finalize` | 消费 gate 结论，完成状态 / 文档 / release 收口 | 混入新实现，或在收尾证据不稳时伪造完成结论 |
 
 ## 推荐的工件最小内容
 
@@ -342,6 +346,7 @@ ahe-increment -> 先影响分析、同步工件，再重入正确主链节点
 - 用旧测试结果充当当前 `fresh evidence`
 - `auto mode` 下直接跳过 approval record
 - 让 review skill 顺手回修，让实现 skill 顺手决定完整下游链路
+- 把 branch / closeout 的 live runtime 细则同时写进原则文档、shared docs 和 leaf skill，导致层级冲突
 
 ## 对 AHE 的落地建议
 

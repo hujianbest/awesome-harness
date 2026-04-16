@@ -43,7 +43,7 @@ Profile-aware 上游证据矩阵：
 
 | Profile | 需确认的上游记录 |
 |---------|---------------|
-| `full` / `standard` | bug-patterns、test-review、code-review、traceability-review、regression-gate、实现交接块 |
+| `full` / `standard` | test-review、code-review、traceability-review、regression-gate、实现交接块 |
 | `lightweight` | regression-gate、实现交接块；其余写 `N/A（按 profile 跳过）` |
 
 full/standard 记录缺失/过旧 → `阻塞`。
@@ -68,6 +68,37 @@ full/standard 记录缺失/过旧 → `阻塞`。
 
 记录：完成范围、命令、退出码、结果摘要、新鲜度锚点、未覆盖什么。
 
+若项目未覆写格式，默认把 evidence bundle 映射到共享模板 `templates/verification-record-template.md` 的这些字段：
+- `Metadata`：`Verification Type=completion-gate`、Scope、Record Path、Worktree Path / Branch（若适用）
+- `Upstream Evidence Consumed`：implementation handoff、review / gate records、task / progress anchors
+- `Claim Being Verified`：当前准备宣告的 completion claim
+- `Verification Scope`：Included Coverage、Uncovered Areas
+- `Commands And Results`：命令、退出码、Summary、Notable Output
+- `Freshness Anchor`：为什么这些结果属于当前最新代码状态
+- `Conclusion`：`通过` / `需修改` / `阻塞` + 唯一 `Next Action Or Recommended Skill`
+- `Scope / Remaining Work Notes`：剩余任务判断、next-ready 候选是否唯一、限制与备注
+
+### 6A. 完成判定闸门
+
+先把当前场景收敛成**唯一 verdict + 唯一下一步**，再写完成记录。不要把“感觉差不多完成了”写成 `通过`。
+
+| 场景 | conclusion | next_action_or_recommended_skill | 必须写出的最少字段 |
+|---|---|---|---|
+| 本轮没有 fresh verification evidence，也没运行能直接证明 completion claim 的命令 | `需修改` | `ahe-test-driven-dev` | `record_path`、缺失的 fresh evidence、需要重跑的验证命令 |
+| 声称“刚跑过且全绿”，但只有口头陈述，或终端 / 输出记录已不可核实 | `阻塞` | `ahe-completion-gate` | `record_path`、不可核实原因、需要重新生成的验证输出 |
+| review 都过了，但本轮没运行能直接证明 completion claim 的命令 | `需修改` | `ahe-test-driven-dev` | `record_path`、缺失的验证命令、为什么 review 不能替代 verification |
+| 验证命令有失败项，或结果不能直接支持 completion claim | `需修改` | `ahe-test-driven-dev` | `record_path`、失败摘要、未满足的完成条件 |
+| 强制验证步骤因环境 / 工具链问题未完成，且 `AGENTS.md` / DoD 无降级许可 | `阻塞` | `ahe-completion-gate` | `record_path`、阻塞原因、未覆盖区域、恢复后需重跑什么 |
+| 当前任务证据充分，但 next-ready task 候选不唯一，或 ready 判定冲突 | `阻塞` | `ahe-workflow-router` | `record_path`、候选任务清单、冲突证据、为什么本 skill 不能替 router 选任务 |
+| 当前任务证据充分，且仍有唯一 next-ready task | `通过` | `ahe-workflow-router` | `record_path`、completion claim、evidence bundle、`Remaining Task Decision=唯一 next-ready task` |
+| 当前任务证据充分，且已无剩余 approved tasks | `通过` | `ahe-finalize` | `record_path`、completion claim、evidence bundle、`Remaining Task Decision=无剩余任务` |
+
+补充规则：
+- 不接受“失败测试与本次改动关系不大”“我刚才本地跑过了但没保留输出”这类不可核实说法
+- `interactive`：若只差 1 个任务队列事实就能判断“唯一 next-ready task vs 无剩余任务”，先问 1 个最小判别问题；不要替 router 补脑
+- `auto`：若 remaining-task 证据不唯一，直接 `阻塞` 并回 `ahe-workflow-router`
+- 若输出不能映射到上表中的一行，说明 verdict 还没收敛好，不能返回
+
 ### 7. 门禁判断
 
 - 证据支持完成 + 有唯一 next-ready task → `通过`，下一步 `ahe-workflow-router`
@@ -84,6 +115,7 @@ full/standard 记录缺失/过旧 → `阻塞`。
 - 已消费的上游结论与证据矩阵
 - 完成宣告范围
 - 命令、退出码、结果摘要、新鲜度锚点
+- `Claim Being Verified` 与它对应的直接验证命令；不能只写 review 结论
 - 剩余任务判断与“唯一 next-ready task / 无剩余任务 / 候选不唯一”结论
 - worktree 锚点（若适用）
 - 唯一门禁结论与唯一下一步

@@ -8,10 +8,11 @@
 
 ## Closeout Summary
 
-- Closeout Type: `task-closeout` | `workflow-closeout`
+- Closeout Type: `task-closeout` | `workflow-closeout` | `blocked`
 - Scope:
 - Conclusion:
 - Based On Completion Record:
+- Based On Regression Record:
 
 ## Evidence Matrix
 
@@ -53,3 +54,15 @@
   - `Current Active Task` 应清空或显式关闭
   - `Next Action Or Recommended Skill` 应写 `null` 或项目 null 约定
   - 不得再写回 `ahe-workflow-router`
+
+- `blocked`:
+  - `Current Stage` 应写回 `ahe-workflow-router`
+  - `Next Action Or Recommended Skill` 应写 `ahe-workflow-router`
+  - 不得声称 closeout 已完成
+
+## Final Confirmation
+
+- `workflow-closeout` + `interactive`：
+  - Question: 是否确认正式结束本轮 workflow？
+  - If confirmed: write `Next Action Or Recommended Skill: null`
+  - If not confirmed: return to `ahe-workflow-router`

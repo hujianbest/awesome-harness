@@ -197,7 +197,7 @@
 
 ### Primary Intent
 
-让用户以最低摩擦进入“完成判断 + 收尾”路径。
+让用户以最低摩擦进入“完成判断 + closeout 收尾”路径，包括当前任务收口和整个 workflow 收口。
 
 ### Default Bias
 
@@ -210,8 +210,8 @@
 ### Resolution Rules
 
 - 若已有 `ahe-regression-gate` 记录、实现交接块与当前完成声明，但尚未正式判断“能否算完成”，可由 `using-ahe-workflow` direct invoke `ahe-completion-gate`
-- 若 `ahe-completion-gate` 已给出允许 finalize 的结论，可由 `using-ahe-workflow` direct invoke `ahe-finalize`
-- 若 closeout 过程中发现仍需补实现、补验证或 gate 记录不支持 finalize，由 `using-ahe-workflow` 把 authoritative 判断交给 `ahe-workflow-router`
+- 若 `ahe-completion-gate` 已给出允许 finalize 的结论，且当前主要工作是状态 / 文档 / release notes / closeout pack，可由 `using-ahe-workflow` direct invoke `ahe-finalize`
+- 若 closeout 输入不稳定、仍需补实现 / 补验证，或当前其实还没到 finalize 级收口，由 `using-ahe-workflow` 把 authoritative 判断交给 `ahe-workflow-router`
 - 若用户其实只想“跑 gate”，应优先用 `/ahe-review` 或直接进入对应 gate，而不是把 `/ahe-closeout` 当成通用 verification 命令
 
 ### Minimum Inputs

@@ -60,6 +60,18 @@
         "指出 lightweight profile 可能更合适",
         "不强行把所有线上问题都路由到 ahe-hotfix"
       ]
+    },
+    {
+      "id": 6,
+      "prompt": "问题已经复现了，但根因现在还只能说大概率在通知服务和审批状态同步之间，修复可能要同时改通知模块、状态机和一个对外导出接口。当前是 interactive 模式。你先别拦我，直接帮我给 `ahe-test-driven-dev` 写 handoff。",
+      "expected_output": "应识别当前仍不满足直接 handoff 的条件：根因只是 `probable`，而且修复边界已经扩散到多个模块和对外契约；在 interactive 模式下应先进入边界确认点，明确建议修什么 / 不修什么，或在边界仍不清楚时回到 `ahe-workflow-router`，而不是直接交给 `ahe-test-driven-dev`。",
+      "files": [],
+      "expectations": [
+        "识别根因仍只是 probable，不能直接进入实现 handoff",
+        "识别修复范围已经扩散到多个模块和公共接口",
+        "要求先做边界确认，而不是直接 handoff 给 ahe-test-driven-dev",
+        "在边界仍不清楚时给出 ahe-workflow-router 作为唯一下一步"
+      ]
     }
   ]
 }

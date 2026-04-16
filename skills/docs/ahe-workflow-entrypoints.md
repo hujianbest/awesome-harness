@@ -66,8 +66,8 @@ direct invoke 不是主路径替代品，而是在“当前节点已经足够明
 - review / gate 刚完成，需要恢复后续编排
 - 当前存在 route / stage / profile 不确定性
 - 当前工件证据冲突
-- 用户提出需求变更、范围变化、验收变化
-- 用户提出紧急缺陷修复
+- 用户提出需求变更、范围变化、验收变化，但当前还不足以直接选定 `ahe-increment`
+- 用户提出紧急缺陷修复，但当前还不足以直接选定 `ahe-hotfix`
 
 理由：
 
@@ -99,10 +99,10 @@ direct invoke 不是主路径替代品，而是在“当前节点已经足够明
 | Authoring | `ahe-specify` / `ahe-design` / `ahe-tasks` | 当前明确是在补齐规格、设计或任务计划正文；上游前置条件满足 | 阶段不清、其实该做 review、其实该走支线、或已进入实现 |
 | Review | `ahe-spec-review` / `ahe-design-review` / `ahe-tasks-review` / downstream reviews | 当前明确是 review-only，请求和工件都指向一个具体 review 节点 | 没有可评审草稿 / 记录、其实需要继续产出正文、或 route / stage 冲突 |
 | Implementation | `ahe-test-driven-dev` | 已有唯一活跃任务，且任务计划已批准，或已有 hotfix handoff / 回流 findings | 无唯一活跃任务、批准状态冲突、其实要做 review / gate |
-| Standalone experience capture | `ahe-bug-patterns` | AI 发现重复错误、recurring review finding、hotfix 教训或用户要求把经验固化成 bug pattern | 把它当成 `ahe-test-review` 前的 mandatory gate，或在没有历史证据时强行固化 |
+| Standalone experience capture | `ahe-bug-patterns` | AI 发现重复错误、recurring review finding、hotfix 教训或用户要求把经验固化成 bug pattern | 把它当成 `ahe-test-review` 前的 mandatory gate、把它写成 canonical next action，或在没有历史证据时强行固化 |
 | Gates | `ahe-regression-gate` / `ahe-completion-gate` | 上游记录已落盘，当前就是要跑正式门禁 | 缺上游 handoff / verification 输入、缺环境、其实该回到实现或 router |
-| Finalize | `ahe-finalize` | completion gate 已允许收尾，且已无剩余 approved task，当前要做状态 / 文档 / 发布说明收口 | 仍需补实现或补验证、仍有剩余任务、gate 记录缺失或不支持 finalize |
-| Branch analysis | `ahe-hotfix` / `ahe-increment` | 问题明确属于 hotfix 或 increment，当前要做影响分析与 re-entry，而不是直接改代码 | 阶段不清、输入证据冲突、其实已经明确进入实现 |
+| Finalize | `ahe-finalize` | completion gate 已允许收尾，且当前请求明确是在做 finalize 级状态 / 文档 / release 收口 | 仍需补实现或补验证、gate 记录缺失、closeout 输入不稳定，或其实还没到收尾阶段 |
+| Branch analysis | `ahe-hotfix` / `ahe-increment` | 问题明确属于 hotfix 或 increment，且当前要做分支分析与 re-entry，而不是直接改代码 | 阶段不清、输入证据冲突、其实已经明确进入实现，或关键前置工件仍不存在 |
 
 ## Special Rule For Review Skills
 
@@ -207,7 +207,8 @@ direct invoke 的 handoff 只表达“本节点之后推荐谁”，不替代 ro
 - “帮我 review 这份 spec 草稿” -> 若规格草稿已存在且这是 review-only 请求，可 direct invoke `ahe-spec-review`
 - “按 TDD 实现当前 active task” -> 若任务计划已批准且活跃任务唯一，可 direct invoke `ahe-test-driven-dev`
 - “这是线上 bug，先收敛 root cause 和最小修复边界” -> 可 direct invoke `ahe-hotfix`
-- “completion gate 过了，帮我做收尾和 release notes” -> 若 gate 记录已落盘且已无剩余 approved task，可 direct invoke `ahe-finalize`
+- “这是需求变更，不要改代码，先做影响分析和 re-entry” -> 若变更请求明确且关键工件可读，可 direct invoke `ahe-increment`
+- “completion gate 过了，帮我做收尾和 release notes” -> 若 gate 记录已落盘且当前确实是在做 closeout，可 direct invoke `ahe-finalize`
 
 ## Anti-Patterns
 
