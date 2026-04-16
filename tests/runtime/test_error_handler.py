@@ -1,5 +1,7 @@
 """Tests for ErrorHandler module."""
 
+from unittest.mock import patch
+
 import pytest
 from datetime import datetime
 
@@ -150,3 +152,120 @@ class TestErrorLogging:
 
         assert entry.strategy.max_retries == 3
         assert entry.strategy.delays == [1.0, 2.0, 4.0]
+
+
+class TestExecuteWithRetry:
+    """Test execute_with_retry functionality."""
+
+    def test_successful_operation(self):
+        """Successful operation should return result without retry."""
+        def successful_op():
+            return "success"
+
+        result, error_entry = ErrorHandler.execute_with_retry(successful_op)
+
+        assert result == "success"
+        assert error_entry is None
+
+    def test_retryable_retries_once(self):
+        """RETRYABLE error should retry once and succeed."""
+        attempt_count = [0]
+
+        def flaky_op():
+            attempt_count[0] += 1
+            if attempt_count[0] == 1:
+                raise ConnectionError("Connection failed")
+            return "success"
+
+        result, error_entry = ErrorHandler.execute_with_retry(flaky_op)
+
+        assert result == "success"
+        assert error_entry is None
+        assert attempt_count[0] == 2
+
+    def test_retryable_retries_exhausted(self):
+        """RETRYABLE error should exhaust retries and upgrade to FATAL."""
+        def always_failing_op():
+            raise ConnectionError("Always fails")
+
+        result, error_entry = ErrorHandler.execute_with_retry(
+            always_failing_op, session_id="test-session"
+        )
+
+        assert result is None
+        assert error_entry is not None
+        assert error_entry.category == ErrorCategory.FATAL
+        assert error_entry.session_id == "test-session"
+        assert error_entry.error_type == "ConnectionError"
+
+    def test_retry_delays_correct(self):
+        """Retry delays should follow [1.0, 2.0, 4.0] pattern."""
+        attempt_count = [0]
+        delays_used = []
+
+        def failing_op():
+            attempt_count[0] += 1
+            raise TimeoutError("Timeout")
+
+        with patch("time.sleep") as mock_sleep:
+            result, error_entry = ErrorHandler.execute_with_retry(failing_op)
+
+            # Should have called sleep 3 times (for 3 retries)
+            assert mock_sleep.call_count == 3
+
+            # Check the delay values
+            calls = [call.args[0] for call in mock_sleep.call_args_list]
+            assert calls == [1.0, 2.0, 4.0]
+
+    def test_user_intervention_no_retry(self):
+        """USER_INTERVENTION error should not retry."""
+        def permission_op():
+            raise PermissionError("Access denied")
+
+        result, error_entry = ErrorHandler.execute_with_retry(permission_op)
+
+        assert result is None
+        assert error_entry is not None
+        assert error_entry.category == ErrorCategory.USER_INTERVENTION
+        assert error_entry.strategy.pause is True
+
+    def test_fatal_no_retry(self):
+        """FATAL error should not retry."""
+        def value_op():
+            raise ValueError("Invalid value")
+
+        result, error_entry = ErrorHandler.execute_with_retry(value_op)
+
+        assert result is None
+        assert error_entry is not None
+        assert error_entry.category == ErrorCategory.FATAL
+        assert error_entry.strategy.stop is True
+
+    def test_ignorable_no_retry(self):
+        """IGNORABLE error should not retry and continue execution."""
+        def runtime_op():
+            raise RuntimeError("Runtime issue")
+
+        result, error_entry = ErrorHandler.execute_with_retry(runtime_op)
+
+        assert result is None
+        assert error_entry is not None
+        assert error_entry.category == ErrorCategory.IGNORABLE
+        assert error_entry.strategy.continue_execution is True
+
+
+class TestErrorClassificationAdditional:
+    """Additional tests for error classification."""
+
+    def test_classify_runtime_error_as_ignorable(self):
+        """RuntimeError should be classified as IGNORABLE."""
+        error = RuntimeError("Runtime issue")
+        category = ErrorHandler.classify_error(error)
+        assert category == ErrorCategory.IGNORABLE
+
+    def test_classify_key_error_as_ignorable(self):
+        """KeyError should be classified as IGNORABLE."""
+        error = KeyError("missing_key")
+        category = ErrorHandler.classify_error(error)
+        assert category == ErrorCategory.IGNORABLE
+

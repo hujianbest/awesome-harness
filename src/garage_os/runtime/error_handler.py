@@ -4,10 +4,11 @@ This module provides error classification, retry strategies, and logging
 capabilities for handling errors during session execution.
 """
 
+import time
 import uuid
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Any
+from typing import Any, Callable
 
 from garage_os.types import ErrorCategory
 
@@ -149,4 +150,55 @@ class ErrorHandler:
             session_id=session_id,
             context=context,
             timestamp=datetime.now(),
+        )
+
+    @staticmethod
+    def execute_with_retry(
+        operation: Callable,
+        session_id: str | None = None,
+        context: dict[str, Any] | None = None,
+    ) -> tuple[Any, ErrorLogEntry | None]:
+        """Execute an operation with retry logic based on error classification.
+
+        Args:
+            operation: Callable to execute
+            session_id: Optional session identifier
+            context: Optional context information
+
+        Returns:
+            Tuple of (result, error_entry). error_entry is None if operation succeeds.
+        """
+        last_error = None
+        attempt = 0
+
+        while attempt <= ErrorHandler.MAX_RETRIES:
+            try:
+                result = operation()
+                return result, None
+            except Exception as e:
+                last_error = e
+                category = ErrorHandler.classify_error(e)
+
+                # Only retry RETRYABLE errors
+                if category != ErrorCategory.RETRYABLE:
+                    entry = ErrorHandler.log_error(e, category, session_id, context)
+                    return None, entry
+
+                # Check if we've exhausted retries
+                if attempt >= ErrorHandler.MAX_RETRIES:
+                    # Upgrade to FATAL and log
+                    fatal_entry = ErrorHandler.log_error(
+                        e, ErrorCategory.FATAL, session_id, context
+                    )
+                    return None, fatal_entry
+
+                # Wait before retrying
+                delay_index = min(attempt, len(ErrorHandler.RETRY_DELAYS) - 1)
+                delay = ErrorHandler.RETRY_DELAYS[delay_index]
+                time.sleep(delay)
+                attempt += 1
+
+        # Should never reach here, but handle edge case
+        return None, ErrorHandler.log_error(
+            last_error, ErrorCategory.FATAL, session_id, context
         )
