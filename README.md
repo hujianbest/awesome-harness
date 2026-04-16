@@ -1,134 +1,99 @@
-# Garage
+# garage-agent
 
 **English** | [中文](README.zh-CN.md)
 
-`Garage` is an open-source `Agent Skills` workspace designed for `solo creators`.
+`garage-agent` is a local-first home for agent skills, knowledge, and experience.
 
-It follows one core principle: **skills-driven, workflow-orchestrated development**.
+It is built for solo creators who want agent capability that starts small, grows with real work, and stays portable across hosts instead of being trapped inside one tool, one session, or one machine.
 
-- Skill-based architecture with composable capabilities
-- AHE (Agent-Harness-Engineering) workflow for systematic development
-- Two complete skill families: Product Insights → Coding implementation
-- Packs-based organization for reusable skill collections
-- Machine-assisted development with clear governance boundaries
+- Keep your agent capability in the repo, not in a closed cloud silo
+- Move across hosts without throwing away accumulated skills and context
+- Start with structured workflows and grow into runtime, memory, and reuse
+- Keep humans in charge of architecture, scope, publishing, deployment, and destructive actions
 
-Current status: V1 development baseline with complete AHE workflow skill sets.
+## Why the name
 
-## Quick Start
+A garage is where things start before they are polished: close to the work, shaped by iteration, and able to grow into something real. `garage-agent` carries that meaning. It is the place where your agent capability can be built by hand, compounded over time, and eventually leave the garage without losing its identity.
 
-This is a skills repository organized into two complementary workflow families:
+## What it is
 
-**Product Insights Skills** - When you have a fuzzy idea or need product clarity:
-- Start with `using-ahe-product-workflow` to determine your entry point
-- Move through insight gathering, opportunity mapping, concept shaping
-- Bridge to coding skills when ready for implementation
+`garage-agent` currently combines three layers:
 
-**Coding Skills** - When you have clear requirements and need implementation:
-- Start with `ahe-specify` for detailed requirements
-- Continue through design, tasks, implementation, and review
-- Use quality gates throughout the development process
+- Structured AHE workflow packs for product insight and coding
+- A file-first runtime foundation for sessions, knowledge, experience, and tool execution
+- Repo-native conventions that both humans and agents can read, inspect, and evolve
 
-For Claude Code users, skills can be invoked directly through the `/skill-name` command pattern.
+The goal is not to hide the work behind a black box. The goal is to give your agent a stable home base that can accumulate context, artifacts, and habits over time.
 
-## Project Structure
+## What it is not
+
+- Not a SaaS product
+- Not a host-locked wrapper around a single AI tool
+- Not a generic all-in-one AI framework
+- Not full autopilot that removes human judgment from important decisions
+
+## Core Principles
+
+- Local-first ownership: your data stays in the repo and remains readable even if the project stops moving
+- Host portability: the system may prefer one host today, but it should not depend on one host forever
+- Progressive enhancement: day one should be usable without a setup cliff
+- Transparent and auditable behavior: files, artifacts, and conventions should explain what the system knows and why
+- Human in charge: the system can assist and automate, but people keep the steering wheel
+
+## What works today
+
+`garage-agent` is still early, but the repository already includes:
+
+- AHE workflow skills under [packs/product-insights/skills/](packs/product-insights/skills/) and [packs/coding/skills/](packs/coding/skills/)
+- An early Python runtime package, currently named `garage-os`, under [src/garage_os/](src/garage_os/)
+- A `garage` CLI with `init`, `status`, `run`, `knowledge search`, and `knowledge list`
+- File-first runtime data under [.garage/](.garage/)
+- Approved Phase 1 direction in [docs/features/F001-garage-agent-operating-system.md](docs/features/F001-garage-agent-operating-system.md) plus runtime guides in [docs/guides/garage-os-user-guide.md](docs/guides/garage-os-user-guide.md) and [docs/guides/garage-os-developer-guide.md](docs/guides/garage-os-developer-guide.md)
+
+## Quick Start Paths
+
+### 1. Explore the workflow packs
+
+- If you are starting from a vague idea, begin with [packs/product-insights/skills/using-ahe-product-workflow/SKILL.md](packs/product-insights/skills/using-ahe-product-workflow/SKILL.md)
+- If you already know what you want to build, begin with [packs/coding/skills/using-ahe-workflow/SKILL.md](packs/coding/skills/using-ahe-workflow/SKILL.md)
+- If you want the pack overviews first, read [packs/product-insights/skills/README.md](packs/product-insights/skills/README.md) and [packs/coding/skills/README.md](packs/coding/skills/README.md)
+
+### 2. Try the runtime CLI
+
+From the repository root:
+
+```bash
+uv pip install -e .
+garage init
+garage status
+```
+
+If you already have Claude Code CLI installed and authenticated, you can also explore the current execution surface with `garage run <skill-name>`. The runtime is still early, so treat host-backed skill execution as an evolving path rather than a finished platform experience.
+
+### 3. Read the worldview and system docs
+
+- Soul: [docs/soul/manifesto.md](docs/soul/manifesto.md), [docs/soul/user-pact.md](docs/soul/user-pact.md), [docs/soul/design-principles.md](docs/soul/design-principles.md), [docs/soul/growth-strategy.md](docs/soul/growth-strategy.md)
+- System spec: [docs/features/F001-garage-agent-operating-system.md](docs/features/F001-garage-agent-operating-system.md)
+- User guide: [docs/guides/garage-os-user-guide.md](docs/guides/garage-os-user-guide.md)
+- Developer guide: [docs/guides/garage-os-developer-guide.md](docs/guides/garage-os-developer-guide.md)
+
+## Repository Map
 
 | Path | Purpose |
 | --- | --- |
-| `packs/coding/skills/` | AHE coding workflow skills (specify, design, tasks, review, etc.) |
-| `packs/product-insights/skills/` | AHE product insight skills (framing, research, concept, bridge) |
-| `packs/coding/skills/docs/` | AHE coding workflow documentation and guides |
-| `packs/product-insights/skills/docs/` | AHE product insight documentation and conventions |
-| `docs/wiki/` | Architecture analysis and design documentation |
-| `.agents/` | Agent-specific configuration and extensions |
-| `AGENTS.md` | AHE workflow documentation conventions |
+| [packs/](packs/) | Reference workflow packs, pack-local docs, and related agent assets |
+| [src/garage_os/](src/garage_os/) | Runtime package and CLI implementation |
+| [.garage/](.garage/) | Workspace runtime state for sessions, knowledge, experience, contracts, and config |
+| [docs/](docs/) | Soul docs, specs, guides, reviews, and design artifacts |
+| [tests/](tests/) | Module, integration, compatibility, and security coverage |
+| [AGENTS.md](AGENTS.md) | Agent-facing conventions and Garage OS developer reference |
 
-## Product Insights Skills
+## Open Source Direction
 
-Use these when you have a vague idea or need product clarity:
+`garage-agent` is being prepared for public open-source release.
 
-- **Entry & Routing**
-  - `using-ahe-product-workflow` - Public entry point for product insight family
-
-- **Core Workflow**
-  - `ahe-outcome-framing` - Define desired outcomes, target users, and alternatives
-  - `ahe-insight-mining` - Extract evidence from web, GitHub, and communities
-  - `ahe-opportunity-mapping` - Map JTBD opportunities and prioritize wedges
-  - `ahe-concept-shaping` - Generate and evaluate multiple concept directions
-  - `ahe-assumption-probes` - Design low-cost validation experiments
-  - `ahe-spec-bridge` - Compress insights into spec input for coding workflow
-
-## Coding Skills
-
-Use these when you have clear requirements and need implementation:
-
-- **Upstream Chain**
-  - `ahe-specify` - Requirements specification with deferment support
-  - `ahe-spec-review` - Specification review with quality rubrics
-  - `ahe-design` - Architecture and design documentation
-  - `ahe-tasks` - Task breakdown and planning
-
-- **Execution & Review**
-  - `ahe-test-driven-dev` - TDD guidance and practices
-  - `ahe-code-review` - Code review and quality assurance
-  - `ahe-test-review` - Test coverage and validation
-  - `ahe-design-review` - Design review and validation
-  - `ahe-tasks-review` - Task breakdown review
-
-- **Quality Gates**
-  - `ahe-bug-patterns` - Common bug pattern detection
-  - `ahe-completion-gate` - Completion criteria validation
-  - `ahe-regression-gate` - Regression prevention
-  - `ahe-traceability-review` - Requirements traceability
-
-- **Supporting Skills**
-  - `ahe-increment` - Incremental development guidance
-  - `ahe-hotfix` - Hotfix workflow support
-  - `ahe-finalize` - Project finalization and closeout
-  - `ahe-workflow-router` - Workflow orchestration and routing
-
-## Documentation
-
-**Product Insights:**
-- `packs/product-insights/skills/docs/` - Product insight workflow guides
-- `packs/product-insights/skills/using-ahe-product-workflow/SKILL.md` - Entry point guide
-
-**Coding:**
-- `packs/coding/skills/docs/` - AHE coding workflow guides
-- `packs/coding/skills/README.md` - Coding skills overview
-
-**Architecture:**
-- `docs/wiki/W120-ahe-workflow-externalization-guide.md` - External workflow integration
-- `docs/wiki/W140-ahe-platform-first-multi-agent-architecture.md` - Architecture overview
-- `docs/wiki/` - Engineering analysis and design ideas
-
-**Conventions:**
-- `AGENTS.md` - AHE documentation conventions
-
-## Recent Updates
-
-Latest developments focus on enhancing both workflow families:
-
-**Product Insights:**
-- Complete product insight workflow from idea to spec bridge
-- Multi-agent debate protocols for concept validation
-- Research and evidence gathering skills
-
-**Coding:**
-- Enhanced `ahe-specify` with requirement authoring contracts
-- Added `ahe-spec-review` with comprehensive review rubrics
-- Improved granularity and deferment guidance
-- Added evaluation frameworks for skill quality assessment
-
-## Contributing
-
-`Garage` is focused on high-quality agent skills. Valuable contributions include:
-
-- New workflow skills following AHE patterns
-- Enhanced evaluation rubrics and quality gates
-- Additional packs for different domains
-- Improved documentation and examples
-- Cross-platform compatibility improvements
-
-## License
-
-This project maintains an open-source focus on agent-assisted development tools.
+- Public project name: `garage-agent`
+- Current Python package and CLI names in the repo: `garage-os` and `garage`
+- A formal `LICENSE` file has not been added yet, so reuse terms are not final
+- `CONTRIBUTING.md`, `CODE_OF_CONDUCT.md`, and `SECURITY.md` are also still to be defined
+- The most useful contributions right now are workflow quality, portability, docs clarity, runtime hardening, and examples
