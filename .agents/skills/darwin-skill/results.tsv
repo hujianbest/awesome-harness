@@ -1,0 +1,45 @@
+timestamp	commit	skill	old_score	new_score	status	dimension	note	eval_mode
+2026-04-16T14:37:14	baseline	using-ahe-workflow	-	70.2	baseline	-	初始评估；三行快路径压缩过度，丢失 intake 问题	full_test
+2026-04-16T14:37:14	baseline	ahe-workflow-router	-	89.7	baseline	-	初始评估；shared guide path ambiguity	full_test
+2026-04-16T14:37:14	baseline	ahe-specify	-	87.2	baseline	-	初始评估；默认 spec 路径与 docs/features 约定有轻微漂移	full_test
+2026-04-16T14:37:14	baseline	ahe-spec-review	-	87.7	baseline	-	初始评估；checkpoint 依赖父会话	dry_run
+2026-04-16T14:37:14	baseline	ahe-design	-	87.2	baseline	-	初始评估；author checkpoint 较薄	dry_run
+2026-04-16T14:37:14	baseline	ahe-design-review	-	85.7	baseline	-	初始评估；rubric 细节外置 refs	dry_run
+2026-04-16T14:37:14	baseline	ahe-tasks	-	82.8	baseline	-	初始评估；checkpoint 下沉到 downstream reviewer	dry_run
+2026-04-16T14:37:14	baseline	ahe-tasks-review	-	85.5	baseline	-	初始评估；template/contract drift	dry_run
+2026-04-16T14:37:14	baseline	ahe-test-driven-dev	-	92.0	baseline	-	初始评估；认知负载偏高但执行契约很强	full_test
+2026-04-16T14:37:14	baseline	ahe-bug-patterns	-	77.6	baseline	-	初始评估；verdict contract 偏薄	full_test
+2026-04-16T14:37:14	baseline	ahe-test-review	-	84.4	baseline	-	初始评估；缺 approval-style pause	dry_run
+2026-04-16T14:37:14	baseline	ahe-code-review	-	83.7	baseline	-	初始评估；trigger phrasing 偏弱	dry_run
+2026-04-16T14:37:14	baseline	ahe-traceability-review	-	80.3	baseline	-	初始评估；无明确 human checkpoint	dry_run
+2026-04-16T14:37:14	baseline	ahe-regression-gate	-	80.6	baseline	-	初始评估；evidence bundle 格式不够显式	dry_run
+2026-04-16T14:37:14	baseline	ahe-completion-gate	-	82.5	baseline	-	初始评估；checkpoint/resource 显式度不足	full_test
+2026-04-16T14:37:14	baseline	ahe-finalize	-	79.0	baseline	-	初始评估；handoff schema 隐含	dry_run
+2026-04-16T14:37:14	baseline	ahe-hotfix	-	79.5	baseline	-	初始评估；模板与记录路径暴露不足	dry_run
+2026-04-16T14:37:14	baseline	ahe-increment	-	87.5	baseline	-	初始评估；缺显式 human checkpoint	dry_run
+2026-04-16T16:40:19	working-tree	using-ahe-workflow	70.2	85.1	keep	d8+d6+d4	快路径改为先给路由再进入 leaf kickoff；补产品 discovery fallback；增加单事实分流检查点	full_test
+2026-04-16T17:39:50	working-tree	ahe-bug-patterns	77.6	83.4	keep	role-reset+d4	从 workflow gate 改为独立经验固化 skill；主链移除强依赖；增加人工确认与 not-yet 观察计划	full_test
+2026-04-16T19:05:07	working-tree	ahe-finalize	79.0	85.0	keep	d4+d6	显式区分 task/workflow closeout；外置 closeout pack 模板；workflow closeout 增加最终确认点	full_test
+2026-04-16T20:59:29	working-tree	ahe-hotfix	79.5	86.0	keep	d6+d4+d5	显式暴露 hotfix 记录模板与输出合同；增加修复边界确认点；新增 bug-vs-increment 契约核对	full_test
+2026-04-16T21:11:57	working-tree	ahe-traceability-review	80.3	86.8	keep	d4+d6+d8	增加 verdict 写回闸门；显式收敛 precheck/需修改/通过 的结构化返回合同	full_test
+2026-04-16T21:23:32	working-tree	ahe-regression-gate	80.6	85.1	keep	d5+d4+d8	增加回归信号判定表；显式映射 fresh evidence、降级条件、verdict 与共享 verification 模板字段	full_test
+2026-04-16T21:40:27	working-tree	ahe-completion-gate	82.5	89.9	keep	d5+d8+d6	增加完成判定闸门；显式区分无 fresh evidence、不可核实输出、失败验证与 next-ready/finalize 分流，并移除 bug-patterns 旧依赖	full_test
+2026-04-16T22:34:05	working-tree	using-ahe-workflow	85.1	86.1	rescan	d4+d1	全量复扫；direct invoke 仍强，但 direct path checkpoint 偏薄	dry_run
+2026-04-16T22:34:05	working-tree	ahe-workflow-router	89.7	87.5	rescan	d1+d5	全量复扫；evidence-first 很强，但 frontmatter 与 inline specificity 略回落	dry_run
+2026-04-16T22:34:05	working-tree	ahe-specify	87.2	90.0	rescan	d1+d4	全量复扫；spec authoring 合同最稳，repair 场景提升明显	dry_run
+2026-04-16T22:34:05	working-tree	ahe-spec-review	87.7	88.5	rescan	d1+d4	全量复扫；gate 契约强，approval/checkpoint 仍部分依赖父会话	dry_run
+2026-04-16T22:34:05	working-tree	ahe-design	87.2	87.8	rescan	d4+d1	全量复扫；设计 authoring 稳定，author-side checkpoint 仍偏轻	dry_run
+2026-04-16T22:34:05	working-tree	ahe-design-review	85.7	86.0	rescan	d1+d5	全量复扫；review 结构稳，但 inline contract 不如 spec-review 饱满	dry_run
+2026-04-16T22:34:05	working-tree	ahe-tasks	82.8	81.1	rescan	d4	全量复扫；task planning 主链清楚，但 checkpoint 仍下沉到 downstream reviewer	dry_run
+2026-04-16T22:34:05	working-tree	ahe-tasks-review	85.5	85.5	rescan	d1+d6+d8	全量复扫；review 契约稳定，提示词与 skill wording 仍有轻微错位	dry_run
+2026-04-16T22:34:05	working-tree	ahe-test-driven-dev	92.0	93.2	rescan	d1	全量复扫；仍是当前最强 skill，fresh-evidence + approval-gated TDD 提升最大	dry_run
+2026-04-16T22:34:05	working-tree	ahe-bug-patterns	83.4	90.4	rescan	d1+d6	全量复扫；独立经验固化定位已显著变强，人类在回路设计有效	dry_run
+2026-04-16T22:34:05	working-tree	ahe-test-review	84.4	84.8	rescan	d4	全量复扫；测试评审流程稳，但 reviewer-style checkpoint 仍偏轻	dry_run
+2026-04-16T22:34:05	working-tree	ahe-code-review	83.7	83.3	rescan	d4	全量复扫；系统性仍在，但 output contract 与 generic review 区隔不够强	dry_run
+2026-04-16T22:34:05	working-tree	ahe-traceability-review	86.8	83.9	rescan	d4+d1	全量复扫；evidence-chain 契约强，但 trigger surfacing 与 checkpoint 偏薄	dry_run
+2026-04-16T22:34:05	working-tree	ahe-regression-gate	85.1	88.1	rescan	d4+d6	全量复扫；profile-aware regression 已成型，降级许可与 shared path 仍略隐含	dry_run
+2026-04-16T22:34:05	working-tree	ahe-completion-gate	89.9	88.3	rescan	d4+d1	全量复扫；completion discipline 很强，但 frontmatter 触发面与 checkpoint 略回落	dry_run
+2026-04-16T22:34:05	working-tree	ahe-finalize	85.0	86.3	rescan	d1+d6	全量复扫；task/workflow closeout 分叉清晰，frontmatter 仍可更会触发	dry_run
+2026-04-16T22:34:05	working-tree	ahe-hotfix	86.0	89.3	rescan	d4+d3	全量复扫；bug-vs-increment 边界已很清楚，blocker handling 还可再硬一点	dry_run
+2026-04-16T22:34:05	working-tree	ahe-increment	87.5	88.7	rescan	d4+d3	全量复扫；impact-analysis 与 canonical re-entry 强，但 approval checkpoint 仍偏弱	dry_run
+2026-04-16T22:44:55	working-tree	ahe-tasks	81.1	84.0	keep	d5+d8+d4	增加任务单元合同；把 AGENTS 约束、TDD 闭环与数据库回滚要求下沉到任务级字段	full_test
