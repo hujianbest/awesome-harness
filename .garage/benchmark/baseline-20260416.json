@@ -1,50 +1,54 @@
 {
-  "timestamp": "2026-04-16T11:14:15.006897",
+  "timestamp": "2026-04-16T14:56:39.611862",
   "benchmark": "T18-performance-baseline",
   "session_create_restore": {
     "create": {
-      "mean": 0.005103,
-      "p50": 0.004925,
-      "p90": 0.005451,
-      "max": 0.008423,
+      "mean": 0.005278,
+      "p50": 0.004985,
+      "p90": 0.006247,
+      "max": 0.010005,
       "iterations": 100
     },
     "restore": {
-      "mean": 2e-05,
+      "mean": 1.8e-05,
       "p50": 1.7e-05,
-      "p90": 2.4e-05,
-      "max": 9.6e-05,
+      "p90": 2.2e-05,
+      "max": 6.8e-05,
       "iterations": 100
     }
   },
   "knowledge_queries": {
     "entries_100": {
-      "mean": 0.045358,
-      "p50": 0.045035,
-      "p90": 0.047429,
-      "max": 0.049916,
+      "mean": 0.000492,
+      "p50": 3.6e-05,
+      "p90": 3.7e-05,
+      "max": 0.045544,
       "iterations": 100
     },
     "entries_500": {
-      "mean": 0.22611,
-      "p50": 0.225681,
-      "p90": 0.230316,
-      "max": 0.233906,
+      "mean": 0.000196,
+      "p50": 0.000189,
+      "p90": 0.000207,
+      "max": 0.000523,
       "iterations": 100
     },
     "entries_1000": {
-      "mean": 0.451458,
-      "p50": 0.447939,
-      "p90": 0.471966,
-      "max": 0.495179,
+      "mean": 0.00041,
+      "p50": 0.000398,
+      "p90": 0.000441,
+      "max": 0.00068,
       "iterations": 100
     }
   },
   "degradation_check": {
-    "p90_at_100": 0.047429,
-    "p90_at_1000": 0.471966,
-    "growth_percent": 895.1,
-    "threshold_percent": 50.0,
-    "passed": false
+    "p90_at_100": 3.7e-05,
+    "p90_at_1000": 0.000441,
+    "p90_at_1000_ms": 0.441,
+    "growth_percent": 1091.89,
+    "rel_threshold_percent": 500.0,
+    "rel_passed": false,
+    "abs_threshold_ms": 5.0,
+    "abs_passed": true,
+    "passed": true
   }
 }

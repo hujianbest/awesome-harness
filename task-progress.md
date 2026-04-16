@@ -2,56 +2,55 @@
 
 ## Goal
 
-- Goal: F001 — Garage Agent OS Phase 1 实现
+- Goal: F002 — Garage Live（CLI + 真实 Claude Code 集成）
 - Owner: hujianbest
-- Status: ✅ Phase 1 全部完成（T1-T22）
+- Status: ✅ F002 全部完成
 - Last Updated: 2026-04-16
+
+## Previous: F001 Phase 1
+
+- Status: ✅ 完成（T1-T22，416 测试通过）
+- 5 个里程碑全部关闭
 
 ## Current Workflow State
 
-- Current Stage: ahe-finalize（所有任务完成）
-- Workflow Profile: full
-- Execution Mode: 主链完成
-- Current Active Task: 无（Phase 1 完成）
+- Current Stage: F002 完成
+- Current Active Task: 无
 - Pending Reviews And Gates: 无
 - Relevant Files:
-  - `docs/tasks/2026-04-15-garage-agent-os-tasks.md`（已批准任务计划）
-  - `docs/features/F001-garage-agent-operating-system.md`（已批准规格）
-  - `docs/designs/2026-04-15-garage-agent-os-design.md`（已批准设计）
+  - `docs/guides/garage-os-user-guide.md`（用户指南，已更新至 v0.2.0）
+  - `docs/guides/garage-os-developer-guide.md`（开发者指南）
+  - `docs/soul/manifesto.md`（项目宣言）
+  - `docs/soul/design-principles.md`（设计原则）
 - Constraints:
   - Phase 1 不引入数据库、常驻服务、Web UI
   - 优先使用 markdown、JSON、文件系统存储
   - 所有数据存储在 Garage 仓库内部
-  - 保持现有 26 个 AHE skills 的兼容
+  - 保持现有 AHE Skills 的兼容
 
-## Progress Notes
+## F002 交付物
 
-- What Changed: T1-T22 全部完成，Phase 1 收官
-- Evidence Paths:
-  - 416 测试全部通过
-  - 7 个源码模块 + 3 个脚本
-  - 23 个 AHE Skills 兼容性验证通过
-  - 性能基线已建立
-- Session Log:
-  - 2026-04-16: T5-T9 完成（M2 关闭）
-  - 2026-04-16: T10-T12 完成（M3 关闭）
-  - 2026-04-16: T13-T17 完成（M4 关闭）
-  - 2026-04-16: T18-T22 完成（M5 关闭）
-  - 2026-04-16: Phase 1 完成
+### CLI 命令（garage CLI）
 
-## Milestone Status
+| 命令 | 说明 |
+|------|------|
+| `garage init` | 初始化 .garage/ 目录结构（幂等） |
+| `garage status` | 显示 sessions、知识、经验统计 |
+| `garage run` | 运行一次 Agent 任务 |
+| `garage knowledge` | 知识库管理（list/query/store） |
 
-| 里程碑 | 状态 | 测试数 |
-|--------|------|--------|
-| M1: 基础验证 (T1-T4) | ✅ 完成 | — |
-| M2: 运行时核心 (T5-T9) | ✅ 完成 | 56 |
-| M3: 知识模块 (T10-T12) | ✅ 完成 | 48 |
-| M4: 集成联通 (T13-T17) | ✅ 完成 | 75 |
-| M5: 加固验证 (T18-T22) | ✅ 完成 | 93 |
+### 真实 Claude Code 集成
 
-**总计: 416 测试通过，22 个任务完成**
+- `ClaudeCodeAdapter` — 通过 subprocess 调用 `claude -p`（print mode）
+- 自动 Experience 记录 — 每次任务执行后自动生成经验记录
+- 完整的 CLI 入口点（pyproject.toml console_scripts）
+
+### 测试
+
+- 436 测试全部通过（F001 的 416 + F002 新增 20）
 
 ## Next Step
 
-- Phase 1 完成，可进入 Phase 2 规划
-- 待 push 到远程仓库
+1. **性能优化** — 知识查询退化 895% 问题待解决
+2. **Phase 2 F003** — 自动知识提取 Spec 规划
+3. Push 到远程仓库
