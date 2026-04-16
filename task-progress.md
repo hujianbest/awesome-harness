@@ -4,15 +4,15 @@
 
 - Goal: F001 — Garage Agent OS Phase 1 实现
 - Owner: hujianbest
-- Status: T9 完成，M2 里程碑关闭，推进到 M3 知识模块
+- Status: M3 完成，推进到 M4 集成联通
 - Last Updated: 2026-04-16
 
 ## Current Workflow State
 
-- Current Stage: ahe-test-driven-dev（M3: 知识模块）
+- Current Stage: ahe-test-driven-dev（M4: 集成联通）
 - Workflow Profile: full
 - Execution Mode: 主链推进
-- Current Active Task: M3 已基本完成（T10+T11 已有实现），需确认 T12
+- Current Active Task: T13 + T15 + T17（并行）
 - Pending Reviews And Gates: 无
 - Relevant Files:
   - `docs/tasks/2026-04-15-garage-agent-os-tasks.md`（已批准任务计划）
@@ -26,21 +26,15 @@
 
 ## Progress Notes
 
-- What Changed: T1-T9 全部完成，M2 里程碑关闭
+- What Changed: T1-T12 全部完成，M1+M2+M3 关闭
 - Evidence Paths:
-  - `src/garage_os/runtime/session_manager.py` + 15 测试（T5）
-  - `src/garage_os/runtime/state_machine.py` + 39 测试（T6）
-  - `src/garage_os/runtime/session_manager.py` 恢复机制 + 6 测试（T7）
-  - `src/garage_os/runtime/error_handler.py` + 25 测试（T8）
-  - `src/garage_os/runtime/artifact_board_sync.py` + 10 测试（T9）
-  - `src/garage_os/knowledge/knowledge_store.py` + `experience_index.py`（T10+T11，待确认状态）
-  - 总计 185 测试通过
+  - Runtime: session_manager + state_machine + error_handler + artifact_board_sync
+  - Knowledge: knowledge_store + experience_index + integration
+  - 总计 195 测试通过
 - Session Log:
-  - 2026-04-16: T5 Session Manager 完成（15 测试）
-  - 2026-04-16: T6 State Machine 完成（39 测试，含回调+并发保护）
-  - 2026-04-16: T7 Checkpoint + 5级恢复链 完成（6 测试）
-  - 2026-04-16: T8 Error Handler 完成（25 测试，含 execute_with_retry）
-  - 2026-04-16: T9 Artifact-Board 一致性协议 完成（10 测试，M2 关闭）
+  - 2026-04-16: T5-T9 完成（M2 关闭）
+  - 2026-04-16: T10-T12 完成（M3 关闭）
+  - 2026-04-16: 进入 M4，T13+T15+T17 并行推进
 
 ## Milestone Status
 
@@ -48,14 +42,15 @@
 |--------|------|
 | M1: 基础验证 (T1-T4) | ✅ 完成 |
 | M2: 运行时核心 (T5-T9) | ✅ 完成 |
-| M3: 知识模块 (T10-T12) | 🔍 确认中 |
-| M4: 集成联通 (T13-T17) | 待开始 |
+| M3: 知识模块 (T10-T12) | ✅ 完成 |
+| M4: 集成联通 (T13-T17) | 🔄 进行中 |
 | M5: 加固验证 (T18-T22) | 待开始 |
 
 ## Next Step
 
-- Next Action Or Recommended Skill: 确认 M3 状态，检查 T10-T12
+- Next Action: T13 (Host Adapter) + T15 (Tool Registry) + T17 (Version Manager) 并行
 - Blockers: 无
 - Notes:
-  - T10+T11 的代码已存在（knowledge_store.py, experience_index.py），需确认测试覆盖
-  - T12 依赖 T10，需确认是否需要额外工作
+  - T13, T15, T17 无相互依赖，可并行
+  - T14 (Skill Executor) 等 T13 完成后做
+  - T16 (E2E) 等所有 M4 前置任务完成后做
