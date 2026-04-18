@@ -222,6 +222,70 @@ class TestKnowledgePublisher:
         assert knowledge.tags == ["memory", "edited"]
         assert knowledge.front_matter["confirmation_ref"] == ".garage/memory/confirmations/batch-001.json"
 
+    def test_publish_orchestrator_output_end_to_end(
+        self,
+        publisher,
+        candidate_store,
+        knowledge_store,
+        experience_index,
+        temp_storage,
+    ) -> None:
+        """Publisher must accept candidates produced by the orchestrator without KeyError (CR1/CR2)."""
+        from garage_os.memory.extraction_orchestrator import (
+            ExtractionConfig,
+            MemoryExtractionOrchestrator,
+        )
+
+        orchestrator = MemoryExtractionOrchestrator(
+            temp_storage,
+            candidate_store,
+            ExtractionConfig(),
+        )
+        archived = {
+            "session_id": "session-flow",
+            "pack_id": "hf-design",
+            "topic": "F003 design",
+            "context": {
+                "metadata": {
+                    "problem_domain": "memory_pipeline",
+                    "tags": ["workspace-first"],
+                    "domain": "garage_os",
+                }
+            },
+            "artifacts": [
+                {
+                    "path": "docs/designs/example.md",
+                    "status": "approved",
+                }
+            ],
+        }
+        summary = orchestrator.extract_for_archived_session(archived)
+        candidate_ids = summary["candidate_ids"]
+        assert candidate_ids, "orchestrator should produce at least one candidate"
+
+        for index, candidate_id in enumerate(candidate_ids):
+            result = publisher.publish_candidate(
+                candidate_id=candidate_id,
+                action="accept",
+                confirmation_ref=f".garage/memory/confirmations/{summary['batch_id']}.json",
+                conflict_strategy="coexist" if index > 0 else None,
+            )
+            assert result["published_id"] is not None, (
+                f"publish failed for candidate {candidate_id}"
+            )
+
+        published_decisions = knowledge_store.list_entries()
+        for entry in published_decisions:
+            assert entry.source_evidence_anchor is not None, (
+                f"published entry {entry.id} missing source_evidence_anchor"
+            )
+            assert entry.confirmation_ref is not None
+        experience_records = experience_index.list_records()
+        for record in experience_records:
+            assert record.source_evidence_anchors, (
+                f"experience record {record.record_id} missing source_evidence_anchors"
+            )
+
     def test_publish_supersede_records_relation_to_existing_entries(
         self,
         publisher,
@@ -230,7 +294,7 @@ class TestKnowledgePublisher:
         confirmation_record,
         knowledge_store,
     ) -> None:
-        """Accepting a candidate that supersedes existing knowledge should record the relation (T6 acceptance)."""
+        """Explicit supersede strategy should record the relation (T6 / FR-304)."""
         candidate_store.store_candidate(decision_candidate)
         candidate_store.store_confirmation(confirmation_record)
 
@@ -245,12 +309,70 @@ class TestKnowledgePublisher:
             candidate_id="candidate-001",
             action="accept",
             confirmation_ref=".garage/memory/confirmations/batch-001.json",
+            conflict_strategy="supersede",
         )
 
         assert result["published_id"] is not None
         published = knowledge_store.retrieve(result["knowledge_type"], result["published_id"])
         assert published is not None
         assert "existing-001" in published.related_decisions
+
+    def test_publish_requires_explicit_strategy_when_conflict_detected(
+        self,
+        publisher,
+        candidate_store,
+        decision_candidate,
+        confirmation_record,
+        knowledge_store,
+    ) -> None:
+        """Publisher must refuse silent supersede; caller must pass coexist/supersede/abandon (FR-304)."""
+        candidate_store.store_candidate(decision_candidate)
+        candidate_store.store_confirmation(confirmation_record)
+
+        existing_entry = publisher._to_knowledge_entry(  # noqa: SLF001 - test helper use
+            {**decision_candidate, "candidate_id": "existing-002"},
+            confirmation_ref="prior",
+        )
+        existing_entry.id = "existing-002"
+        knowledge_store.store(existing_entry)
+
+        with pytest.raises(ValueError, match="conflict_strategy"):
+            publisher.publish_candidate(
+                candidate_id="candidate-001",
+                action="accept",
+                confirmation_ref=".garage/memory/confirmations/batch-001.json",
+            )
+
+    def test_publish_coexist_does_not_record_supersede_relation(
+        self,
+        publisher,
+        candidate_store,
+        decision_candidate,
+        confirmation_record,
+        knowledge_store,
+    ) -> None:
+        """Explicit coexist must publish without writing related_decisions back."""
+        candidate_store.store_candidate(decision_candidate)
+        candidate_store.store_confirmation(confirmation_record)
+
+        existing_entry = publisher._to_knowledge_entry(  # noqa: SLF001 - test helper use
+            {**decision_candidate, "candidate_id": "existing-003"},
+            confirmation_ref="prior",
+        )
+        existing_entry.id = "existing-003"
+        knowledge_store.store(existing_entry)
+
+        result = publisher.publish_candidate(
+            candidate_id="candidate-001",
+            action="accept",
+            confirmation_ref=".garage/memory/confirmations/batch-001.json",
+            conflict_strategy="coexist",
+        )
+
+        assert result["published_id"] is not None
+        published = knowledge_store.retrieve(result["knowledge_type"], result["published_id"])
+        assert published is not None
+        assert "existing-003" not in published.related_decisions
 
     def test_publish_abandon_skips_publication(
         self,

@@ -391,6 +391,7 @@ def _memory_review(
     summary: Optional[str] = None,
     content: Optional[str] = None,
     tags: Optional[str] = None,
+    strategy: Optional[str] = None,
 ) -> int:
     """Show or apply actions to a candidate review batch on the CLI."""
     garage_dir = garage_root / ".garage"
@@ -463,7 +464,7 @@ def _memory_review(
             print(f"Similar entries: {conflict['similar_entries']}")
             return 0
 
-        if action not in {"accept", "edit_accept", "reject"}:
+        if action not in {"accept", "edit_accept", "reject", "abandon"}:
             print(f"Unsupported action '{action}'")
             return 1
 
@@ -479,6 +480,17 @@ def _memory_review(
             if tags is not None:
                 edited_fields["tags"] = [tag.strip() for tag in tags.split(",") if tag.strip()]
 
+        if action in {"accept", "edit_accept"}:
+            conflict = publisher.detect_conflicts(candidate_id)
+            if conflict.get("similar_entries") and strategy is None:
+                print(
+                    "Similar published knowledge detected for this candidate. "
+                    "Re-run with --strategy=coexist|supersede|abandon to confirm "
+                    "how to handle the conflict (FR-304)."
+                )
+                print(f"Similar entries: {conflict['similar_entries']}")
+                return 1
+
         candidate_store.store_confirmation(
             {
                 "schema_version": "1",
@@ -488,6 +500,7 @@ def _memory_review(
                 "resolved_at": time.strftime("%Y-%m-%dT%H:%M:%S"),
                 "surface": "cli",
                 "approver": "user",
+                "conflict_strategy": strategy,
             }
         )
 
@@ -496,12 +509,16 @@ def _memory_review(
             action=action,
             confirmation_ref=confirmation_ref,
             edited_fields=edited_fields,
+            conflict_strategy=strategy,
         )
         new_status = {
             "accept": "published",
             "edit_accept": "published",
             "reject": "rejected",
+            "abandon": "abandoned",
         }[action]
+        if action in {"accept", "edit_accept"} and strategy == "abandon":
+            new_status = "abandoned"
         candidate_store.update_candidate(candidate_id, {"status": new_status})
         print(
             f"Candidate '{candidate_id}' action '{action}' applied; "
@@ -591,7 +608,15 @@ def build_parser() -> argparse.ArgumentParser:
     review_parser.add_argument("batch_id", help="Candidate batch identifier")
     review_parser.add_argument(
         "--action",
-        choices=["accept", "edit_accept", "reject", "batch_reject", "defer", "show-conflicts"],
+        choices=[
+            "accept",
+            "edit_accept",
+            "reject",
+            "batch_reject",
+            "defer",
+            "abandon",
+            "show-conflicts",
+        ],
         default=None,
         help="Optional review action to apply",
     )
@@ -604,6 +629,12 @@ def build_parser() -> argparse.ArgumentParser:
     review_parser.add_argument("--summary", default=None, help="Edited summary for edit_accept")
     review_parser.add_argument("--content", default=None, help="Edited content for edit_accept")
     review_parser.add_argument("--tags", default=None, help="Comma-separated tags for edit_accept")
+    review_parser.add_argument(
+        "--strategy",
+        choices=["coexist", "supersede", "abandon"],
+        default=None,
+        help="Conflict resolution strategy when accept hits similar published knowledge (FR-304)",
+    )
 
     return parser
 
@@ -654,6 +685,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
                 summary=args.summary,
                 content=args.content,
                 tags=args.tags,
+                strategy=args.strategy,
             )
         print("Memory command requires 'review' subcommand")
         return 1

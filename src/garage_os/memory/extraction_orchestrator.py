@@ -61,9 +61,24 @@ class MemoryExtractionOrchestrator:
             self._candidate_store.store_batch(summary)
             return summary
 
-        candidates, truncated_count = self._generate_candidates(
-            archived_session, signals
-        )
+        try:
+            candidates, truncated_count = self._generate_candidates(
+                archived_session, signals
+            )
+        except Exception as exc:  # pragma: no cover - defensive: persisted instead of raising
+            summary = self._build_summary(
+                batch_id=batch_id,
+                session_id=session_id,
+                evaluation_summary="extraction_failed",
+                candidate_ids=[],
+                truncated_count=0,
+                metadata={
+                    "reason": "extraction_failed",
+                    "error": f"{type(exc).__name__}: {exc}",
+                },
+            )
+            self._candidate_store.store_batch(summary)
+            return summary
         if not candidates:
             summary = self._build_summary(
                 batch_id=batch_id,
@@ -203,6 +218,17 @@ class MemoryExtractionOrchestrator:
             if isinstance(tag, str) and tag:
                 candidate_tags.append(tag)
         candidate_tags = list(dict.fromkeys(candidate_tags))
+        problem_domain = (
+            metadata.get("problem_domain")
+            if isinstance(metadata.get("problem_domain"), str)
+            else None
+        )
+        domain = (
+            metadata.get("domain") if isinstance(metadata.get("domain"), str) else None
+        )
+        pack_id = archived_session.get("pack_id")
+        if not isinstance(pack_id, str):
+            pack_id = None
         generated: list[dict[str, Any]] = []
         for index, signal in enumerate(signals):
             priority_score = float(signal["priority_score"])
@@ -215,28 +241,69 @@ class MemoryExtractionOrchestrator:
             elif signal["kind"] == "problem_domain":
                 candidate_type = "experience_summary"
 
-            generated.append(
-                {
-                    "schema_version": "1",
-                    "candidate_id": f"candidate-{session_id}-{index + 1:02d}",
-                    "candidate_type": candidate_type,
-                    "session_id": session_id,
-                    "source_artifacts": source_artifacts,
-                    "match_reasons": [f"{signal['kind']}:{signal['value']}"],
-                    "status": "pending_review",
-                    "priority_score": priority_score,
-                    "title": f"{topic} / {signal['kind']}",
-                    "summary": f"Candidate generated from {signal['kind']}",
-                    "content": f"Derived from {signal['kind']}: {signal['value']}",
-                    "tags": candidate_tags,
-                }
-            )
+            anchor = self._build_anchor(signal, session_id)
+            candidate = {
+                "schema_version": "1",
+                "candidate_id": f"candidate-{session_id}-{index + 1:02d}",
+                "candidate_type": candidate_type,
+                "session_id": session_id,
+                "source_artifacts": source_artifacts or [str(signal["value"])],
+                "source_evidence_anchors": [anchor],
+                "match_reasons": [f"{signal['kind']}:{signal['value']}"],
+                "status": "pending_review",
+                "priority_score": priority_score,
+                "title": f"{topic} / {signal['kind']}",
+                "summary": f"Candidate generated from {signal['kind']}",
+                "content": f"Derived from {signal['kind']}: {signal['value']}",
+                "tags": candidate_tags,
+            }
+            if candidate_type == "experience_summary":
+                candidate.update(
+                    {
+                        "task_type": pack_id or "skill_execution",
+                        "skill_ids": [pack_id] if pack_id else [],
+                        "tech_stack": [],
+                        "domain": domain or "general",
+                        "problem_domain": problem_domain or pack_id or "unknown",
+                        "outcome": "success",
+                        "duration_seconds": 0,
+                        "complexity": "medium",
+                        "recommendations": [],
+                    }
+                )
+            generated.append(candidate)
 
         generated.sort(key=lambda item: item["priority_score"], reverse=True)
         truncated_count = max(
             0, len(generated) - CandidateStore.MAX_PENDING_CANDIDATES
         )
         return generated[: CandidateStore.MAX_PENDING_CANDIDATES], truncated_count
+
+    def _build_anchor(
+        self, signal: dict[str, Any], session_id: str
+    ) -> dict[str, Any]:
+        """Build a self-describing source_evidence_anchor for a signal."""
+        kind = signal["kind"]
+        value = signal["value"]
+        if kind == "artifact":
+            return {"kind": "artifact_excerpt", "ref": str(value)}
+        if kind == "metadata_tags":
+            return {
+                "kind": "session_metadata",
+                "ref": f"sessions/archived/{session_id}/session.json#tags",
+                "value": list(value) if isinstance(value, list) else [str(value)],
+            }
+        if kind == "problem_domain":
+            return {
+                "kind": "session_metadata",
+                "ref": f"sessions/archived/{session_id}/session.json#problem_domain",
+                "value": str(value),
+            }
+        return {
+            "kind": "session_metadata",
+            "ref": f"sessions/archived/{session_id}/session.json#{kind}",
+            "value": str(value),
+        }
 
     def _build_summary(
         self,

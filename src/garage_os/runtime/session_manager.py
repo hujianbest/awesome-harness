@@ -143,11 +143,6 @@ class SessionManager:
                 context["metadata"] = existing_metadata
             elif key == "artifacts":
                 data["artifacts"] = value
-            elif key == "context_metadata":
-                context = data.setdefault("context", {})
-                metadata = context.setdefault("metadata", {})
-                if isinstance(value, dict):
-                    metadata.update(value)
 
         # Update timestamp
         data["updated_at"] = datetime.now().isoformat()
