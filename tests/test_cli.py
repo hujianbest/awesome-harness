@@ -58,10 +58,16 @@ class TestStatusShowsStats:
         main(["init", "--path", str(tmp_path)])
         garage_dir = tmp_path / ".garage"
 
-        # Create some session files
-        sessions_active = garage_dir / "sessions" / "active"
-        (sessions_active / "session-001.json").write_text(
-            json.dumps({"id": "001"}), encoding="utf-8"
+        # Create active and archived sessions using the runtime layout
+        active_session_dir = garage_dir / "sessions" / "active" / "session-001"
+        active_session_dir.mkdir(parents=True)
+        (active_session_dir / "session.json").write_text(
+            json.dumps({"session_id": "session-001"}), encoding="utf-8"
+        )
+        archived_session_dir = garage_dir / "sessions" / "archived" / "session-002"
+        archived_session_dir.mkdir(parents=True)
+        (archived_session_dir / "session.json").write_text(
+            json.dumps({"session_id": "session-002"}), encoding="utf-8"
         )
 
         # Create a knowledge entry
@@ -80,8 +86,9 @@ class TestStatusShowsStats:
         main(["status", "--path", str(tmp_path)])
 
         captured = capsys.readouterr()
-        assert "Sessions: 1" in captured.out
+        assert "Sessions: 2" in captured.out
         assert "active: 1" in captured.out
+        assert "archived: 1" in captured.out
         assert "Knowledge entries: 1" in captured.out
         assert "Experience records: 1" in captured.out
         assert "2025-01-15T10:00:00" in captured.out
@@ -140,7 +147,7 @@ class TestRunCommand:
     """Test that 'garage run' invokes skills and records experience."""
 
     def test_run_success(self, tmp_path: Path, capsys) -> None:
-        """run should invoke skill, update session to completed, and record experience."""
+        """run should invoke skill, archive a completed session, and record experience."""
         from garage_os.types import SessionState
 
         # First init
@@ -154,14 +161,17 @@ class TestRunCommand:
             mock_adapter.invoke_skill.return_value = mock_result
             MockAdapter.return_value = mock_adapter
 
-            main(["run", "test-skill", "--path", str(tmp_path)])
+            result = main(["run", "test-skill", "--path", str(tmp_path)])
 
         captured = capsys.readouterr()
+        assert result == 0
         assert "Skill 'test-skill' completed successfully" in captured.out
         assert "Experience recorded:" in captured.out
+        assert "Session archived:" in captured.out
 
-        # Check session was created and updated to completed
-        sessions = list((garage_dir / "sessions" / "active").iterdir())
+        # Check session moved to archived and was updated to completed
+        assert list((garage_dir / "sessions" / "active").iterdir()) == []
+        sessions = list((garage_dir / "sessions" / "archived").iterdir())
         assert len(sessions) == 1
         session_file = sessions[0] / "session.json"
         session_data = json.loads(session_file.read_text(encoding="utf-8"))
@@ -177,7 +187,7 @@ class TestRunCommand:
         assert exp_data["session_id"] == session_data["session_id"]
 
     def test_run_failure(self, tmp_path: Path, capsys) -> None:
-        """run should handle skill failure and record failed experience."""
+        """run should archive failed sessions and record failed experience."""
         from garage_os.types import SessionState
 
         # First init
@@ -191,14 +201,17 @@ class TestRunCommand:
             mock_adapter.invoke_skill.return_value = mock_result
             MockAdapter.return_value = mock_adapter
 
-            main(["run", "failing-skill", "--path", str(tmp_path)])
+            result = main(["run", "failing-skill", "--path", str(tmp_path)])
 
         captured = capsys.readouterr()
+        assert result == 1
         assert "Skill 'failing-skill' failed" in captured.out
         assert "Experience recorded:" in captured.out
+        assert "Session archived:" in captured.out
 
-        # Check session was updated to failed
-        sessions = list((garage_dir / "sessions" / "active").iterdir())
+        # Check session moved to archived and was updated to failed
+        assert list((garage_dir / "sessions" / "active").iterdir()) == []
+        sessions = list((garage_dir / "sessions" / "archived").iterdir())
         assert len(sessions) == 1
         session_file = sessions[0] / "session.json"
         session_data = json.loads(session_file.read_text(encoding="utf-8"))
@@ -211,7 +224,7 @@ class TestRunCommand:
         assert exp_data["outcome"] == "failure"
 
     def test_run_creates_session(self, tmp_path: Path) -> None:
-        """run should create a new session for each invocation."""
+        """run should create and archive a new session for each invocation."""
         # First init
         main(["init", "--path", str(tmp_path)])
         garage_dir = tmp_path / ".garage"
@@ -230,9 +243,45 @@ class TestRunCommand:
             main(["run", "skill1", "--path", str(tmp_path)])
             main(["run", "skill2", "--path", str(tmp_path)])
 
-        # Check two sessions were created
-        sessions = list((garage_dir / "sessions" / "active").iterdir())
+        # Check two archived sessions were created
+        assert list((garage_dir / "sessions" / "active").iterdir()) == []
+        sessions = list((garage_dir / "sessions" / "archived").iterdir())
         assert len(sessions) == 2
+
+    def test_run_returns_nonzero_on_exception(self, tmp_path: Path, capsys) -> None:
+        """run should return non-zero when the adapter raises an exception."""
+        main(["init", "--path", str(tmp_path)])
+
+        with patch("garage_os.cli.ClaudeCodeAdapter") as MockAdapter:
+            mock_adapter = MagicMock()
+            mock_adapter.invoke_skill.side_effect = Exception("boom")
+            MockAdapter.return_value = mock_adapter
+
+            result = main(["run", "broken-skill", "--path", str(tmp_path)])
+
+        captured = capsys.readouterr()
+        assert result == 1
+        assert "Error running skill 'broken-skill': boom" in captured.out
+
+    def test_run_passes_timeout_to_adapter(self, tmp_path: Path) -> None:
+        """run should pass the requested timeout through to ClaudeCodeAdapter."""
+        main(["init", "--path", str(tmp_path)])
+
+        with patch("garage_os.cli.ClaudeCodeAdapter") as MockAdapter:
+            mock_adapter = MagicMock()
+            mock_adapter.invoke_skill.return_value = {
+                "output": "",
+                "exit_code": 0,
+                "success": True,
+            }
+            MockAdapter.return_value = mock_adapter
+
+            result = main(
+                ["run", "timed-skill", "--timeout", "17", "--path", str(tmp_path)]
+            )
+
+        assert result == 0
+        MockAdapter.assert_called_once_with(tmp_path, timeout=17)
 
 
 class TestExperienceRecording:
