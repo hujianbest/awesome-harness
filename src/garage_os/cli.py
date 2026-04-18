@@ -23,6 +23,9 @@ GARAGE_DIRS = [
     "knowledge/patterns",
     "knowledge/solutions",
     "experience/records",
+    "memory/candidates/batches",
+    "memory/candidates/items",
+    "memory/confirmations",
     "sessions/active",
     "sessions/archived",
 ]
@@ -35,8 +38,36 @@ This directory contains all runtime data for Garage OS.
 - **contracts/**: Interface contracts
 - **knowledge/**: Knowledge entries (decisions, patterns, solutions)
 - **experience/**: Experience records
+- **memory/**: Candidate drafts, review batches, and confirmation records
 - **sessions/**: Active and archived sessions
 """
+
+DEFAULT_PLATFORM_CONFIG = {
+    "schema_version": 1,
+    "platform_name": "Garage Agent OS",
+    "stage": 1,
+    "storage_mode": "artifact-first",
+    "host_type": "claude-code",
+    "session_timeout_seconds": 7200,
+    "max_active_sessions": 1,
+    "knowledge_indexing": "manual",
+    "memory": {
+        "extraction_enabled": False,
+        "recommendation_enabled": False,
+    },
+}
+
+DEFAULT_HOST_ADAPTER_CONFIG = {
+    "schema_version": 1,
+    "host_type": "claude-code",
+    "interaction_mode": "file-system",
+    "capabilities": {
+        "session_state_api": False,
+        "file_read_write": True,
+        "memory_auto_load": True,
+        "subprocess": True,
+    },
+}
 
 
 def _find_garage_root(start: Optional[Path] = None) -> Path:
@@ -68,6 +99,20 @@ def _init(garage_root: Path) -> None:
     readme_path = garage_dir / "README.md"
     if not readme_path.exists():
         readme_path.write_text(GARAGE_README.strip() + "\n", encoding="utf-8")
+
+    platform_config_path = garage_dir / "config" / "platform.json"
+    if not platform_config_path.exists():
+        platform_config_path.write_text(
+            json.dumps(DEFAULT_PLATFORM_CONFIG, indent=2, ensure_ascii=False) + "\n",
+            encoding="utf-8",
+        )
+
+    host_adapter_config_path = garage_dir / "config" / "host-adapter.json"
+    if not host_adapter_config_path.exists():
+        host_adapter_config_path.write_text(
+            json.dumps(DEFAULT_HOST_ADAPTER_CONFIG, indent=2, ensure_ascii=False) + "\n",
+            encoding="utf-8",
+        )
 
     print(f"Initialized Garage OS in {garage_dir}")
 
