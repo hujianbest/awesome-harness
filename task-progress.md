@@ -4,7 +4,7 @@
 
 - Goal: F003 — Garage Memory（自动知识提取与经验推荐）
 - Owner: hujianbest
-- Status: 🟡 F003 质量链全部通过（test-review r3 / code-review r2 / traceability / regression-gate 均 = 通过），待进入 hf-completion-gate
+- Status: ✅ F003 质量链全部贯通，hf-completion-gate = 通过；无剩余 approved task，下一步进入 hf-finalize 关闭工作周期
 - Last Updated: 2026-04-18
 
 ## Previous Milestones
@@ -14,13 +14,13 @@
 
 ## Current Workflow State
 
-- Current Stage: hf-regression-gate（通过）
+- Current Stage: hf-completion-gate（通过，无剩余任务）
 - Workflow Profile: full
 - Execution Mode: auto
 - Workspace Isolation: in-place
-- Current Active Task: F003 全量实现批次（质量链已贯通至 regression-gate）
-- Pending Reviews And Gates: hf-completion-gate
-- Next Action Or Recommended Skill: hf-completion-gate
+- Current Active Task: F003 全量实现批次（质量链已贯通至 completion-gate；无剩余 approved task）
+- Pending Reviews And Gates: hf-finalize
+- Next Action Or Recommended Skill: hf-finalize
 - Relevant Files:
   - `docs/features/F003-garage-memory-auto-extraction.md`（F003 已批准规格）
   - `docs/approvals/F003-spec-approval.md`（F003 规格批准记录）
@@ -37,6 +37,7 @@
   - `docs/verification/F003-test-review-r1-handoff.md`（F003 test-review r1 回流修订交接块）
   - `docs/verification/F003-code-review-r1-handoff.md`（F003 code-review r1 回流修订交接块）
   - `docs/verification/F003-regression-gate.md`（F003 regression gate 验证记录）
+  - `docs/verification/F003-completion-gate.md`（F003 completion gate 验证记录）
   - `src/garage_os/memory/`（F003 memory pipeline 实现）
   - `tests/memory/`（F003 memory pipeline 测试）
   - `docs/designs/2026-04-18-garage-memory-auto-extraction-design.md`（F003 已批准设计）
@@ -57,5 +58,8 @@
 
 ## Next Step
 
-1. 进入 `hf-completion-gate`：判断 F003 全量批次是否可宣告完成（需消费 regression-gate 与 traceability 通过结论）
-2. completion gate 通过后由 router / finalize 决定收尾走向（含 traceability 列出的 minor LLM-FIXABLE 顺手清理 + USER-INPUT 真人裁决）
+1. 进入 `hf-finalize`：关闭 F003 工作周期
+   - 顺手清理 traceability TZ5 列出的 6 项 LLM-FIXABLE minor（test-design merge note / stale `# pragma` / conflict_strategy 入口校验 / CLI abandon 语义重叠 / session 侧 logger.warning 双写 / `.garage/config/platform.json` 缺 memory 块）
+   - 把 USER-INPUT 1 项（`KnowledgePublisher` 用 `candidate_id` 当 `KnowledgeEntry.id`）写入 release notes / backlog 等真人裁决
+   - 把 T2-T9 testDesignApproval 在 auto-mode 下随 tasks-approval 合并批准的治理路径以 merge note 形式回写
+   - 更新 `task-progress.md`：归档 F003 cycle，重置 Current Active Task
