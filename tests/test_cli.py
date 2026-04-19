@@ -284,6 +284,52 @@ class TestRunCommand:
         assert result == 0
         MockAdapter.assert_called_once_with(tmp_path, timeout=17)
 
+    def test_run_skips_recommendation_when_disabled(
+        self,
+        tmp_path: Path,
+        capsys,
+    ) -> None:
+        """run must NOT print recommendations when the feature flag is off (T4 acceptance)."""
+        main(["init", "--path", str(tmp_path)])
+        garage_dir = tmp_path / ".garage"
+        platform_json = garage_dir / "config" / "platform.json"
+        config = json.loads(platform_json.read_text(encoding="utf-8"))
+        assert config["memory"]["recommendation_enabled"] is False
+
+        decision_path = garage_dir / "knowledge" / "decisions" / "decision-disabled.md"
+        decision_path.write_text(
+            """---
+id: decision-disabled
+type: decision
+topic: Recommendation for disabled-skill
+date: 2026-04-18T10:00:00
+tags: [disabled-skill, workspace-first]
+status: active
+version: 1
+---
+
+Should not be surfaced when recommendation is disabled.
+""",
+            encoding="utf-8",
+        )
+
+        with patch("garage_os.cli.ClaudeCodeAdapter") as MockAdapter, \
+            patch("garage_os.cli.RecommendationService") as MockRecommendationService:
+            mock_adapter = MagicMock()
+            mock_adapter.invoke_skill.return_value = {
+                "output": "",
+                "exit_code": 0,
+                "success": True,
+            }
+            MockAdapter.return_value = mock_adapter
+
+            result = main(["run", "disabled-skill", "--path", str(tmp_path)])
+
+        captured = capsys.readouterr()
+        assert result == 0
+        assert "Recommendations:" not in captured.out
+        MockRecommendationService.assert_not_called()
+
     def test_run_shows_recommendation_summary_when_enabled(
         self,
         tmp_path: Path,
@@ -556,6 +602,153 @@ class TestMemoryReviewCommand:
         assert result == 0
         assert "Applied action 'defer'" in captured.out
         assert candidate_store.retrieve_batch("batch-001")["status"] == "deferred"
+
+
+    def test_memory_review_accept_requires_strategy_when_conflict_exists(
+        self,
+        tmp_path: Path,
+        capsys,
+    ) -> None:
+        """accept must surface the FR-304 strategy choice when a similar entry exists."""
+        from garage_os.memory.candidate_store import CandidateStore
+
+        main(["init", "--path", str(tmp_path)])
+        garage_dir = tmp_path / ".garage"
+        decisions_dir = garage_dir / "knowledge" / "decisions"
+        decisions_dir.mkdir(parents=True, exist_ok=True)
+        (decisions_dir / "decision-existing.md").write_text(
+            """---
+id: existing
+type: decision
+topic: Use candidate batches
+date: 2026-04-18T10:00:00
+tags: [memory]
+status: active
+version: 1
+---
+
+Existing decision body.
+""",
+            encoding="utf-8",
+        )
+
+        storage = FileStorage(garage_dir)
+        candidate_store = CandidateStore(storage)
+        candidate_store.store_candidate(
+            {
+                "schema_version": "1",
+                "candidate_id": "candidate-001",
+                "candidate_type": "decision",
+                "session_id": "session-001",
+                "source_artifacts": ["docs/designs/example.md"],
+                "source_evidence_anchors": [
+                    {"kind": "artifact_excerpt", "ref": "docs/designs/example.md#decision"}
+                ],
+                "match_reasons": ["artifact:docs/designs/example.md"],
+                "status": "pending_review",
+                "priority_score": 0.9,
+                "title": "Use candidate batches",
+                "summary": "Summary",
+                "content": "Body",
+                "tags": ["memory"],
+            }
+        )
+        candidate_store.store_batch(
+            {
+                "batch_id": "batch-001",
+                "session_id": "session-001",
+                "status": "pending_review",
+                "trigger": "session_archived",
+                "candidate_ids": ["candidate-001"],
+                "truncated_count": 0,
+                "evaluation_summary": "evaluated_with_candidates",
+                "created_at": "2026-04-18T10:00:00",
+                "metadata": {},
+            }
+        )
+
+        result = main(
+            [
+                "memory",
+                "review",
+                "batch-001",
+                "--action",
+                "accept",
+                "--candidate-id",
+                "candidate-001",
+                "--path",
+                str(tmp_path),
+            ]
+        )
+
+        captured = capsys.readouterr()
+        assert result == 1
+        assert "--strategy" in captured.out
+
+    def test_memory_review_abandon_skips_publication(
+        self,
+        tmp_path: Path,
+        capsys,
+    ) -> None:
+        """abandon must be a first-class CLI action that skips publication (FR-304)."""
+        from garage_os.memory.candidate_store import CandidateStore
+
+        main(["init", "--path", str(tmp_path)])
+        garage_dir = tmp_path / ".garage"
+        storage = FileStorage(garage_dir)
+        candidate_store = CandidateStore(storage)
+        candidate_store.store_candidate(
+            {
+                "schema_version": "1",
+                "candidate_id": "candidate-001",
+                "candidate_type": "decision",
+                "session_id": "session-001",
+                "source_artifacts": ["docs/designs/example.md"],
+                "source_evidence_anchors": [
+                    {"kind": "artifact_excerpt", "ref": "docs/designs/example.md#decision"}
+                ],
+                "match_reasons": ["artifact:docs/designs/example.md"],
+                "status": "pending_review",
+                "priority_score": 0.9,
+                "title": "Abandon-able candidate",
+                "summary": "Summary",
+                "content": "Body",
+            }
+        )
+        candidate_store.store_batch(
+            {
+                "batch_id": "batch-001",
+                "session_id": "session-001",
+                "status": "pending_review",
+                "trigger": "session_archived",
+                "candidate_ids": ["candidate-001"],
+                "truncated_count": 0,
+                "evaluation_summary": "evaluated_with_candidates",
+                "created_at": "2026-04-18T10:00:00",
+                "metadata": {},
+            }
+        )
+
+        result = main(
+            [
+                "memory",
+                "review",
+                "batch-001",
+                "--action",
+                "abandon",
+                "--candidate-id",
+                "candidate-001",
+                "--path",
+                str(tmp_path),
+            ]
+        )
+
+        captured = capsys.readouterr()
+        assert result == 0
+        assert "abandon" in captured.out.lower()
+        assert candidate_store.retrieve_candidate("candidate-001")["status"] == "abandoned"
+        published = list((garage_dir / "knowledge" / "decisions").glob("*.md"))
+        assert published == []
 
 
 class TestKnowledgeCommand:

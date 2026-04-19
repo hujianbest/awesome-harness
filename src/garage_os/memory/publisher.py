@@ -26,15 +26,18 @@ class KnowledgePublisher:
         self._experience_index = experience_index
         self._conflict_detector = ConflictDetector(knowledge_store)
 
+    VALID_CONFLICT_STRATEGIES = {"coexist", "supersede", "abandon"}
+
     def publish_candidate(
         self,
         candidate_id: str,
         action: str,
         confirmation_ref: str,
         edited_fields: Optional[dict[str, Any]] = None,
+        conflict_strategy: Optional[str] = None,
     ) -> dict[str, Any]:
         """Publish a reviewed candidate when the action allows publication."""
-        if action in {"reject", "defer", "batch_reject"}:
+        if action in {"reject", "defer", "batch_reject", "abandon"}:
             return {"published_id": None, "knowledge_type": None, "action": action}
 
         candidate = self._candidate_store.retrieve_candidate(candidate_id)
@@ -55,15 +58,47 @@ class KnowledgePublisher:
                 "action": action,
             }
 
-        if action == "abandon":
-            return {"published_id": None, "knowledge_type": None, "action": action}
+        conflict = self._conflict_detector.detect(
+            title=str(payload.get("title", "")),
+            tags=list(payload.get("tags", [])),
+        )
+        similar_entries = [str(item) for item in conflict.get("similar_entries", [])]
+        if similar_entries:
+            if conflict_strategy is None:
+                raise ValueError(
+                    "Similar published knowledge detected; "
+                    "caller must pass conflict_strategy=coexist|supersede|abandon "
+                    "(FR-304 requires explicit user choice)."
+                )
+            if conflict_strategy not in self.VALID_CONFLICT_STRATEGIES:
+                raise ValueError(
+                    f"Invalid conflict_strategy '{conflict_strategy}'. "
+                    f"Allowed: {sorted(self.VALID_CONFLICT_STRATEGIES)}"
+                )
+            if conflict_strategy == "abandon":
+                return {
+                    "published_id": None,
+                    "knowledge_type": None,
+                    "action": action,
+                    "conflict_strategy": "abandon",
+                }
 
         entry = self._to_knowledge_entry(payload, confirmation_ref)
+        if similar_entries and conflict_strategy == "supersede":
+            existing = list(entry.related_decisions)
+            for target in similar_entries:
+                if target == entry.id or target in existing:
+                    continue
+                existing.append(target)
+            entry.related_decisions = existing
+            entry.front_matter["related_decisions"] = list(existing)
+            entry.front_matter["supersedes"] = list(similar_entries)
         self._knowledge_store.store(entry)
         return {
             "published_id": entry.id,
             "knowledge_type": entry.type,
             "action": action,
+            "conflict_strategy": conflict_strategy if similar_entries else None,
         }
 
     def detect_conflicts(self, candidate_id: str) -> dict[str, Any]:
@@ -89,10 +124,10 @@ class KnowledgePublisher:
             "solution": KnowledgeType.SOLUTION,
         }[candidate_type]
         now = datetime.now()
+        anchors = payload.get("source_evidence_anchors") or []
+        first_anchor = anchors[0] if anchors else None
         front_matter = {
-            "source_evidence_anchor": payload.get("source_evidence_anchors", [{}])[0]
-            if payload.get("source_evidence_anchors")
-            else None,
+            "source_evidence_anchor": first_anchor,
             "confirmation_ref": confirmation_ref,
             "published_from_candidate": payload["candidate_id"],
         }
@@ -121,13 +156,13 @@ class KnowledgePublisher:
         source_evidence_anchors = list(payload.get("source_evidence_anchors", []))
         return ExperienceRecord(
             record_id=payload["candidate_id"],
-            task_type=payload["task_type"],
+            task_type=str(payload.get("task_type") or "skill_execution"),
             skill_ids=list(payload.get("skill_ids", [])),
             tech_stack=list(payload.get("tech_stack", [])),
-            domain=payload["domain"],
-            problem_domain=payload["problem_domain"],
-            outcome=payload["outcome"],
-            duration_seconds=int(payload["duration_seconds"]),
+            domain=str(payload.get("domain") or "general"),
+            problem_domain=str(payload.get("problem_domain") or "unknown"),
+            outcome=str(payload.get("outcome") or "success"),
+            duration_seconds=int(payload.get("duration_seconds", 0) or 0),
             complexity=payload.get("complexity", "medium"),
             session_id=payload["session_id"],
             artifacts=list(payload.get("source_artifacts", [])),
