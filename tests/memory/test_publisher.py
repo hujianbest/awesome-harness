@@ -698,6 +698,95 @@ class TestPublishCandidateRepublication:
         assert republished is not None
         assert "k-Z" in republished.related_decisions
 
+    def test_repeated_publish_merges_v1_supersedes_with_new_supersede_target(
+        self,
+        publisher,
+        candidate_store,
+        decision_candidate,
+        knowledge_store,
+    ) -> None:
+        """v1 supersede chain + v1.1 explicit strategy=supersede must merge, not replace.
+
+        Locks the §11.2.1 _merge_unique semantics under the most adversarial
+        path: v1 already supersede-d ['k-X', 'k-Y']; v1.1 re-publish hits a
+        new conflict against 'existing-zzz' with strategy=supersede; the
+        result must contain ['k-X', 'k-Y', 'existing-zzz'] (any order, no
+        loss).
+        """
+        candidate_store.store_candidate(decision_candidate)
+
+        # Seed v1 entry whose front_matter['supersedes'] already carries a
+        # historical supersede chain. Use distinct title/tags so it does
+        # not surface as a similar entry on its own (only the conflict
+        # target below should match by title/tags).
+        v1_entry = publisher._to_knowledge_entry(  # noqa: SLF001
+            decision_candidate,
+            confirmation_ref="v1-cf",
+        )
+        v1_entry.front_matter["supersedes"] = ["k-X", "k-Y"]
+        knowledge_store.store(v1_entry)
+
+        # Plant a real conflict target (different id, same title+tags).
+        from datetime import datetime
+        from garage_os.types import KnowledgeEntry
+
+        other_target = KnowledgeEntry(
+            id="existing-zzz",
+            type=KnowledgeType.DECISION,
+            topic=decision_candidate["title"],
+            date=datetime.now(),
+            tags=list(decision_candidate["tags"]),
+            content="other entry forcing real conflict",
+        )
+        knowledge_store.store(other_target)
+
+        publisher.publish_candidate(
+            candidate_id="candidate-001",
+            action="edit_accept",
+            confirmation_ref="cf-v1-1",
+            edited_fields={"content": "v1.1 carry-merged"},
+            conflict_strategy="supersede",
+        )
+
+        republished = knowledge_store.retrieve(KnowledgeType.DECISION, "candidate-001")
+        assert republished is not None
+        carried = list(republished.front_matter.get("supersedes", []))
+        for required in ("k-X", "k-Y", "existing-zzz"):
+            assert required in carried, (
+                f"expected merged supersede '{required}'; got {carried}"
+            )
+
+    def test_repeated_publish_experience_summary_preserves_created_at(
+        self,
+        publisher,
+        candidate_store,
+        experience_summary_candidate,
+        experience_index,
+    ) -> None:
+        """Re-publication must preserve created_at while bumping updated_at
+        (publisher.py § F004 path A explicit carry-over)."""
+        candidate_store.store_candidate(experience_summary_candidate)
+
+        publisher.publish_candidate(
+            candidate_id="candidate-002",
+            action="accept",
+            confirmation_ref="cf-1",
+        )
+        first = experience_index.retrieve("candidate-002")
+        assert first is not None
+        original_created_at = first.created_at
+
+        publisher.publish_candidate(
+            candidate_id="candidate-002",
+            action="edit_accept",
+            confirmation_ref="cf-2",
+            edited_fields={"summary": "Updated"},
+        )
+        latest = experience_index.retrieve("candidate-002")
+        assert latest is not None
+        assert latest.created_at == original_created_at
+        assert latest.updated_at >= original_created_at
+
     def test_repeated_accept_short_circuits_self_conflict(
         self,
         publisher,
