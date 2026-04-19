@@ -357,16 +357,39 @@ class KnowledgeStore:
     # Serialization helpers
     # ------------------------------------------------------------------
 
+    # Reserved field names mapped from KnowledgeEntry dataclass attributes.
+    # These keys are always rebuilt from dataclass values so callers cannot
+    # accidentally desync them via entry.front_matter. Any *other* keys
+    # present on entry.front_matter (for example, F004 publisher's
+    # "supersedes" carry-over) are merged in afterwards so they survive the
+    # store -> retrieve -> store round trip.
+    _DATACLASS_FRONT_MATTER_KEYS: tuple[str, ...] = (
+        "id",
+        "type",
+        "topic",
+        "date",
+        "tags",
+        "status",
+        "version",
+        "related_decisions",
+        "related_tasks",
+        "source_session",
+        "source_artifact",
+        "source_evidence_anchor",
+        "confirmation_ref",
+        "published_from_candidate",
+    )
+
     def _entry_to_front_matter(self, entry: KnowledgeEntry) -> dict:
         """Convert a KnowledgeEntry to front matter dictionary.
 
-        Args:
-            entry: KnowledgeEntry to convert
-
-        Returns:
-            Dictionary suitable for YAML front matter
+        Reserved keys (mapped from dataclass attributes) are always rebuilt
+        from the canonical dataclass values. Extra keys present on
+        ``entry.front_matter`` (such as F004 publisher's ``supersedes``
+        carry-over key) are merged in afterwards so the ``store -> retrieve
+        -> store`` round trip preserves them.
         """
-        return {
+        front_matter: dict = {
             "id": entry.id,
             "type": entry.type.value,
             "topic": entry.topic,
@@ -382,6 +405,14 @@ class KnowledgeStore:
             "confirmation_ref": entry.confirmation_ref,
             "published_from_candidate": entry.published_from_candidate,
         }
+        # Merge in any extra keys from entry.front_matter that are not part
+        # of the reserved dataclass-mapped set. F004 §11.2.1 relies on this
+        # to persist the supersede chain across re-publication.
+        for key, value in entry.front_matter.items():
+            if key in self._DATACLASS_FRONT_MATTER_KEYS:
+                continue
+            front_matter[key] = value
+        return front_matter
 
     def _front_matter_to_entry(self, fm: dict, content: str) -> KnowledgeEntry:
         """Convert front matter + content to KnowledgeEntry.
