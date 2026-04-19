@@ -3025,9 +3025,14 @@ class TestInitWithHosts:
         assert "name: garage-hello" in text
         assert "installed_by: garage" in text
 
-        # Stable stdout marker.
+        # Stable stdout marker (use regex to avoid coupling to the exact
+        # number of skills/agents in packs/garage/, which T1 owns).
+        import re as _re
         captured = capsys.readouterr()
-        assert "Installed 1 skills, 1 agents into hosts: claude" in captured.out
+        assert _re.search(
+            r"Installed \d+ skills, \d+ agents into hosts: claude",
+            captured.out,
+        ), f"marker not found in stdout: {captured.out!r}"
 
         # Manifest written.
         manifest_path = tmp_path / ".garage" / "config" / "host-installer.json"
@@ -3129,7 +3134,137 @@ class TestInitWithHosts:
         assert (tmp_path / ".claude/skills/garage-hello/SKILL.md").exists()
         assert (tmp_path / ".cursor/skills/garage-hello/SKILL.md").exists()
         assert (tmp_path / ".opencode/skills/garage-hello/SKILL.md").exists()
-        # Counts are per-target-write: 1 skill × 3 hosts = 3 skill writes;
-        # 1 agent × 2 hosts (claude + opencode; cursor has no agent surface)
-        # = 2 agent writes.
-        assert "Installed 3 skills, 2 agents" in result.stdout
+        # Counts are per-target-write (1 skill × 3 hosts; agents skip cursor),
+        # but use regex so this test stays robust if packs/garage/ grows new
+        # skills/agents in the future.
+        import re as _re
+        assert _re.search(
+            r"Installed \d+ skills, \d+ agents into hosts:",
+            result.stdout,
+        ), f"marker not found in stdout: {result.stdout!r}"
+
+
+class TestInitErrorPaths:
+    """F007 test-review carry-forward: end-to-end CLI exit-code coverage.
+
+    Pipeline-layer error paths are unit-tested in tests/adapter/installer/;
+    these tests verify the CLI exit-code wrapping in cli._init.
+    """
+
+    @staticmethod
+    def _link_packs(tmp_path: Path) -> None:
+        link = tmp_path / "packs"
+        if link.exists() or link.is_symlink():
+            return
+        link.symlink_to(TestInitWithHosts.PACKS_ROOT)
+
+    def test_conflicting_skill_exits_2(self, tmp_path: Path, capsys) -> None:
+        """Two packs with the same skill_id → exit code 2 (FR-704 acceptance #4)."""
+        # Build a 2-pack fixture with the same skill_id 'foo' in both.
+        for pack_id in ("packs_a", "packs_b"):
+            pack_dir = tmp_path / "packs" / pack_id
+            skill_dir = pack_dir / "skills" / "foo"
+            skill_dir.mkdir(parents=True)
+            (pack_dir / "pack.json").write_text(
+                json.dumps(
+                    {
+                        "schema_version": 1,
+                        "pack_id": pack_id,
+                        "version": "0.1.0",
+                        "description": "fixture",
+                        "skills": ["foo"],
+                        "agents": [],
+                    }
+                ),
+                encoding="utf-8",
+            )
+            (skill_dir / "SKILL.md").write_text(
+                "---\nname: foo\ndescription: x\n---\n\n# foo\n",
+                encoding="utf-8",
+            )
+        rc = main(["init", "--path", str(tmp_path), "--hosts", "claude"])
+        assert rc == 2
+        captured = capsys.readouterr()
+        assert "Conflicting skill" in captured.err
+        assert "packs_a" in captured.err
+        assert "packs_b" in captured.err
+
+    def test_invalid_pack_json_exits_1(self, tmp_path: Path, capsys) -> None:
+        """Malformed pack.json → exit 1, .garage/ still created (CON-702)."""
+        broken = tmp_path / "packs" / "broken"
+        broken.mkdir(parents=True)
+        (broken / "pack.json").write_text("{ broken json", encoding="utf-8")
+        rc = main(["init", "--path", str(tmp_path), "--hosts", "claude"])
+        assert rc == 1
+        captured = capsys.readouterr()
+        assert "Invalid pack" in captured.err
+        # CON-702: .garage/ still created.
+        assert (tmp_path / ".garage").is_dir()
+
+    def test_skill_without_frontmatter_exits_1(
+        self, tmp_path: Path, capsys
+    ) -> None:
+        """SKILL.md without front matter → MalformedFrontmatterError → exit 1."""
+        pack_dir = tmp_path / "packs" / "garage"
+        skill_dir = pack_dir / "skills" / "bad-skill"
+        skill_dir.mkdir(parents=True)
+        (pack_dir / "pack.json").write_text(
+            json.dumps(
+                {
+                    "schema_version": 1,
+                    "pack_id": "garage",
+                    "version": "0.1.0",
+                    "description": "x",
+                    "skills": ["bad-skill"],
+                    "agents": [],
+                }
+            ),
+            encoding="utf-8",
+        )
+        # No '---' delimiter at all.
+        (skill_dir / "SKILL.md").write_text(
+            "# Bad Skill\n\nNo front matter.\n", encoding="utf-8"
+        )
+        rc = main(["init", "--path", str(tmp_path), "--hosts", "claude"])
+        assert rc == 1
+        captured = capsys.readouterr()
+        assert "marker injection failed" in captured.err.lower() or "front matter" in captured.err.lower()
+
+    def test_non_tty_no_flags_writes_notice_and_exits_0(
+        self, tmp_path: Path, capsys
+    ) -> None:
+        """FR-703: non-TTY + no --hosts/--yes → empty hosts + stderr notice + exit 0."""
+        # pytest's stdin is non-TTY by default → triggers the non-interactive path.
+        rc = main(["init", "--path", str(tmp_path)])
+        assert rc == 0
+        captured = capsys.readouterr()
+        # CON-702 baseline marker still printed.
+        assert "Initialized Garage OS in" in captured.out
+        assert "Installed" not in captured.out
+        # Non-interactive notice on stderr.
+        assert "non-interactive" in captured.err.lower()
+        # No host directory created.
+        assert not (tmp_path / ".claude").exists()
+
+    def test_pack_manifest_mismatch_exits_1(self, tmp_path: Path, capsys) -> None:
+        """pack.json claims skill that disk doesn't have → exit 1."""
+        pack_dir = tmp_path / "packs" / "garage"
+        pack_dir.mkdir(parents=True)
+        (pack_dir / "pack.json").write_text(
+            json.dumps(
+                {
+                    "schema_version": 1,
+                    "pack_id": "garage",
+                    "version": "0.1.0",
+                    "description": "x",
+                    "skills": ["ghost"],
+                    "agents": [],
+                }
+            ),
+            encoding="utf-8",
+        )
+        # No skills/ghost/ on disk.
+        rc = main(["init", "--path", str(tmp_path), "--hosts", "claude"])
+        assert rc == 1
+        captured = capsys.readouterr()
+        assert "Pack manifest mismatch" in captured.err or "Invalid pack" in captured.err

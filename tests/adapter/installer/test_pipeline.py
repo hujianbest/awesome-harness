@@ -287,3 +287,56 @@ class TestIdempotentNoWrite:
         # Re-run with no source changes; target mtime must stay the same.
         install_packs(tmp_path, tmp_path / "packs", ["claude"], force=False)
         assert skill_dst.stat().st_mtime_ns == mtime_before
+
+
+# ---------------------------------------------------------------------------
+# F007 test-review carry-forward F-4: D7 §10.2 decision table edge rows
+# ---------------------------------------------------------------------------
+
+
+class TestDecisionTableEdgeRows:
+    """Two decision-table rows not covered by the main scenarios above."""
+
+    def test_existing_entry_but_dst_deleted_writes_new(self, tmp_path: Path) -> None:
+        """Row: existing entry yes, dst missing → WRITE_NEW (restore)."""
+        _build_garage_pack(tmp_path / "packs")
+        install_packs(tmp_path, tmp_path / "packs", ["claude"], force=False)
+
+        skill_dst = tmp_path / ".claude/skills/garage-hello/SKILL.md"
+        assert skill_dst.exists()
+
+        # User deletes the file but leaves the manifest entry.
+        skill_dst.unlink()
+        assert not skill_dst.exists()
+
+        # Re-install: should restore (WRITE_NEW path on missing dst with entry).
+        install_packs(tmp_path, tmp_path / "packs", ["claude"], force=False)
+        assert skill_dst.exists()
+        assert "name: garage-hello" in skill_dst.read_text(encoding="utf-8")
+
+    def test_no_entry_and_dst_exists_with_force_overwrites(
+        self, tmp_path: Path, capsys
+    ) -> None:
+        """Row: no entry, dst exists, force=True → OVERWRITE_FORCED."""
+        _build_garage_pack(tmp_path / "packs")
+        # Pre-create a stray file at the would-be dst (not from prior install).
+        (tmp_path / ".claude" / "skills" / "garage-hello").mkdir(
+            parents=True
+        )
+        (tmp_path / ".claude/skills/garage-hello/SKILL.md").write_text(
+            "USER WROTE THIS BEFORE GARAGE", encoding="utf-8"
+        )
+
+        # No prior install → no manifest entry.
+        capsys.readouterr()  # clear
+
+        # force=True must overwrite the stray file.
+        install_packs(tmp_path, tmp_path / "packs", ["claude"], force=True)
+
+        text = (tmp_path / ".claude/skills/garage-hello/SKILL.md").read_text(
+            encoding="utf-8"
+        )
+        assert "USER WROTE" not in text
+        assert "name: garage-hello" in text
+        captured = capsys.readouterr()
+        assert "Overwrote" in captured.err

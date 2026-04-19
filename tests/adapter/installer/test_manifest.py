@@ -138,3 +138,45 @@ class TestErrorHandling:
         )
         with pytest.raises(ValueError):
             read_manifest(garage_dir)
+
+
+# ---------------------------------------------------------------------------
+# F007 test-review carry-forward F-3: format regex assertions
+# ---------------------------------------------------------------------------
+
+
+import re
+
+
+class TestFieldFormats:
+    def test_installed_at_iso_8601(self, tmp_path: Path) -> None:
+        garage_dir = tmp_path / ".garage"
+        (garage_dir / "config").mkdir(parents=True)
+        manifest = Manifest(
+            schema_version=1,
+            installed_hosts=["claude"],
+            installed_packs=["garage"],
+            installed_at="2026-04-19T12:34:56",
+            files=[],
+        )
+        write_manifest(garage_dir, manifest)
+        raw = json.loads((garage_dir / "config" / MANIFEST_FILENAME).read_text())
+        # ISO-8601 second-precision (matches what _now_iso() in pipeline produces).
+        assert re.match(
+            r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}$", raw["installed_at"]
+        ), f"installed_at={raw['installed_at']!r} not ISO-8601"
+
+    def test_content_hash_is_sha256_hex(self, tmp_path: Path) -> None:
+        garage_dir = tmp_path / ".garage"
+        (garage_dir / "config").mkdir(parents=True)
+        manifest = Manifest(
+            schema_version=1,
+            installed_hosts=["claude"],
+            installed_packs=["garage"],
+            installed_at="2026-04-19T12:00:00",
+            files=[_make_entry(content_hash="a" * 64)],
+        )
+        write_manifest(garage_dir, manifest)
+        raw = json.loads((garage_dir / "config" / MANIFEST_FILENAME).read_text())
+        # SHA-256 hex = exactly 64 lowercase hex chars.
+        assert re.match(r"^[0-9a-f]{64}$", raw["files"][0]["content_hash"])
