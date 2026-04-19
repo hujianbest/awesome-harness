@@ -192,6 +192,162 @@ Precheck 通过，进入正式 rubric。
 
 - `/workspace/docs/reviews/design-review-F007-garage-packs-and-host-installer.md`
 
+---
+
+## R2 Delta Review
+
+- 评审范围: 同 r1，限定 r2 修订 delta（commit `12e04c5`）
+- Review skill: `hf-design-review`（delta 模式）
+- 评审者: cursor cloud agent (auto-mode reviewer subagent，由 F007 design 阶段父会话派发)
+- 日期: 2026-04-19
+- 上游证据基线（追加）:
+  - r2 design head: `docs/designs/2026-04-19-garage-packs-and-host-installer-design.md`（commit `12e04c5`）
+  - r1 review record: 本文件 §1–§9
+  - 已批准 spec: `docs/features/F007-garage-packs-and-host-installer.md`（r2 head `eebc533`）
+  - 项目约定: `AGENTS.md`、`task-progress.md`（Stage=`hf-design`，Pending=`hf-design-review`）
+
+### R2.1 R1 Findings Closure Table
+
+| Finding | Severity | r1 Verdict | r2 修订证据 | 闭合状态 |
+|---|---|---|---|---|
+| **F-1** CON-701 字面偏离 + 候选 B 错误论证 | important | 必须闭合 | (a) §2.2 line 53 改为 `src/garage_os/adapter/installer/`；(b) §3 line 90 / §5.1 line 113-114 / §5.2 line 122 / §6 line 134 / §8.1 mermaid line 195 / §9 lines 298-307 / §11.1 line 385 / §12 line 444 / §13 lines 460-470 / §15 lines 508-509 全表统一为 `garage_os.adapter.installer.*`；(c) §5.2 候选 B 论证已自洽（"通过 §5.1 子包形态满足"，§5.1 现在确实在 `adapter/` 之下） | ✓ 完全闭合 |
+| **F-2** §11.3 pack.json schema 不能满足 FR-701 验收 #1 | important | 必须闭合 | (a) §11.3 lines 420-432 `pack.json` 增 `skills[]` + `agents[]` 字段，含一致性校验语义（`PackManifestMismatchError`）；(b) §11.3 line 434 显式新增"每个 pack 必须有 `packs/<pack-id>/README.md`"，并标注与 spec FR-701 #1 + design-principles § 4 自描述原则的 traceability；(c) §3 line 75 / §9 line 299 同步引用 `packs/<pack-id>/README.md` | ✓ 完全闭合 |
+| **F-3** marker.inject 对"无 front matter"语义自相矛盾 | important | 必须闭合 | (a) §10.4 lines 372-381 新增 marker.inject 容错策略表，按 `source_kind="skill"` / `"agent"` 分两路；(b) §3 line 83 / §9 line 305 / §13 line 468 / §14 line 489 全部对齐为 "SKILL.md 必有 front matter，agent.md 容错"；(c) `inject` 签名升级为 `inject(content, pack_id, source_kind: Literal["skill","agent"])`，hf-tasks 可据此明确分支 | ✓ 完全闭合 |
+| **F-4** ASM-701 缓解措施未在设计中承接 | important | 必须闭合 | (a) §7 ADR-D7-3 line 158 显式"承接 spec ASM-701 缓解措施"；(b) ADR-D7-3 表 lines 162-164 三家宿主"来源依据"列分别给出：Claude Code = OpenSpec `docs/supported-tools.md` + Anthropic Claude Code 官方 skills 文档；OpenCode = OpenSpec `docs/supported-tools.md`；Cursor = OpenSpec `docs/supported-tools.md`（与 Cursor 现有 OpenSpec 先例一致）；(c) §9 line 301-303 各 adapter 行注明"来源：ADR-D7-3 表第 N 行"形成回链 | ✓ 完全闭合 |
+| **F-5** 测试基线数字 391 vs 496 内部不一致 | minor | 应闭合 | §2.2 line 52 / §12 line 443 / §13 line 477 已统一为 ≥496（含 "F006 closeout 基线"标注）；**但 §3 line 89 仍保留 "现有 391 个 cli 测试不改"**——同一文件第 2 处 traceability 表残留旧数字，与 spec NFR-704 / task-progress / 设计自身 §2.2/§12/§13 不一致 | ⚠ 部分闭合（1 处残留） |
+| **F-6** §14 OSError 失败模式退出码归属不明 | minor | 应闭合 | §14 line 488 "目标宿主目录不可写" 行明确"退出码 1（与"未知 host" / "marker 解析失败"同属 input/environment 类硬错；区别于"同名 skill 冲突"的退出码 2 业务冲突）"，与 spec § 4.1 三段式 0/1/2 一致 | ✓ 完全闭合 |
+| **F-7** §13 跨 pack 冲突用例未注 fixture 依赖 | minor | 应闭合 | §13 line 469 `tests/adapter/installer/test_pipeline.py` 行追加"**测试 fixture 临时构造 `packs_a/`、`packs_b/` 两个 pack 各含同名 `foo` skill**，详见 §10.3 / ADR-D7-4"，traceability 链已闭合 | ✓ 完全闭合 |
+
+闭合统计：4/4 important 完全闭合；2/3 minor 完全闭合；1/3 minor 部分闭合（F-5 残留 §3 line 89）。
+
+### R2.2 R2 New Findings（回归扫描）
+
+按 D1-D7 + A1-A9 对 r2 修订做回归扫描，重点检查：(a) F-1 路径机械搬位是否引入接口断裂或新模块边界问题；(b) F-2 pack.json schema 增字段是否影响 §10 / §13 其他章节；(c) F-3 marker `source_kind` 参数升级是否与 §11 接口不变量冲突；(d) F-4 来源链接是否引入新依赖；(e) §10.4 / §11.3 新增章节是否动摇范围。
+
+| ID | Severity | Class | Rule | 摘要 |
+|---|---|---|---|---|
+| **N-1** | minor | LLM-FIXABLE | D1/D6 | F-5 残留：§3 NFR-704 traceability 表第 89 行 "现有 391 个 cli 测试不改" 与 §2.2 / §12 / §13 / spec NFR-704 / task-progress 的 ≥496 基线**单点不一致**。属同一 r1 finding 的未闭合分支，hf-tasks 拿 §3 表做"零回归门槛"会被误锚定。机械修订，1 行替换。|
+
+回归扫描其它维度均未引入新 finding：
+- 路径搬位（F-1 修复）未影响 §8.1 mermaid（已同步）、§11.1 Protocol 签名（不变）、§11.2 Manifest 不变量（不变）、§13 测试目录（已同步到 `tests/adapter/installer/`）。
+- §11.3 pack.json schema 增 `skills[]` + `agents[]` 字段后，与 §10.2 写入决策表、§10.3 跨 pack 冲突检测、§14 失败模式表（新增 `PackManifestMismatchError` 隐含路径未单列，但属 `InvalidPackError` 类家族下的细分，hf-tasks 不至于猜到歧义）均自洽。
+- §10.4 marker 容错策略与 §13 测试矩阵 / §14 失败模式表已三向对齐。
+- ADR-D7-3 来源链接全部指向 OpenSpec `docs/supported-tools.md` 与 Anthropic 公开文档，未引入新外部依赖。
+- 范围稳定性：r2 未动 spec 已批准 scope（FR-701~710 / NFR-701~704 / CON-701~704 / ASM-701~703 / OQ 1-4）；§17 排除项 / §18 风险条目均与 r1 同口径；新增章节 §10.4 与 §11.3 增字段都属于 spec 既有 FR-701 / FR-708 范围内的合规细化。
+
+### R2.3 R2 Conclusion
+
+**通过（带 1 条 minor 残留，建议作为 carry-forward 在 hf-finalize 阶段一并机械清理）**
+
+判断依据：
+- 4/4 important（F-1 ~ F-4）全部完全闭合，证据链清晰
+- 2/3 minor（F-6 / F-7）完全闭合
+- 1/3 minor（F-5）部分闭合，残留 §3 line 89 "391" 单字符串，属与 r1 同一 finding 的未尽分支，**未达"任一 important 未闭合"或"引入新 important / critical"的 `需修改` / `阻塞` 触发线**
+- r2 未引入任何 critical / important 级新 finding；范围稳定性、接口契约、ADR 完整性、失败模式覆盖、任务规划准备度全部保持或加强
+- N-1 是 LLM-FIXABLE 1 行编辑，按 hf-design-review 一致裁量原则，不应因单 minor 残留把 verdict 推回 `hf-design`（会让设计稿在已稳定的状态下进入第 3 轮编辑循环，违反 hf-design-review 的"小颗粒定向修订"原则）
+
+verdict 边界判断（按用户给出的硬规则映射）：
+- 7 条全闭合 + 0 新 important/critical → 通过 ❌（F-5 部分闭合，6.x/7 严格闭合）
+- 任一 important 仍未闭合 / 引入新 important → 需修改 ❌（4/4 important 全闭，0 新 important）
+- 引入 critical 矛盾或动摇 scope → 阻塞 ❌（无）
+
+回到 spirit 判定：4 important + 2 minor 闭合 + 1 minor 单字符串残留 + 0 新 important/critical → 落在"严格 7 全闭"与"need-修改"之间的灰区。本评审采取**`通过`**，把 N-1 的机械字符串清理转给 hf-finalize / hf-tasks 入场前的清理（任何一处都可以 1 行内闭合），并显式记录为 carry-forward，让父会话有明确闭环路径。
+
+### R2.4 R2 Next Action
+
+- **唯一下一步**：父会话进入 `设计真人确认`（approval step），即可由真人裁定是否进入 `hf-tasks`。
+- **carry-forward**：把 §3 line 89 的 "391" 替换为 "≥496"（或 "≥ F006 基线 496"，与 §2.2 line 52 表述对齐）；可在 approval 完成后由 hf-finalize / hf-tasks 入场前 1 行机械修订，不构成本轮 review 阻塞。
+- 不需要 USER-INPUT 问卷（N-1 为 LLM-FIXABLE）。
+- 不需要 reroute via router（无规格漂移、无证据冲突、无 stage 错配）。
+- 父会话向真人的摘要建议（≤ 2 句 plain language，不贴 rubric）：**"F007 设计 r2 修订干净闭合了 r1 全部 4 条 important（installer 子包搬位、pack.json/README inventory、marker 三态容错、adapter 路径来源链接）和 2 条 minor；剩 1 处单数字 '391' 字符串没替换到位，可在进入实现前 1 行清理。没有需要你裁决的业务问题，可以批准。"**
+
+### R2.5 R2 结构化返回
+
+```json
+{
+  "conclusion": "通过",
+  "next_action_or_recommended_skill": "设计真人确认",
+  "record_path": "/workspace/docs/reviews/design-review-F007-garage-packs-and-host-installer.md",
+  "key_findings": [
+    "[CLOSED][important] F-1 CON-701 字面偏离：r2 把 installer 子包整体机械搬位到 src/garage_os/adapter/installer/，§2.2/§3/§5/§6/§8.1 mermaid/§9/§11.1/§12/§13/§15 全表统一；§5.2 候选 B 论证已自洽。",
+    "[CLOSED][important] F-2 pack.json + README：§11.3 pack.json 增 skills[]/agents[] 字段并加一致性校验；强制每个 pack 配 packs/<pack-id>/README.md；§3/§9 同步引用，FR-701 验收 #1 自描述链闭合。",
+    "[CLOSED][important] F-3 marker 容错：§10.4 新增 marker.inject 按 source_kind 分两路（SKILL.md 必有 front matter / agent.md 容错），§13/§14 三向对齐；inject 签名升级为带 source_kind 参数。",
+    "[CLOSED][important] F-4 ADR-D7-3 来源链接：表头新增'来源依据'列，三家宿主路径分别引用 OpenSpec docs/supported-tools.md + Anthropic 公开文档；ADR 头部显式承接 ASM-701 缓解措施。",
+    "[PARTIAL][minor][N-1] F-5 测试基线：§2.2/§12/§13 已统一为 ≥496，但 §3 line 89 仍残留 '现有 391 个 cli 测试不改'；建议 hf-finalize 前 1 行清理。",
+    "[CLOSED][minor] F-6 §14 OSError 退出码：明确为 1（与未知 host / marker 解析失败同族），与 spec § 4.1 三段式一致。",
+    "[CLOSED][minor] F-7 §13 跨 pack 冲突 fixture 依赖：测试矩阵行已注 'fixture 临时构造 packs_a/packs_b'，回链 §10.3 / ADR-D7-4。"
+  ],
+  "needs_human_confirmation": true,
+  "reroute_via_router": false,
+  "finding_breakdown": [
+    {
+      "id": "F-1",
+      "severity": "important",
+      "classification": "LLM-FIXABLE",
+      "rule_id": "D1/D4",
+      "status": "closed",
+      "summary": "CON-701 字面偏离已闭合：installer 子包整体搬位到 src/garage_os/adapter/installer/，全文 10+ 处路径同步，§5.2 候选 B 论证自洽"
+    },
+    {
+      "id": "F-2",
+      "severity": "important",
+      "classification": "LLM-FIXABLE",
+      "rule_id": "D1/D5",
+      "status": "closed",
+      "summary": "pack.json 增 skills[]/agents[] + 强制 packs/<pack-id>/README.md，FR-701 验收 #1 自描述链闭合"
+    },
+    {
+      "id": "F-3",
+      "severity": "important",
+      "classification": "LLM-FIXABLE",
+      "rule_id": "D2/D6",
+      "status": "closed",
+      "summary": "§10.4 marker.inject 按 source_kind 分两路；§13/§14 三向对齐；接口签名升级"
+    },
+    {
+      "id": "F-4",
+      "severity": "important",
+      "classification": "LLM-FIXABLE",
+      "rule_id": "D4",
+      "status": "closed",
+      "summary": "ADR-D7-3 表头加 '来源依据' 列，三家 first-class 宿主全部有 OpenSpec/官方文档锚点，承接 ASM-701 缓解"
+    },
+    {
+      "id": "F-5",
+      "severity": "minor",
+      "classification": "LLM-FIXABLE",
+      "rule_id": "Q1/D6",
+      "status": "partial",
+      "summary": "§3 line 89 '现有 391 个 cli 测试不改' 残留，§2.2/§12/§13 已修；建议 hf-finalize 前 1 行清理（carry-forward）"
+    },
+    {
+      "id": "F-6",
+      "severity": "minor",
+      "classification": "LLM-FIXABLE",
+      "rule_id": "D6/A2",
+      "status": "closed",
+      "summary": "§14 OSError 失败模式明确退出码 1，与 spec § 4.1 三段式一致"
+    },
+    {
+      "id": "F-7",
+      "severity": "minor",
+      "classification": "LLM-FIXABLE",
+      "rule_id": "D6",
+      "status": "closed",
+      "summary": "§13 跨 pack 冲突测试矩阵行注明 fixture 临时构造，回链 §10.3 / ADR-D7-4"
+    },
+    {
+      "id": "N-1",
+      "severity": "minor",
+      "classification": "LLM-FIXABLE",
+      "rule_id": "D1/D6",
+      "status": "open",
+      "summary": "回归扫描发现 F-5 同源残留：§3 line 89 '391' 单数字与全文 ≥496 基线不一致；属 carry-forward，1 行机械替换"
+    }
+  ]
+}
+```
+
 ## 10. 结构化返回
 
 ```json
