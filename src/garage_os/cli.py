@@ -81,6 +81,7 @@ ERR_LINK_FROM_AMBIGUOUS_FMT = (
 GRAPH_OUTGOING_HEADER = "Outgoing edges:"
 GRAPH_INCOMING_HEADER = "Incoming edges:"
 GRAPH_EDGE_NONE = "  (none)"
+KNOWLEDGE_GRAPH_NODE_FMT = "[{type}] {topic}"
 
 from garage_os.knowledge.experience_index import ExperienceIndex
 from garage_os.knowledge.knowledge_store import KnowledgeStore
@@ -1038,9 +1039,9 @@ def _resolve_knowledge_entry_unique(
 
 
 def _recommend_experience(
-    records: list,
-    context: dict,
-) -> list[dict]:
+    records: list[ExperienceRecord],
+    context: dict[str, object],
+) -> list[dict[str, object]]:
     """Score experience records against a query-shaped context (FR-602).
 
     Returns items in the same shape as
@@ -1248,7 +1249,7 @@ def _knowledge_graph(garage_root: Path, *, eid: str) -> int:
         return 1
     assert entry is not None
 
-    print(f"[{entry.type.value.upper()}] {entry.topic}")
+    print(KNOWLEDGE_GRAPH_NODE_FMT.format(type=entry.type.value.upper(), topic=entry.topic))
     print(f"ID: {entry.id}")
 
     print(GRAPH_OUTGOING_HEADER)
