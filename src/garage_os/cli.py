@@ -7,7 +7,7 @@ import sys
 import time
 from datetime import datetime
 from pathlib import Path
-from typing import Callable, Optional, Sequence
+from typing import Any, Callable, Optional, Sequence
 
 from garage_os.adapter.claude_code_adapter import ClaudeCodeAdapter
 
@@ -1040,8 +1040,8 @@ def _resolve_knowledge_entry_unique(
 
 def _recommend_experience(
     records: list[ExperienceRecord],
-    context: dict[str, object],
-) -> list[dict[str, object]]:
+    context: dict[str, Any],
+) -> list[dict[str, Any]]:
     """Score experience records against a query-shaped context (FR-602).
 
     Returns items in the same shape as
@@ -1058,7 +1058,7 @@ def _recommend_experience(
     problem_domain = (context.get("problem_domain") or "").lower()
     tag_tokens = [str(tag).lower() for tag in context.get("tags", []) if tag]
 
-    results: list[dict] = []
+    results: list[dict[str, Any]] = []
     for record in records:
         score = 0.0
         reasons: list[str] = []
@@ -1121,7 +1121,7 @@ def _recommend_experience(
     return results
 
 
-def _print_recommendation_block(item: dict) -> None:
+def _print_recommendation_block(item: dict[str, Any]) -> None:
     """Print one recommendation result block in the canonical CLI format."""
     type_label = item["entry_type"].upper()
     title = item.get("title") or ""
