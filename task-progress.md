@@ -2,9 +2,9 @@
 
 ## Goal
 
-- Goal: 无活跃 cycle（F004 已正式 closeout）
+- Goal: F005 Garage Memory v1.2 — knowledge authoring CLI（让 Stage 2 飞轮能从终端起转）
 - Owner: hujianbest
-- Status: ⏸ Idle — 等待下一个 feature cycle 启动
+- Status: 🟢 Active — drafting feature spec
 - Last Updated: 2026-04-19
 
 ## Previous Milestones
@@ -16,32 +16,36 @@
 
 ## Current Workflow State
 
-- Current Stage: `closed`
-- Workflow Profile: `N/A`（无活跃 cycle）
-- Execution Mode: `N/A`
+- Current Stage: `hf-specify`
+- Workflow Profile: `standard`
+- Execution Mode: `auto`
 - Workspace Isolation: `in-place`
-- Current Active Task: 无
-- Pending Reviews And Gates: 无
-- Next Action Or Recommended Skill: `null`
+- Current Active Task: 起草 F005 规格草稿
+- Pending Reviews And Gates: spec-review、design-review、tasks-review、test-review、code-review、traceability-review、regression-gate、completion-gate
+- Next Action Or Recommended Skill: `hf-spec-review`
 - Relevant Files:
-  - `RELEASE_NOTES.md`（按 cycle 倒序记录用户可见变化；首条目 = F004）
-  - `docs/verification/F004-finalize-closeout-pack.md`（F004 workflow closeout pack）
-  - `docs/verification/F004-completion-gate.md`、`docs/verification/F004-regression-gate.md`
-  - 完整 review 链路：`docs/reviews/{spec,design,tasks,test,code,traceability}-review-F004-memory-v1-1.md`
-  - 同款 F003 历史链路：`docs/verification/F003-finalize-closeout-pack.md`、`docs/reviews/*-F003-*.md`
-  - `docs/soul/manifesto.md`、`user-pact.md`、`design-principles.md`、`growth-strategy.md`（项目灵魂，跨 cycle 仍生效）
+  - `docs/features/F005-garage-knowledge-authoring-cli.md`（待创建）
+  - `RELEASE_NOTES.md`（cycle 完成后追加 v1.2 段）
+  - `docs/soul/manifesto.md`、`growth-strategy.md` Stage 2 → Stage 3 触发条件
 - Constraints:
   - Stage 2 仍保持 workspace-first，不引入外部数据库、常驻服务、Web UI
-  - 优先使用 markdown、JSON、文件系统存储
-  - 所有数据存储在 Garage 仓库内部
+  - 复用 F003/F004 已批准的 `KnowledgeStore` / `ExperienceIndex` 契约，不引入 schema 变更
+  - 所有数据存储在 Garage 仓库内部（`.garage/knowledge/...`）
+  - 默认零配置，遵循 Stage 1 → Stage 2 渐进复杂度原则
+
+## Wedge
+
+Stage 2 飞轮（使用 → 积累 → 提炼 → 增强）当前**仅靠 session 归档触发**，
+用户没有直接、可观察、零配置的入口把 ad-hoc 的决策 / 模式 / 解法存进
+`.garage/knowledge/`。`garage knowledge search` / `list` 已存在但**只读**，
+而 F003 的 `garage memory review` 仍要先有候选批次。结果：
+今天的 Garage 仓库仍是 0 个 knowledge entry，飞轮跑不起来。
+
+F005 收敛的最小 wedge = "终端 1 行命令把一条决策 / 模式 / 解法
+持久化到 `.garage/knowledge/`"。
 
 ## Next Step
 
-无活跃下一步。下一个 cycle 启动时由 `hf-workflow-router` 重新建立 stage / profile / mode / active task。
-
-可选的后续候选（由 `hf-workflow-router` 在新 cycle 中独立判断与拆分）：
-
-- 处理 F004 finalize 中显式延后的 minor：design § 3 / § 9 trace 矩阵显式登记 KnowledgeStore extra-key 修复（TZ5）
-- 处理 pre-existing baseline 的 23 个 mypy errors + ruff UP045 警告（F001/F002/F003 历史）
-- 评估是否启动 Stage 3（"工匠"）：`docs/soul/growth-strategy.md` 给出的进入信号包括"知识库条目 >100"、"识别到 5+ 可复用模式"、"用户开始期望系统自动帮我做更多"
-- 详见 `RELEASE_NOTES.md` "F004 — 已知限制 / 后续工作" 段
+进入 `hf-specify`，按 EARS + BDD + MoSCoW + 六分类法起草
+`docs/features/F005-garage-knowledge-authoring-cli.md`，然后派发
+`hf-spec-review` reviewer subagent。
