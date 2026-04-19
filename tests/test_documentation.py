@@ -104,3 +104,37 @@ def test_readmes_list_new_cli_subcommands() -> None:
             assert token in content, (
                 f"expected {readme.name} to list CLI command '{token}'; not found"
             )
+
+
+# F006 / NFR-605: user guide must document the 3 new recall + graph subcommands;
+# READMEs must list them in the CLI command summary.
+
+
+def test_user_guide_documents_recall_and_knowledge_graph() -> None:
+    """User guide must contain an Active recall and knowledge graph section
+    covering all 3 new F006 subcommands."""
+    content = USER_GUIDE.read_text(encoding="utf-8")
+    for token in (
+        "Active recall and knowledge graph",
+        "garage recommend",
+        "garage knowledge link",
+        "garage knowledge graph",
+        "cli:knowledge-link",
+        "Outgoing edges:",
+        "Incoming edges:",
+    ):
+        assert token in content, f"expected user guide to mention '{token}'; not found"
+
+
+def test_readmes_list_f006_cli_subcommands() -> None:
+    """Both READMEs must list the 3 new F006 CLI subcommands."""
+    for readme in (README_EN, README_ZH):
+        content = readme.read_text(encoding="utf-8")
+        for token in (
+            "recommend",
+            "knowledge link",
+            "knowledge graph",
+        ):
+            assert token in content, (
+                f"expected {readme.name} to list CLI command '{token}'; not found"
+            )

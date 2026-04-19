@@ -406,6 +406,90 @@ garage experience delete --id exp-...
 
 ---
 
+## Active recall and knowledge graph
+
+F006 起，`garage` CLI 增加了 3 个新子命令，让你**主动**召回积累的知识、把孤立的 entry 连成图：
+
+### `garage recommend <query>` — 主动召回
+
+不依赖 `garage run` 的 skill 执行流程，用户直接 pull 排序后的相关 entry（mixed knowledge + experience）：
+
+```bash
+# 基础召回
+garage recommend "auth jwt expiry"
+
+# 带过滤
+garage recommend "rate limiting" --tag api --domain platform --top 3
+
+# 零结果时给明确兜底文案
+garage recommend "anything"
+# → No matching knowledge or experience for query: 'anything'
+```
+
+输出格式（每条 entry 一个 block）：
+
+```
+[DECISION] auth jwt expiry
+  ID: decision-20260419-...
+  Score: 1.40
+  Match: tag:auth, domain:platform
+  Source: <session id, if any>
+```
+
+每条结果都带 `Match:` 行解释命中理由（与 F003 `RecommendationService` 同样的 `match_reasons` 字段），方便你判断"为什么是这条"。
+
+### `garage knowledge link --from --to [--kind ...]` — 维护知识图边
+
+把一条 entry 与另一条 ID 显式关联：
+
+```bash
+# 把 decision A 关联到 decision B（默认 --kind related-decision）
+garage knowledge link --from decision-A --to decision-B
+
+# 关联到一个外部 task ID
+garage knowledge link --from decision-A --to T005 --kind related-task
+
+# 重复 link 是幂等的（字段去重，但 version 仍 +1，符合 v1.1 不变量）
+garage knowledge link --from decision-A --to decision-B
+# → Already linked 'decision-A' -> 'decision-B' (related-decision)
+```
+
+`--from` 必须是 `.garage/knowledge/` 内已存在的 entry id；`--to` 接受任意字符串（不强制存在性，便于引用 task ID 等外部标识）。`link` 写盘时自动设 `source_artifact = "cli:knowledge-link"`，与 F005 cli: 命名空间一致，可被审计 grep。
+
+### `garage knowledge graph --id` — 1 跳邻居视图
+
+打印一个 entry 节点 + 其全部 1 跳邻居（出边 + 入边）：
+
+```bash
+garage knowledge graph --id decision-A
+```
+
+```
+[DECISION] auth-related architecture decision
+ID: decision-A
+Outgoing edges:
+  -> decision-B (related-decision)
+  -> T005 (related-task)
+Incoming edges:
+  <- pattern-frontmatter (related-decision)
+```
+
+- **出边**：`entry.related_decisions` + `entry.related_tasks` 字段直接列出
+- **入边**：全库扫描"哪些其他 entry 把本 entry 列为 related"
+
+不持久化反向索引（按 OD-605 接受 N=100 阈值下 O(N) 扫描）。
+
+### `garage memory review` 与 `garage recommend` 的区别
+
+| 命令 | 心智模型 | 何时用 |
+|------|---------|------|
+| `garage memory review <bid>` | 自动**候选 → 用户确认 → 正式发布** | session 归档触发候选提取后，决定哪些进入正式知识库 |
+| `garage recommend <query>` | 已发布知识 / 经验的**主动召回** | 想问"我以前对 X 类问题怎么决策的"，直接 pull |
+
+两者互不影响：`recommend` 是 read-only，`review` 是写入 `.garage/knowledge/` 与 `.garage/memory/confirmations/`。
+
+---
+
 ## 配置说明
 
 ### 平台配置（`.garage/config/platform.json`）
