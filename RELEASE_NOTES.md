@@ -4,6 +4,59 @@
 
 ---
 
+## F006 — Garage Recall & Knowledge Graph（主动召回 + 知识图最小可用形态）
+
+- 状态: ✅ 已完成（2026-04-19）
+- Workflow Profile: `standard`
+- Execution Mode: `auto`
+- Branch / PR: `cursor/f006-recommend-and-link-177b` / [#17](https://github.com/hujianbest/garage-agent/pull/17)
+- 关联文档:
+  - 规格 `docs/features/F006-garage-recall-and-knowledge-graph.md`
+  - 设计 `docs/designs/2026-04-19-garage-recall-and-knowledge-graph-design.md`（r1 inline-fixed）
+  - 任务计划 `docs/tasks/2026-04-19-garage-recall-and-knowledge-graph-tasks.md`
+  - completion gate `docs/verification/F006-completion-gate.md`
+  - regression gate `docs/verification/F006-regression-gate.md`
+  - 完整 review 链路：`docs/reviews/{spec(r1+r2),design,tasks,test,code,traceability}-review-F006-recall-and-knowledge-graph*.md`
+  - finalize closeout `docs/verification/F006-finalize-closeout-pack.md`
+
+### 用户可见变化
+
+- **新增 3 个 CLI 子命令**让用户主动召回积累的知识、把孤立 entry 连成图：
+  - `garage recommend <query>` — **mixed knowledge + experience** 召回；按 score 降序排序，带 `match_reasons` 解释命中理由；支持 `--tag` (可重复) / `--domain` / `--top` 过滤；零结果时给明确兜底文案
+  - `garage knowledge link --from --to [--kind related-decision|related-task]` — 写 `KnowledgeEntry.related_decisions` / `related_tasks` 字段（这两字段从 F001 起就存在，本 cycle 第一次接通到用户面）；幂等（重复 link 不重复追加但 stdout 显式 "Already linked"）
+  - `garage knowledge graph --id` — 1 跳邻居视图（`Outgoing edges:` 来自 entry 字段，`Incoming edges:` 全库扫描"哪些其他 entry 把我列为 related"）
+- **F003 RecommendationService 投入回报率扩大**：F003 已经做的 ranking + match_reasons 算法此前只在 `garage run <skill>` 流程内被动触发。F006 让同一逻辑在更高频、纯本地、无 Claude Code 依赖的 `garage recommend <query>` 入口上服务用户，解锁 manifesto "记得你上个月的架构决策" 承诺。
+- **`cli:` 命名空间扩展到 link 路径**：`garage knowledge link` 写入 entry 时强制 `source_artifact = "cli:knowledge-link"`，与 F005 已有的 `cli:knowledge-add` / `cli:knowledge-edit` / `cli:experience-add` 同命名空间。`grep "cli:knowledge-link" .garage/knowledge/` 可一键筛选所有手工建图动作。
+- **v1.1 `version+=1` 不变量延伸**：CLI `link` 走 `KnowledgeStore.update()` 路径，每次 link（含重复 link）都触发 version 递增，与 F004 v1.1 + F005 edit 路径一致。
+
+### 数据与契约影响
+
+- **零 schema 变更**：`KnowledgeEntry.related_decisions: List[str]` / `related_tasks: List[str]` / `ExperienceRecord` 全部 dataclass 字段不变（CON-602）。
+- **零依赖变更**：`pyproject.toml` 在本 cycle `git diff main..HEAD` 为空（NFR-602 ✓）。
+- **零 `RecommendationService.recommend()` 算法变化**：F003 `garage run` 路径行为完全不变（CON-605）；测试 `test_recommendation_service_recommend_byte_level_unchanged` 通过 `inspect.getsource` 断言 5 个关键 score weight token 未被改动。
+- **新增 `RecommendationContextBuilder.build_from_query(query, tags, domain)` 方法**（non-breaking 增量）：把 query 字符串映射为 `RecommendationService.recommend()` 已有契约形状的 context dict；既有 `build()` 一字未改。
+- **CLI 内独立 experience scorer**（`_recommend_experience` helper）：不进 `RecommendationService`，由 cli.py 承担 experience 半边召回；保留 `garage run` 路径行为不变。这是 spec round-1 USER-INPUT path B 裁决的结果（详见 `docs/approvals/F006-spec-approval.md`）。
+- **新增 CLI 模块顶层常量**（`src/garage_os/cli.py`）：
+  - 6 个 stdout/stderr 常量：`RECOMMEND_NO_RESULTS_FMT` / `KNOWLEDGE_LINKED_FMT` / `KNOWLEDGE_LINK_ALREADY_FMT` / `ERR_LINK_FROM_AMBIGUOUS_FMT` / `KNOWLEDGE_GRAPH_NODE_FMT` + 3 个 graph 段标题字符串
+  - 1 个 source-marker 常量：`CLI_SOURCE_KNOWLEDGE_LINK = "cli:knowledge-link"`
+- **新增顶级 sub-parser** `garage recommend`（跨 knowledge + experience 域，挂顶级是有意决定，详见 design ADR-601）+ 2 个二级 sub-parsers `knowledge link` / `knowledge graph`。
+
+### 验证证据
+
+- `pytest tests/ -q` → **496 passed in ~26s**（F005 baseline 451 → +45 个 F006 新增测试，零回归）
+- F006 触动模块 mypy 持平 baseline（无新引入错误；2 个 pre-existing baseline errors 与 F006 无因果）
+- E2E walkthrough：在干净 `.garage/` 内完成 `add ×3 → experience add → recommend (mixed score sorted) → link ×3 → graph (out + in edges) → recommend (top filter) → recommend (zero result) → status` 全链路（详见 `/opt/cursor/artifacts/f006_cli_walkthrough.log`）
+- 完整质量链：spec-review r1（需修改 USER-INPUT）→ r2（通过）→ design-review（通过 3 minor inline-fixed）→ tasks-review（通过 5 minor; 3 absorbed downstream）→ test-review（通过 3 minor; supplementary tests added）→ code-review（通过 3 minor; CR-1/CR-2 inline-fixed）→ traceability-review（通过 3 minor）→ regression-gate（通过）→ completion-gate（通过）
+
+### 已知限制 / 后续工作
+
+- **Stage 3 进入信号尚未达标**：F006 把召回 pull 入口与图衬底都铺好了，但 `growth-strategy.md` 的 "知识库条目 >100" + "识别到 5+ 可复用模式" 信号**仍依赖用户使用频率**。下一个 cycle 是否启动 Stage 3 由 `hf-workflow-router` 在新会话独立判断。
+- **`_recommend_experience` 多次累加 vs 单次累加语义微差（code review CR-3 minor）**：tech / pattern / lesson 规则可对同一 record 重复加分；task_type 规则带 break。spec FR-602 措辞已允许此读法；建议下一 cycle 在真实使用数据上观察 score 分布后决定是否对齐。
+- **§ 5 deferred backlog（spec 显式不在本 cycle）**：`garage knowledge unlink` / 多跳 graph (`graph --depth 2`) / experience link / 跨类型 link / 图导出 (GraphViz/Mermaid/JSON) / `recommend --format json` / `recommend --include knowledge-only|experience-only` / embedding-based 相似度 / 自动建议链接 — 全部由后续 cycle 独立立项。
+- **Pre-existing baseline mypy + ruff 警告**：2 个 F004 历史 mypy errors + cli.py / recommendation_service.py 共 47 个 ruff stylistic warnings（含 1 个 unused import on `recommendation_service.py:10`）— 全部超出 F006 范围，由独立 cycle 治理。F006 新引入的 ruff 增量（4 项 UP045）与现有代码风格一致，未引入新行为问题。
+
+---
+
 ## F005 — Garage Knowledge Authoring CLI（让 Stage 2 飞轮能从终端起转）
 
 - 状态: ✅ 已完成（2026-04-19）
