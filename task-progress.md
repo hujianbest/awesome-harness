@@ -16,13 +16,13 @@
 
 ## Current Workflow State
 
-- Current Stage: `hf-tasks`
+- Current Stage: `hf-test-driven-dev`
 - Workflow Profile: `standard`
 - Execution Mode: `auto`
 - Workspace Isolation: `in-place`
-- Current Active Task: 起草 F005 任务计划
-- Pending Reviews And Gates: tasks-review、test-review、code-review、traceability-review、regression-gate、completion-gate
-- Next Action Or Recommended Skill: `hf-tasks-review`
+- Current Active Task: T1 — knowledge add + ID/content helpers + 来源标记
+- Pending Reviews And Gates: test-review、code-review、traceability-review、regression-gate、completion-gate
+- Next Action Or Recommended Skill: `hf-test-driven-dev`
 - Relevant Files:
   - `docs/features/F005-garage-knowledge-authoring-cli.md`（待创建）
   - `RELEASE_NOTES.md`（cycle 完成后追加 v1.2 段）
