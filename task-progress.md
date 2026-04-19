@@ -2,9 +2,9 @@
 
 ## Goal
 
-- Goal: F007 — Garage Packs 与宿主安装器（spec + design 已批准；待进入 hf-tasks）
+- Goal: F007 — Garage Packs 与宿主安装器（spec + design + tasks 已批准；待进入 hf-test-driven-dev T1）
 - Owner: hujianbest
-- Status: ▶ Active — 设计已批准，等待 tasks 拆解
+- Status: ▶ Active — 任务计划已批准，等待 T1 实施
 - Last Updated: 2026-04-19
 
 ## Previous Milestones
@@ -18,13 +18,13 @@
 
 ## Current Workflow State
 
-- Current Stage: `hf-tasks`
+- Current Stage: `hf-test-driven-dev`
 - Workflow Profile: `coding`
 - Execution Mode: `auto-mode`
 - Workspace Isolation: `in-place`
-- Current Active Task: F007 tasks 草稿已起草，待评审
-- Pending Reviews And Gates: F007 tasks review（待派发 reviewer subagent）
-- Next Action Or Recommended Skill: `hf-tasks-review`
+- Current Active Task: T1 — packs/ 目录契约 + 占位 pack + 双层 README
+- Pending Reviews And Gates: hf-test-review / hf-code-review / hf-traceability-review / hf-regression-gate / hf-completion-gate（T5 完成后串行派发）
+- Next Action Or Recommended Skill: `hf-test-driven-dev` (T1 实施)
 - Relevant Files:
   - `docs/features/F007-garage-packs-and-host-installer.md`（已批准规格）
   - `docs/designs/2026-04-19-garage-packs-and-host-installer-design.md`（已批准设计，r2）
