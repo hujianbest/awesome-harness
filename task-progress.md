@@ -15,13 +15,14 @@
 
 ## Current Workflow State
 
-- Current Stage: `设计真人确认`（auto-mode approval r1 已写入）→ 准备进入 `hf-tasks`
+- Current Stage: `hf-tasks`（草稿已落盘）→ 准备派发 `hf-tasks-review`
 - Workflow Profile: `full`
 - Execution Mode: `auto`
 - Workspace Isolation: `in-place`
-- Current Active Task: F004 task plan authoring
+- Current Active Task: F004 task review
 - Pending Reviews And Gates: `hf-tasks-review`
-- Next Action Or Recommended Skill: `hf-tasks`
+- Next Action Or Recommended Skill: `hf-tasks-review`
+- Task Board Path: `docs/tasks/2026-04-19-garage-memory-v1-1-tasks.md`
 - Relevant Files:
   - `docs/features/F004-garage-memory-v1-1-publication-identity-and-confirmation-semantics.md`（F004 spec draft）
   - `docs/features/F003-garage-memory-auto-extraction.md`（前一 cycle spec，作为对照）
@@ -43,4 +44,4 @@
 
 ## Next Step
 
-进入 `hf-tasks`：起草 F004 任务计划（`docs/tasks/2026-04-19-garage-memory-v1-1-tasks.md`），按 design §15 建议拆 T1~T5 + 显式 testDesignApproval 治理路径。
+派发 `hf-tasks-review` reviewer subagent 评审 `docs/tasks/2026-04-19-garage-memory-v1-1-tasks.md`。
