@@ -39,6 +39,11 @@ KNOWLEDGE_ALREADY_EXISTS_FMT = (
 EXPERIENCE_ADDED_FMT = "Experience record '{rid}' added"
 EXPERIENCE_DELETED_FMT = "Experience record '{rid}' deleted"
 EXPERIENCE_NOT_FOUND_FMT = "Experience record '{rid}' not found"
+EXPERIENCE_ALREADY_EXISTS_FMT = (
+    "Experience record with id '{rid}' already exists; "
+    "pass --id to override or change inputs"
+)
+EXPERIENCE_READ_ERR_FMT = "Failed to read experience record '{rid}': {err}"
 
 ERR_NO_GARAGE = "No .garage/ directory found. Run 'garage init' first."
 ERR_CONTENT_AND_FILE_MUTEX = "--content and --from-file are mutually exclusive"
@@ -640,8 +645,15 @@ def _resolve_content(
 ) -> tuple[Optional[str], Optional[str]]:
     """Resolve the ``content`` field for `add` / `edit`.
 
-    Returns ``(content, error)``. If ``error`` is non-None the caller
-    must print it to stderr and exit 1. The two arguments are mutually
+    Returns ``(content, error)``. Three states matter:
+
+    - ``(content, None)``: caller should use ``content`` as-is.
+    - ``(None, error)``: caller must print ``error`` to stderr and exit 1.
+    - ``(None, None)``: only possible when ``require_one=False`` (i.e. the
+      `edit` path), meaning "the user did not pass either flag → leave
+      the existing entry's content unchanged".
+
+    The two CLI arguments ``--content`` and ``--from-file`` are mutually
     exclusive (FR-502 / FR-503).
     """
     if content_arg is not None and from_file_arg is not None:
@@ -898,7 +910,7 @@ def _experience_add(
     experience_index = ExperienceIndex(storage)
 
     if experience_index.retrieve(rid) is not None:
-        print(KNOWLEDGE_ALREADY_EXISTS_FMT.format(eid=rid), file=sys.stderr)
+        print(EXPERIENCE_ALREADY_EXISTS_FMT.format(rid=rid), file=sys.stderr)
         return 1
 
     record = ExperienceRecord(
@@ -926,7 +938,17 @@ def _experience_add(
 
 
 def _experience_show(garage_root: Path, *, rid: str) -> int:
-    """Implement ``garage experience show`` (FR-507a)."""
+    """Implement ``garage experience show`` (FR-507a).
+
+    Reads the on-disk JSON file directly (instead of going through
+    :py:meth:`ExperienceIndex.retrieve`) because we want to display the raw
+    persisted shape — including the ``cli:experience-add`` source marker
+    in ``artifacts[0]`` and any future fields that may not yet be on the
+    ``ExperienceRecord`` dataclass. This keeps `show` fully forward
+    compatible with schema additions on disk while still routing all
+    *writes* through the public ``ExperienceIndex`` API (see
+    ``_experience_add`` / ``_experience_delete``).
+    """
     garage_dir = _require_garage(garage_root)
     if garage_dir is None:
         print(ERR_NO_GARAGE, file=sys.stderr)
@@ -940,7 +962,7 @@ def _experience_show(garage_root: Path, *, rid: str) -> int:
     try:
         data = json.loads(record_path.read_text(encoding="utf-8"))
     except (OSError, json.JSONDecodeError) as exc:
-        print(f"Failed to read experience record '{rid}': {exc}", file=sys.stderr)
+        print(EXPERIENCE_READ_ERR_FMT.format(rid=rid, err=exc), file=sys.stderr)
         return 1
     print(json.dumps(data, indent=2, ensure_ascii=False))
     return 0
