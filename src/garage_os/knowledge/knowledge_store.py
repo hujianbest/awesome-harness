@@ -383,11 +383,21 @@ class KnowledgeStore:
     def _entry_to_front_matter(self, entry: KnowledgeEntry) -> dict:
         """Convert a KnowledgeEntry to front matter dictionary.
 
-        Reserved keys (mapped from dataclass attributes) are always rebuilt
-        from the canonical dataclass values. Extra keys present on
+        Reserved keys (mapped from dataclass attributes; see
+        ``_DATACLASS_FRONT_MATTER_KEYS``) are always rebuilt from the
+        canonical dataclass values. Extra keys present on
         ``entry.front_matter`` (such as F004 publisher's ``supersedes``
         carry-over key) are merged in afterwards so the ``store -> retrieve
         -> store`` round trip preserves them.
+
+        Conflict policy (explicit, F004 § 11.2.1): if a caller stuffs a
+        reserved key name into ``entry.front_matter`` (for example
+        ``front_matter['id'] = 'X'``), the reserved value rebuilt from the
+        dataclass attribute always **wins** over the front_matter value to
+        prevent silent desyncs between the on-disk header and the entry's
+        canonical fields. Tests pin this behaviour:
+        ``tests/knowledge/test_knowledge_store.py
+        ::test_extra_front_matter_keys_do_not_overwrite_dataclass_keys``.
         """
         front_matter: dict = {
             "id": entry.id,

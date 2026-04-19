@@ -245,6 +245,14 @@ class SessionManager:
         if not enabled:
             return
 
+        # F004 § 11.4 / FR-404 scope note: the ``phase`` field is a closed
+        # enum of {orchestrator_init, enablement_check, extraction}. A
+        # missing archived session.json (read returns None) is treated as a
+        # silent no-op, not a fourth phase, because ``move(...)`` was
+        # already verified upstream in ``archive_session`` and a missing
+        # file at this point implies a concurrent removal outside the
+        # archive flow — we deliberately do not classify that as an
+        # extraction error to keep the schema stable.
         archived_session_path = f"sessions/archived/{session_id}/session.json"
         archived_session = self._storage.read_json(archived_session_path)
         if archived_session is None:
