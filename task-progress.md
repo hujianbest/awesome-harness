@@ -2,10 +2,10 @@
 
 ## Goal
 
-- Goal: F007 — Garage Packs 与宿主安装器（已 closeout）
+- Goal: F008 — Garage Coding Pack 与 Writing Pack（把 `.agents/skills/` 物化为可分发 packs）
 - Owner: hujianbest
-- Status: ✅ Closed — F007 cycle 完整 closeout（T1-T5 + 全部 review/gate + finalize）
-- Last Updated: 2026-04-19
+- Status: 🟡 In Progress — F008 spec drafted, awaiting `hf-spec-review`
+- Last Updated: 2026-04-22
 
 ## Previous Milestones
 
@@ -19,41 +19,30 @@
 
 ## Current Workflow State
 
-- Current Stage: `closed`
-- Workflow Profile: `N/A`（无活跃 cycle）
-- Execution Mode: `N/A`
-- Workspace Isolation: `in-place`
-- Current Active Task: 无
-- Pending Reviews And Gates: 无
-- Next Action Or Recommended Skill: `null`
+- Current Stage: `hf-specify`
+- Workflow Profile: `full`
+- Execution Mode: `auto`
+- Workspace Isolation: `in-place`（工作分支 `cursor/f008-coding-pack-and-writing-pack-bf33`）
+- Current Active Task: 无（spec drafting 阶段，task plan 由 `hf-tasks` 在 design 通过后产出）
+- Pending Reviews And Gates: `hf-spec-review`（待派发）
+- Next Action Or Recommended Skill: `hf-spec-review`
 - Relevant Files:
-  - `docs/verification/F007-finalize-closeout-pack.md`（F007 workflow closeout pack）
-  - `docs/verification/F007-completion-gate.md`、`docs/verification/F007-regression-gate.md`
-  - `docs/features/F007-garage-packs-and-host-installer.md`（已批准规格）
-  - `docs/designs/2026-04-19-garage-packs-and-host-installer-design.md`（已批准设计 r2）
-  - `docs/tasks/2026-04-19-garage-packs-and-host-installer-tasks.md`（已批准任务计划）
-  - `docs/approvals/F007-{spec,design,tasks}-approval.md`
-  - `docs/reviews/{spec,design,tasks,test,code,traceability}-review-F007-*.md`（完整 review 链路）
-  - `RELEASE_NOTES.md`（按 cycle 倒序记录用户可见变化；首条目 = F007）
-  - `AGENTS.md`（新增 ## Packs & Host Installer 段 + adapter 模块表已更新）
-  - `docs/soul/manifesto.md`、`user-pact.md`、`design-principles.md`、`growth-strategy.md`（项目灵魂，跨 cycle 仍生效）
+  - `docs/features/F008-garage-coding-pack-and-writing-pack.md`（草稿）
+  - `docs/soul/manifesto.md`、`growth-strategy.md`、`design-principles.md`（愿景锚点）
+  - `packs/README.md`、`packs/garage/`（F007 落下的现状）
+  - `.agents/skills/harness-flow/`、`.agents/skills/write-blog/`、`.agents/skills/find-skills/`、`.agents/skills/writing-skills/`（搬迁源）
+  - `RELEASE_NOTES.md` § "F007 — 已知限制 / 后续工作"（F008 候选清单来源）
 - Constraints:
-  - Stage 2 仍保持 workspace-first，不引入外部数据库、常驻服务、Web UI
-  - 优先使用 markdown、JSON、文件系统存储
-  - 所有数据存储在 Garage 仓库内部
+  - 不修改 F007 安装管道 / `pack.json` schema / host adapter 注册表
+  - 搬迁是字节级 1:1（仅相对引用路径允许最小修复）
+  - `.agents/skills/` 处置必须本 cycle 收敛（A/B/C 候选由 design 决定）
+  - Stage 2 仍保持 workspace-first，不引入外部数据库 / 常驻服务 / Web UI
 
 ## Next Step
 
-无活跃下一步。下一个 cycle 启动时由 `hf-workflow-router` 重新建立 stage / profile / mode / active task。
+派发独立 reviewer subagent 执行 `hf-spec-review`，对 `docs/features/F008-garage-coding-pack-and-writing-pack.md` 出 verdict。
 
-可选的后续候选（由 `hf-workflow-router` 在新 cycle 中独立判断与拆分）：
-
-- **F008 候选 — 把 `.agents/skills/` 30 个 HF skills 搬迁到 `packs/coding/skills/`**：F007 cycle 已在 packs/garage 验证管道与 conflict 检测都到位，搬迁本身是机械动作 + 路径替换；spec FR-701 验收 #1 / NFR-701 grep 测试已为 `packs/coding/` 自动覆盖
-- **F008 候选 — `garage uninstall --hosts <list>` + `garage update --hosts <list>`**：F007 cycle 显式 deferred 的安装逆向操作 + 拉新流程；安装清单 manifest 已为这两条留好 entry point
-- **单独候选 — 全局安装到 `~/.claude/skills/...`**（OpenSpec issue #752 模式）：solo creator 跨多客户仓库的需求；与 Garage workspace-first 信念有 trade-off，应单独 spec 化
-- **F008+ 候选 — 新增宿主**（Codex / Gemini CLI / Windsurf / Copilot 等）：F007 已确立 first-class adapter 注册模式；新增宿主成本 = 1 个 adapter 子模块 + 注册表 1 行
-- 处理 F006 finalize 中显式延后的 minor：`_recommend_experience` 多次累加语义对齐；CON-501/502/NFR-602 契约测试
-- 处理 F006 § 5 deferred backlog：`garage knowledge unlink` / 多跳 graph / experience link / 跨类型 link / 图导出 / `recommend --format json`
-- 处理 pre-existing baseline 的 1 个 mypy error（`_memory_review` line 562 on main）+ 47 个 ruff stylistic warnings（F002/F003/F004 历史；F007 已确认未新增）
-- 评估是否启动 Stage 3（"工匠"）：进入信号 "知识库条目 >100" 与 "识别到 5+ 可复用模式" 仍依赖用户使用频率
-- 详见 `RELEASE_NOTES.md` "F007 — 已知限制 / 后续工作" 段
+下一节点候选（由 spec-review 结果决定）：
+- 通过 → `hf-design`（含 § 4 family-level 资产物理位置 + `.agents/skills/` 处置三个候选的 ADR 收敛）
+- 需修改 → 回 `hf-specify` 按 review findings 修订
+- 阻塞 → 回 `hf-workflow-router` 重新判定 scope
