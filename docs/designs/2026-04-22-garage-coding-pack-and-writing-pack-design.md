@@ -587,7 +587,7 @@ uv run pytest tests/adapter/installer/test_full_packs_install.py -v
 | INV-6 git status 干净（红线 2）| `git status --porcelain` 输出空 | T4a（rm + .gitignore 后即成立） |
 | INV-7 IDE 加载链可重放（红线 5）| `garage init --hosts cursor,claude` + `find .cursor/skills` 输出 ≥ 5 行 | walkthrough（基于 T4a 落地后 dogfood） |
 | INV-8 .gitignore 排除 dogfood 产物 | grep `.cursor/skills/` `.claude/skills/` 在 .gitignore | T4a |
-| INV-9 NFR-801 grep 命中 0 | `grep -rE '\.claude/\|\.cursor/\|\.opencode/\|claude-code' packs/coding/ packs/writing/` | T1a / T1b / T2（每次 cp -r 后跑） |
+| INV-9 NFR-801 分层守门（与 ADR-D8-9 一致）| (a) **强约束**：`find packs/ \( -name 'SKILL.md' -o -path '*/agents/*.md' \) -exec grep -lE '\.claude/\|\.cursor/\|\.opencode/\|claude-code' {} \; \| wc -l == 0`；(b) **meta 豁免守门**：整 `packs/` 递归 grep 命中行所属文件 ⊆ ADR-D8-9 EXEMPTION_LIST | T1a / T1b / T2 / T3 / T4c (test_neutrality_exemption_list.py 集中守门) |
 
 ### 11.2 不引入的契约
 

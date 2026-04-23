@@ -247,3 +247,109 @@
 - `needs_human_confirmation = false`。
 - `reroute_via_router = false`（不存在 route/stage/profile/上游证据冲突级阻塞——上游 spec/design 已批准 r2，本轮 critical 残留是 r1 修复 enum 不完整，可在 hf-tasks 内通过 spec amendment + design ADR + task acceptance 三处同步修订）。
 - 不修改 spec / design / tasks 文档；不修改 task-progress.md；不 git commit / push。
+
+---
+
+## 复审 r3
+
+- 复审日期: 2026-04-23
+- 复审输入: 父会话 commit `bb6e38f` 对 r2 critical（ADR-D8-9 分类方案）+ 2 minor 完成的定向回修
+- 复审范围: 逐项校验 r2 finding 闭合度；重点 critical 修复 spec / design / task 三层一致性
+
+### r3 结论
+
+**需修改**
+
+理由：r2 critical（CON-803 例外 enum 不完整 + CLAUDE_MD_TESTING.md 14 行硬上限冲突）的 spec 与 design 层闭合到位（NFR-801 分两层验收 + CON-803 enum + ADR-D8-9 + 豁免清单 + 新增 sentinel 测试 5 件套），ADR-D8-9 选定的"分类方案"是合理的工程裁决，但 **task 层有 1 处 important 级 wording 不一致 + 3 处 minor wording / 数字不一致 残留**，会让 hf-test-driven-dev 阶段实际跑 task Verify 命令时撞墙；spec / design 已经分两层但 task Verify 命令仍在用 r1 递归 grep wording。
+
+### 维度评分（r3）
+
+| 维度 | r2 评分 | r3 评分 | 备注 |
+|---|---|---|---|
+| TR1 可执行性 | 8 | 8 | 不变 |
+| TR2 任务合同完整性 | 7 | 7 | T2/T3 Acceptance 已分层（INV-9 SKILL.md 严格 + meta 豁免），但 Verify 命令 wording 残留 r1 递归 grep；T4c 完成条件 / § 7 #4 测试基线数字内部不一致（596 vs 598）|
+| TR3 测试设计种子 | 8 | 9 | 新增 test_neutrality_exemption_list 测试 + EXEMPTION_LIST 常量同步要求清晰 |
+| TR4 依赖与顺序 | 8 | 9 | § 8 完全重写 "依赖图层面互不依赖 vs 调度并发" 二分；router 串行选 T1c → T2 → T3 显式拆出 |
+| TR5 追溯覆盖 | 7 | 8 | spec / design / task 在 NFR-801 主验收已三层一致；design § 11.1 INV-9 表 wording 仍残留 r1 版本递归 grep（与 ADR-D8-9 不一致） |
+| TR6 Router 重选就绪度 | 9 | 9 | 不变 |
+
+无关键维度 < 6，但 important 残留要求"需修改"再过。
+
+### 逐条 r2 finding 闭合度判定
+
+| r2 finding | 严重度 | 闭合判定 | 证据 |
+|---|---|---|---|
+| critical: CON-803 enum 不完整 + CLAUDE_MD_TESTING.md 超 ≤3 行 | critical | **基本闭合（spec/design 层完全闭合 + task acceptance 闭合 + 测试守门闭合；但 task Verify 残留 r1 递归 grep wording → important 级残留，详见下面 r3 残留 #1）** | spec NFR-801 line 344-349 分三层验收 + spec CON-803 line 410-422 enum 4 文件 + design ADR-D8-9 line 329-360 + design § 13.1 line 621 新增 test_neutrality_exemption_list + task T4c line 362-365 测试种子 |
+| minor: § 8 line 464 措辞冲突 | minor | **已闭合** | task § 8 line 468-479 完整重写 + line 479 末段 "依赖图层面互不依赖 vs 调度并发是两件事" 二分 |
+| minor: T2 prompts/ 是否计入 INV-2 | minor | **已闭合** | task line 216 显式 "packs/writing/prompts/ 也属 family-level，需要计入 INV-2 enumerate 范围" + 实施时 fixture 加入待检查清单 |
+
+### r3 残留 / 新发现 finding
+
+#### Important（必须修订后再复审）
+
+- **[important][LLM-FIXABLE][TR2][T2 Verify line 240 + T3 Verify line 278]** **T2/T3 Verify 命令仍是 r1 版本递归 grep `wc -l == 0`，与新分层 Acceptance + spec NFR-801 验收 #1 + design ADR-D8-9 全冲突；hf-test-driven-dev 阶段按 Verify 跑必然 RED**
+
+  实测证据：
+  - T2 Acceptance line 214（已正确改为分层）：`find packs/writing/ \( -name 'SKILL.md' -o -path '*/agents/*.md' \) -exec grep -lE ... \;` 命中 = 0
+  - T2 Acceptance line 215（已正确添加豁免）：humanizer-zh/README.md 等 meta 文件按 ADR-D8-9 enum 豁免
+  - T2 Verify line 240（**残留 r1 wording**）：`grep -rE '\.claude/|\.cursor/|\.opencode/|claude-code' packs/writing/ | wc -l == 0`
+  - 实际跑结果：humanizer-zh/README.md 含 3 行命中（行 33、40、45 是 humanizer-zh 在 Claude Code 上的安装命令样板），递归 grep 必然命中 ≥ 3，违反 `wc -l == 0`
+
+  T3 同样：
+  - T3 Acceptance line 258（分层）+ line 259（豁免 anthropic-best-practices.md + CLAUDE_MD_TESTING.md）
+  - T3 Verify line 278（**残留 r1 wording**）：`grep -rE ... packs/garage/ | wc -l == 0`
+  - 实际跑结果：anthropic-best-practices.md 1 行 + CLAUDE_MD_TESTING.md 14 行 = 15 命中，违反 `wc -l == 0`
+
+  修复方式（LLM-FIXABLE，wording-only）：
+  - T2 Verify 第 5 条改为：`find packs/writing/ \( -name 'SKILL.md' -o -path '*/agents/*.md' \) -exec grep -lE '\.claude/|\.cursor/|\.opencode/|claude-code' {} \; | wc -l` == 0
+  - T2 Verify 第 5 条之后追加：`grep -rE '\.claude/|\.cursor/|\.opencode/|claude-code' packs/writing/ --include='*.md' --exclude='SKILL.md' -l` 命中行所属文件全部 ∈ ADR-D8-9 EXEMPTION_LIST（与 test_neutrality_exemption_list 同口径）
+  - T3 Verify 第 4 条同样改写（packs/garage/ 范围）
+
+  这是 r2 critical 修复时漏改的最后一公里 —— Acceptance 已分层但 Verify 还是旧 wording。dev 阶段就算实施者照 Acceptance 做，跑 Verify 命令也会撞墙，引起额外的"是 spec 错了还是我做错了"困惑。必须在 task 层闭合到 Verify 与 Acceptance 同口径。
+
+#### Minor（不阻塞，但建议本轮顺手收）
+
+- **[minor][LLM-FIXABLE][TR5][design § 11.1 INV-9 wording 残留]** design § 11.1 INV-9 行（`grep -rE '\.claude/|\.cursor/|\.opencode/|claude-code' packs/coding/ packs/writing/`）仍是 r1 版本递归 grep，与 ADR-D8-9 line 357 "验证手段从 整 packs/ 递归 grep = 0 拆为两层" 自相矛盾。建议同步收紧 INV-9 表述（拆 INV-9a SKILL.md/agent.md 范围 + INV-9b 整 packs/ 命中 ∈ EXEMPTION_LIST），与 ADR-D8-9 + spec NFR-801 三层一致。
+
+- **[minor][LLM-FIXABLE][TR2][task 测试基线数字内部不一致]** task plan 内 596 / 598 两个数字混用：
+  - T4c Acceptance line 367 + Verify line 386：`≥ 598`（正确，对应 5 个新测试文件）
+  - T4c "完成条件" line 388：`≥ 596`（残留旧值；应同步为 ≥ 598）
+  - § 7 完成定义 #4 line 451：`≥ 596 passed（586 baseline + 4 个新文件 sentinel/集成测试 + 若干）`（残留旧值；应同步为 ≥ 598 + 5 个新文件）
+  
+  hf-test-driven-dev / hf-completion-gate 看 task 完成条件时会困惑究竟是 596 还是 598。
+
+- **[minor][LLM-FIXABLE][TR2][EXEMPTION_LIST 数字 4 vs 5 措辞不准]** task line 364 写 "EXEMPTION_LIST 常量（5 文件）"，但 spec CON-803 详细说明 enum + design ADR-D8-9 表都是**4 行**实测（其中 `packs/writing/README.md` 是条件性 "（如 T2 决策搬迁）"——而 T2 Files line 230 是新写 `packs/writing/README.md`，新写的内容默认不会含宿主字面值，所以这条豁免实际可能用不上）。建议把"5 文件"改为"4 文件（packs/writing/README.md 视 T2 实际撰写内容可选加入）"或"≤ 5 文件"；并在 EXEMPTION_LIST 测试加注 "若 packs/writing/README.md 不含宿主字面值，则不需进入豁免清单"。这是 wording 精度问题，不阻塞 dev。
+
+### 关键 r3 维度判断
+
+| 关键问题 | 判定 |
+|---|---|
+| spec NFR-801 / CON-803 enum 已 amend | ✅ 完全闭合 |
+| design ADR-D8-9 候选对比 + 选定 + 豁免清单 + 守门测试 | ✅ 完全闭合 |
+| design § 11.1 INV-9 wording 与 ADR-D8-9 一致 | ❌ 残留 r1 递归 grep wording（minor） |
+| design § 13.1 测试文件 4 → 5 件套 | ✅ 闭合（含 test_neutrality_exemption_list） |
+| task T2/T3 Acceptance 分层 (SKILL.md 严格 + meta 豁免) | ✅ 闭合 |
+| task T2/T3 Verify 命令同步分层 | ❌ 残留 r1 递归 grep（important，必修） |
+| task T4c 测试种子（含 EXEMPTION_LIST 常量同步要求）| ✅ 闭合（数字 5 与 spec/design 4 微差） |
+| task § 7 完成定义 / T4c 完成条件 测试基线数字 | ❌ 596/598 内部不一致（minor） |
+| task § 8 / § 9 router 重选规则 | ✅ 完全闭合，二分清晰 |
+| task INV-2 范围扩展到 writing family prompts/ | ✅ 闭合 |
+
+### 下一步
+
+`hf-tasks` — 父会话按 r3 1 important + 3 minor 做最后定向回修：
+
+1. **(important)** T2 Verify line 240 + T3 Verify line 278 改为 `find ... SKILL.md/agent.md ... | wc -l == 0` + 追加豁免清单 grep 守门
+2. **(minor)** design § 11.1 INV-9 表行同步收紧（拆 INV-9a + INV-9b 或加 ADR-D8-9 注脚）
+3. **(minor)** task plan T4c line 388 完成条件 + § 7 line 451 完成定义 #4 数字同步为 ≥ 598 + "5 个新文件"
+4. **(minor)** task plan T4c line 364 EXEMPTION_LIST "5 文件" 措辞精度收紧
+
+修订完成后重派 hf-tasks-review 复审 r4，预期 r4 通过率高，可一轮闭合。
+
+### 交接说明
+
+- 结论 `需修改`，不进入"任务真人确认" approval step。
+- `next_action_or_recommended_skill = hf-tasks`。
+- `needs_human_confirmation = false`。
+- `reroute_via_router = false`（不存在 route/stage/profile/上游证据冲突级阻塞——上游 spec/design 已批准 r2，本轮 important 残留是 r2 修复时 task Verify 没同步收紧的 wording-only gap）。
+- 不修改 spec / design / tasks 文档；不修改 task-progress.md；不 git commit / push。

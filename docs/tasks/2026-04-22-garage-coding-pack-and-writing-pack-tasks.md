@@ -237,9 +237,10 @@ D008 已稳定（8 项 ADR + 5 类提交分组拆为 9 个 sub-commit + 9 条 IN
   - `test -f packs/writing/LICENSE`
   - `test -f packs/writing/prompts/横纵分析法.md`
   - `find packs/writing/skills -name 'SKILL.md' | wc -l` == 4
-  - `grep -rE '\.claude/|\.cursor/|\.opencode/|claude-code' packs/writing/ | wc -l` == 0
+  - **(SKILL.md/agent.md 强约束 — 与 ADR-D8-9 一致)** `find packs/writing/ \( -name 'SKILL.md' -o -path '*/agents/*.md' \) -exec grep -lE '\.claude/|\.cursor/|\.opencode/|claude-code' {} \; | wc -l` == 0
+  - **(meta 文件豁免守门)** 整 `packs/writing/` 递归 grep 命中行的所属文件路径必须 ⊆ ADR-D8-9 EXEMPTION_LIST（不在清单内的命中视为 RED）
   - `git diff packs/writing/skills/hv-analysis/SKILL.md | grep '^[+-]' | grep -v '^[+-]\+\+\+\|^[+-]---' | wc -l` ≤ 3*2=6（diff 单行算 +/- 各一行）
-  - `uv run pytest tests/adapter/installer/test_neutrality.py -v` 100% 通过
+  - `uv run pytest tests/adapter/installer/test_neutrality.py -v` 100% 通过（既有 SKILL.md/agent.md grep 守门）
 - **预期证据**: PR commit `f008(writing): packs/writing/ 4 skill + LICENSE + family-level prompts/ + 宿主中性化替换`
 - **完成条件**: 4 skill 物理存在 + LICENSE + family-level prompts/ 在 + pack.json 通过 discover_packs + INV-9 通过 + test_neutrality 通过 + commit 落地
 
@@ -275,9 +276,10 @@ D008 已稳定（8 项 ADR + 5 类提交分组拆为 9 个 sub-commit + 9 条 IN
   - `cat packs/garage/pack.json | jq -e '.skills | length == 3'`
   - `cat packs/garage/pack.json | jq -e '.version == "0.2.0"'`
   - `test -f packs/garage/skills/writing-skills/render-graphs.js`
-  - `grep -rE '\.claude/|\.cursor/|\.opencode/|claude-code' packs/garage/ | wc -l` == 0
+  - **(SKILL.md/agent.md 强约束 — 与 ADR-D8-9 一致)** `find packs/garage/ \( -name 'SKILL.md' -o -path '*/agents/*.md' \) -exec grep -lE '\.claude/|\.cursor/|\.opencode/|claude-code' {} \; | wc -l` == 0
+  - **(meta 文件豁免守门)** 整 `packs/garage/` 递归 grep 命中行的所属文件路径必须 ⊆ ADR-D8-9 EXEMPTION_LIST（不在清单内的命中视为 RED；预期豁免命中：`packs/garage/skills/writing-skills/anthropic-best-practices.md` + `packs/garage/skills/writing-skills/examples/CLAUDE_MD_TESTING.md`）
   - `git diff packs/garage/skills/writing-skills/SKILL.md | grep '^[+-]' | grep -v '^[+-]\+\+\+\|^[+-]---' | wc -l` ≤ 6
-  - `uv run pytest tests/adapter/installer/test_neutrality.py -v` 100% 通过
+  - `uv run pytest tests/adapter/installer/test_neutrality.py -v` 100% 通过（既有 SKILL.md/agent.md grep 守门）
 - **预期证据**: PR commit `f008(garage): +find-skills +writing-skills, 0.1.0→0.2.0 + 宿主中性化替换`
 - **完成条件**: 3 skill 物理存在 + pack.json 字段更新 + INV-9 + test_neutrality 通过 + commit 落地
 
@@ -361,10 +363,10 @@ D008 已稳定（8 项 ADR + 5 类提交分组拆为 9 个 sub-commit + 9 条 IN
     - `test_agents_md_dogfood_onboarding`：grep AGENTS.md 含 `garage init --hosts cursor,claude` 形式样板
   - `tests/adapter/installer/test_neutrality_exemption_list.py`（ADR-D8-9 守门）至少含：
     - `test_skill_md_strict_neutrality`：枚举 `packs/**/SKILL.md` + `packs/**/agents/*.md`，assert 每个文件 grep 黑名单 = 0
-    - `test_meta_files_in_exemption_list`：枚举所有非 SKILL.md / agent.md 的 .md 文件含黑名单字面值的命中，assert 这些文件路径全部 ∈ ADR-D8-9 enum 的 EXEMPTION_LIST 常量（5 文件）
+    - `test_meta_files_in_exemption_list`：枚举所有非 SKILL.md / agent.md 的 .md 文件含黑名单字面值的命中，assert 这些文件路径全部 ∈ ADR-D8-9 enum 的 EXEMPTION_LIST 常量（4 个固定豁免文件 + 1 个条件性 `packs/writing/README.md`，T2 实施时若决策搬迁则启用）
     - 文件顶部维护一个 `EXEMPTION_LIST: frozenset[str]` 常量与 design ADR-D8-9 表手动同步；任一未在列表内的命中视为 RED
   - 新增 4 个测试文件（包括 test_neutrality_exemption_list）全部通过；现有 30 个 installer 测试 + N 其它测试 0 退绿（NFR-802）
-  - `uv run pytest tests/ -q` 整体计数 ≥ 586 + 4 文件新增用例数（约 ≥ 598）
+  - `uv run pytest tests/ -q` 整体计数 ≥ 586 + 4 文件新增用例数（≥ 598）
 - **依赖**: T4a + T4b（dogfood layout 已就位才能跑 test_dogfood_layout）
 - **Ready When**: T4a + T4b 完成
 - **初始队列状态**: pending
@@ -385,7 +387,7 @@ D008 已稳定（8 项 ADR + 5 类提交分组拆为 9 个 sub-commit + 9 条 IN
   - `uv run pytest tests/adapter/installer/test_neutrality_exemption_list.py -v` 至少 2 passed
   - `uv run pytest tests/ -q` 整体 ≥ 598 passed
 - **预期证据**: PR commit `f008(layout/tests): 全装集成测试 + dogfood layout 测试 + packs/garage 扩容测试`
-- **完成条件**: 3 测试文件 GREEN + 整体测试基线 ≥ 596 + commit 落地
+- **完成条件**: 4 测试文件全部 GREEN + 整体测试基线 ≥ 598 + commit 落地
 
 ### T5. 文档同步（packs/README.md + user-guide + RELEASE_NOTES F008 占位段）
 
@@ -448,7 +450,7 @@ cycle 完成定义（与 spec § 2.2 验收 #1-#9 对齐）：
 1. T1a + T1b + T1c + T2 + T3 + T4a + T4b + T4c + T5 全部 commit 落地
 2. INV-1..9 全部通过（详见 design § 11.1）
 3. spec § 4.2 6 条 "Design Reviewer 可拒红线" 全部通过（详见 design § 2.3）
-4. `uv run pytest tests/ -q` ≥ 596 passed（586 baseline + 4 个新文件 sentinel/集成测试 + 若干）
+4. `uv run pytest tests/ -q` ≥ 598 passed（586 baseline + 5 个新文件 sentinel/集成测试 含 test_neutrality_exemption_list + 若干用例数）
 5. `git diff main..HEAD -- src/garage_os/` 输出空
 6. **(零依赖变更守门)** `git diff main..HEAD -- pyproject.toml uv.lock` 输出空（NFR-803 / spec § 8 "本 cycle 零依赖变更"）
 7. End-to-end smoke 在 PR walkthrough 提供证据（dogfood `garage init --hosts cursor,claude` + `find .cursor/skills | head` + 截图）
