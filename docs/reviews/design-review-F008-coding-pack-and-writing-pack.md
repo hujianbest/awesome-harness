@@ -219,3 +219,111 @@ ADR-D8-4 那条 USER-INPUT 是 design 阶段对已批准 spec 硬验收（FR-804
   ]
 }
 ```
+
+---
+
+## 复审 r2
+
+- 复审时间: 2026-04-23
+- 复审目标: 验证父会话在 commit `994883e` 中针对 r1 的 1 important USER-INPUT + 3 important LLM-FIXABLE + 4 minor LLM-FIXABLE 是否全部闭合，并评估 finding #1 的 USER-INPUT 收敛路径（双向 wording 同步）是否构成新的 spec drift
+- Reviewer: 同 r1 独立 reviewer subagent
+- 复审范围: **仅** r1 finding 闭合状态 + 是否引入新风险；不重新执行 D1-D6 全量 rubric
+
+### 结论
+
+**通过**
+
+verdict 理由：r1 列出的 8 条 finding（1 important USER-INPUT + 3 important LLM-FIXABLE + 4 minor LLM-FIXABLE）已**全部闭合**。其中最关键的 finding #1（ADR-D8-4 spec drift）通过"双向 wording 同步" + "design ADR 显式记录路径选择理由（wording-only / 不引入新业务事实）"的合规收敛——spec FR-804 / § 2.2 验收 #2 / § 3.2 场景 3 / § 5 deferred 表均已同步收紧，与 design ADR-D8-4 字面一致；不再存在"spec 写一套 / design 实施另一套"的 drift。其它 7 条 LLM-FIXABLE finding 全部按 review 修复指引落地。
+
+回修过程未引入新设计泄漏、未触动 spec § 4.2 的 6 条 Design Reviewer 可拒红线、未破坏 deferred backlog 范围、未引入新模糊词。所剩 1 条**叙事性残留**（design § 15 任务规划准备度段未与 § 10.1 sub-commit 拆分同步刷新表述，仍写"按 5 类拆 5 个 task"）属 informational，不影响 hf-tasks 阶段拆任务判断（hf-tasks 自然会读 § 10.1 取 9 个 sub-commit），故判 `通过`，下一步 `设计真人确认`。
+
+### 8 条 r1 finding 闭合状态
+
+| # | r1 finding | 闭合状态 | 证据锚点（spec / design 行号）|
+|---|---|---|---|
+| 1 | [important][USER-INPUT][D1] ADR-D8-4 实质性下调 spec FR-804 验收 #1 / § 2.2 验收 #2 字面口径 | **已闭合** | spec § 2.2 验收 #2（L106 改为分两层口径 + 显式承认 D7 边界 + 引用 ADR-D8-4 + 指向 § 5 D9 候选）；spec § 3.2 场景 3（L155 同步分两层）；spec FR-804 验收 #1（L294-295 拆为 packs 源端 + 下游宿主端两条 acceptance）；spec § 5 deferred 新增 D7 管道扩展行（L252）；design ADR-D8-4 文末新增 "Spec acceptance 同步收紧" 段（L256-267）显式说明走 wording-only 路径而非 hf-increment 的理由（无新业务事实） |
+| 2 | [important][LLM-FIXABLE][D6] § 12 NFR-802 vs § 13.1 测试数量自相矛盾 | **已闭合** | design § 13.1（L577-589）已扩到 4 个测试文件清单，每文件含"覆盖 spec FR/NFR" + "触发 INV" + "落地 commit" 三列；design § 12 NFR-802 落地行（L570）改为指向 § 13.1 表，二者一致；新增"测试执行顺序"段（L589）说明 T1c 先于 T4c 落地的依赖原因 |
+| 3 | [important][LLM-FIXABLE][D5] § 10.1 T1/T4 commit 粒度偏大 | **已闭合** | design § 10.1（L455-510）已显式拆 T1→T1a/T1b/T1c + T4→T4a/T4b/T4c，合计 9 个 sub-commit；每个 sub-commit 都有清晰 commit message 模板与动作清单；§ 10.1 开头段（L457）显式声明"hf-tasks 阶段拆分粒度不能比此更粗"，把 spec NFR-804 "任一组可独立 review" 意图固化 |
+| 4 | [important][LLM-FIXABLE][D1] § 17 排除项漏列 spec § 5 deferred 3 项 | **已闭合** | design § 17（L656-670）补齐 3 项："给 packs/coding/ family 加新 hf-* skill"（L663）/ "多语言 / i18n 版本"（L668）/ "反向同步：用户在 .claude/skills/ 改了之后回流到 packs/"（L669）；§ 17 段首（L654）显式标注"与 spec § 5 形成完整集合等价" |
+| 5 | [minor][LLM-FIXABLE][D2] ADR-D8-2 候选 C onboarding 指引落地位置缺失 | **已闭合** | design § 7 ADR-D8-2 Consequences 段（L195）新增专门 bullet：明确 onboarding 指引落 `AGENTS.md` 顶部段落（单源） + `README.md` / `CONTRIBUTING.md` 仅 link 指向（不重复落字 + 保持单源）+ 由 hf-tasks T4 commit 承接 |
+| 6 | [minor][LLM-FIXABLE][D3] ADR-D8-3 权威源选定缺 git log 证据 | **已闭合** | design § 7 ADR-D8-3 新增 "权威源选定证据" 段（L214-221）：含 git log -1 时间戳表 + commit hash + 命名术语对比 + 路径锚点对比；明确说明为何选 family 副本（时间维度晚 3 天 + 术语维度与本仓库现实一致 + 副作用：路径表达完整性 < 术语正确性 的权衡）；具体动作段（L230）补充第 5 点说明副作用 |
+| 7 | [minor][LLM-FIXABLE][D5] ADR-D8-1 docs/templates vs principles layout 非对称未解释 | **已闭合** | design § 7 ADR-D8-1 Decision 段后（L160-163）新增专门段："为什么 docs/templates 落 skills/ 子目录而 principles 不落"，含实测证据（hf-* SKILL.md 内 6 处引用 `skills/docs/<file>` / `templates/<file>` vs principles 仅被根级 AGENTS.md 引用 0 处 hf-* 内引用）+ 解释为什么 layout 非对称是"更准确反映用法"而非偏差 |
+| 8 | [minor][LLM-FIXABLE][D5] § 13.3 Walking Skeleton 仅覆盖 Claude Code 一家宿主 | **已闭合** | design § 13.3（L600-614）已改为三家宿主对称展示：Walking Skeleton 图 ASCII 含 claude / cursor / opencode 三条同构路径；段尾段（L614）显式说明"三条路径在管道层完全对称（同 install_packs() 入口、同 marker 注入、仅 host adapter 给的 target_skill_path 不同）"，dogfood smoke 一次性覆盖三家 |
+
+### Finding #1 USER-INPUT 收敛路径合规性独立评估
+
+r1 finding #1 标记为 USER-INPUT 的核心理由是："spec 已批准的 acceptance 字眼未变，由 design ADR 单方面重述硬验收的语义属于 spec drift 风险"。父会话选择 reviewer 提供的"二选一"中**路径 (a) 的等价 LLM-FIXABLE 版本**——双向 wording 同步：spec 字面与 design ADR 同步收紧到一致 wording。
+
+本 reviewer 独立评估该收敛路径是否合规：
+
+| 评估维度 | 结论 | 证据 |
+|---|---|---|
+| 是否引入新业务事实 | **否** | spec FR-804 / § 2.2 / § 3.2 仅修改 acceptance wording 把口径下调到与 D7 管道实际能力一致；spec § 5 新增 D9 候选行也只是显式记录"管道扩展"作为 deferred backlog；不涉及任何新功能 / 新约束 / 新外部依赖 / 新业务规则 |
+| 是否仍存在 spec / design 字面 drift | **否** | spec FR-804 验收 #1（L293-295）已拆为 packs 源端 + 下游宿主端两条 acceptance；spec § 2.2 验收 #2（L106）已重述同样口径；design ADR-D8-4（L243-278）字面与 spec 一致 |
+| 是否需要单独 hf-increment cycle | **否** | hf-increment 适用于"用户明确要求增删改需求/范围/验收/约束"。本次 wording-only 修订属于"内部 spec / design 双向 wording 同步"，且 design ADR-D8-4 文末已显式记录路径选择理由（L267：wording-only 修订，不引入新业务事实，符合 spec-review LLM-FIXABLE 分类规则）。开 hf-increment cycle 的 review surface 与 wording 调整成本比例失衡 |
+| 是否破坏已批准 spec 的核心范围 | **否** | spec § 2.1 核心目标 / § 4.1 包含 / § 4.2 6 条红线 / § 5 已 deferred 集合（除新增 1 行 D9 候选） / FR-801..807 / NFR-801..804 / CON-801..804 / ASM-801..804 全部不变；只修改了 FR-804 / § 2.2 / § 3.2 中"装后宿主目录引用可达"这一原本就被 D7 管道实际能力击穿的硬验收字面口径 |
+| 是否需要在 design 真人确认环节单独签署 | **否（建议）** | design ADR-D8-4 "Spec acceptance 同步收紧" 段（L256-267）已经把整个收敛路径决策显式落进 design 文档；design 真人确认环节按惯常流程让真人对整份 design 签字背书时，自然吸收对该 ADR 的批准。无需额外 USER-INPUT 询问 |
+
+**结论**：finding #1 的 USER-INPUT 收敛路径（双向 wording 同步）**合规闭合**，不构成新的 spec drift；不需要回 hf-increment；不需要在 design 真人确认环节单独签署。reviewer 收回 r1 对 finding #1 的 USER-INPUT 标记。
+
+### 新风险（不构成新 finding，但需父会话知晓）
+
+- **[新风险/叙事性残留][D5]** design § 15（L628-635）任务规划准备度段未与 § 10.1 sub-commit 拆分同步刷新表述，仍写"按 5 类拆 5 个 task" + "T4 是关键合流点（rm -rf + .gitignore + AGENTS.md + 集成测试）需注意原子性"——后者与 § 10.1 已拆 T4a/T4b/T4c 不一致。这条仅是元信息表述与 § 10.1 同步性问题，不影响 hf-tasks 阶段拆任务判断（hf-tasks 自然会读 § 10.1 取 9 个 sub-commit 而非 § 15 文字描述），但建议父会话在 design 真人确认时顺手把 § 15 表述更新为"§ 10.1 拆出 9 个 sub-commit，hf-tasks 可一对一 1:1 落地或视情况再合并；T4a 是关键合流点（rm -rf + .gitignore），需注意原子性"。
+- **[新风险/叙事性残留][D5]** design § 11.1 INV-1 / INV-3 / INV-4 等不变量"责任 commit"列仍写 T1 / T4，未与 § 10.1 sub-commit 拆分同步（应为 INV-3 责任 = T1c / INV-1 责任 = T4c / INV-4 责任 = T1a / T2 / T3 等）。同样不影响 hf-tasks 拆任务判断（INV 与 commit 的细粒度对齐 hf-tasks 自然会做），仅 wording 同步性问题。
+- **[新风险/无设计层缺口]** 未发现新设计泄漏、未发现新模糊词、未发现新 USER-INPUT 缺失、未发现 deferred backlog 范围溢出、未发现新触发 spec § 4.2 6 条红线。
+
+### 下一步
+
+`设计真人确认`（interactive 模式下父会话向真人确认 design；auto 模式下父会话写 design approval record 后进入 `hf-tasks`）
+
+设计真人确认环节的关注点（按重要度排序）：
+
+1. **finding #1 USER-INPUT 收敛路径的最终确认**：真人对 ADR-D8-4 "Spec acceptance 同步收紧" 段（design L256-267）+ spec FR-804 / § 2.2 验收 #2 / § 3.2 场景 3 / § 5 D9 候选行 wording 同步背书。本 reviewer 已独立评估该路径合规，但真人最终拍板是否接受这种"design 阶段消化掉 spec 起草时未充分察觉的工程边界"的处理方式
+2. **§ 15 / § 11.1 与 § 10.1 sub-commit 拆分同步性的叙事性清理**（informational，不阻塞）
+3. **8 项 ADR 整体决策方向**：尤其 ADR-D8-2 候选 C（删除 + dogfood）+ ADR-D8-3 反向同步 + ADR-D8-4 文档级提示三项是本 cycle 最具长期影响的决策
+
+接下来 `hf-tasks` 阶段必须按 design 收敛的 9 个 sub-commit（T1a/T1b/T1c/T2/T3/T4a/T4b/T4c/T5）拆任务，每个任务含：(a) 实施动作清单（已在 § 10.1 给出）(b) 触发 INV（已在 § 11.1 给出）(c) 关联 spec FR/NFR/CON（已在 § 3 追溯表 + § 13.1 测试表给出）(d) 完成 acceptance（按 spec § 4.2 6 条红线 + design § 10.2 验证步骤）。
+
+### 复审记录位置
+
+`docs/reviews/design-review-F008-coding-pack-and-writing-pack.md`（与 r1 同文件，本段为 `## 复审 r2` 追加段）
+
+### 交接说明
+
+- `设计真人确认`：本轮 r2 verdict = `通过`，父会话应执行 design approval step（interactive 等待真人 / auto 写 design approval record）；执行后由父会话同步 `task-progress.md` Current Stage 与 design 文档状态字段（`草稿` → `已批准`）。
+- `hf-design`：r2 已通过，无需回修；建议父会话在 approval step 顺手清理 § 15 / § 11.1 与 § 10.1 sub-commit 拆分的叙事性同步残留（零成本叙事一致性修复）。
+- `hf-workflow-router`：route / stage / 证据无冲突，不需要 reroute（`reroute_via_router=false`）。
+- `hf-tasks`：approval 完成后才进入；不在 r2 verdict 直接触发范围。
+- `hf-increment`：finding #1 USER-INPUT 收敛路径合规闭合，不需要走 hf-increment。
+- 不修改 `task-progress.md`、不修改 spec / design 文档、不 git commit / push（由父会话执行）。
+
+### 结构化返回 r2 (JSON)
+
+```json
+{
+  "conclusion": "通过",
+  "next_action_or_recommended_skill": "设计真人确认",
+  "record_path": "docs/reviews/design-review-F008-coding-pack-and-writing-pack.md",
+  "key_findings": [
+    "r1 1 important USER-INPUT + 3 important LLM-FIXABLE + 4 minor LLM-FIXABLE 全部闭合（8 closed / 0 open / 0 regressed）",
+    "finding #1 USER-INPUT 双向 wording 同步合规闭合：spec FR-804 / § 2.2 / § 3.2 / § 5 与 design ADR-D8-4 字面一致，无新业务事实，不需要 hf-increment",
+    "新风险仅 2 条叙事性残留（§ 15 任务规划准备度段 + § 11.1 INV 责任 commit 列未与 § 10.1 sub-commit 拆分同步刷新），不阻塞 design 真人确认"
+  ],
+  "needs_human_confirmation": true,
+  "reroute_via_router": false,
+  "finding_breakdown_r1_closure": [
+    {"id": 1, "severity_r1": "important", "classification_r1": "USER-INPUT", "rule_id": "D1", "closure_status": "已闭合", "evidence": "spec § 2.2#2 (L106) + § 3.2 场景 3 (L155) + FR-804 验收 #1 (L294-295) + § 5 D9 候选 (L252) 均同步收紧；design ADR-D8-4 'Spec acceptance 同步收紧' 段 (L256-267) 显式记录走 wording-only LLM-FIXABLE 路径理由；reviewer 独立评估该路径合规，收回 USER-INPUT 标记"},
+    {"id": 2, "severity_r1": "important", "classification_r1": "LLM-FIXABLE", "rule_id": "D6", "closure_status": "已闭合", "evidence": "design § 13.1 测试表扩到 4 文件 + 每文件含覆盖 spec FR/NFR/INV/落地 commit 三列 + 测试执行顺序段 (L577-589)；§ 12 NFR-802 (L570) 同步指向 § 13.1"},
+    {"id": 3, "severity_r1": "important", "classification_r1": "LLM-FIXABLE", "rule_id": "D5", "closure_status": "已闭合", "evidence": "design § 10.1 (L455-510) 已拆 T1→T1a/T1b/T1c + T4→T4a/T4b/T4c 共 9 sub-commit；段首 L457 显式约束 hf-tasks 拆分粒度下限"},
+    {"id": 4, "severity_r1": "important", "classification_r1": "LLM-FIXABLE", "rule_id": "D1", "closure_status": "已闭合", "evidence": "design § 17 (L656-670) 补齐 3 项 spec § 5 deferred；段首 L654 标注与 spec § 5 集合等价"},
+    {"id": 5, "severity_r1": "minor", "classification_r1": "LLM-FIXABLE", "rule_id": "D2", "closure_status": "已闭合", "evidence": "design ADR-D8-2 Consequences 段 L195 新增 onboarding 指引落 AGENTS.md 单源 + README/CONTRIBUTING 仅 link + hf-tasks T4 commit 承接"},
+    {"id": 6, "severity_r1": "minor", "classification_r1": "LLM-FIXABLE", "rule_id": "D3", "closure_status": "已闭合", "evidence": "design ADR-D8-3 新增'权威源选定证据'段 (L214-221) git log + 术语 + 路径锚点对比 + 选 family 副本理由 + 副作用说明 (L230)"},
+    {"id": 7, "severity_r1": "minor", "classification_r1": "LLM-FIXABLE", "rule_id": "D5", "closure_status": "已闭合", "evidence": "design ADR-D8-1 Decision 后段 (L160-163) 新增 docs/templates 与 principles layout 非对称解释 + 实测 6 处 vs 0 处 hf-* 内引用证据"},
+    {"id": 8, "severity_r1": "minor", "classification_r1": "LLM-FIXABLE", "rule_id": "D5", "closure_status": "已闭合", "evidence": "design § 13.3 (L600-614) Walking Skeleton 改三家宿主对称展示 + 段尾说明三条路径管道层对称"}
+  ],
+  "new_risks": [
+    {"severity": "informational", "rule_id": "D5", "summary": "design § 15 任务规划准备度段表述未与 § 10.1 sub-commit 拆分同步刷新（仍写'按 5 类拆 5 个 task' / 'T4 是关键合流点'），与 § 10.1 已拆 T4a/T4b/T4c 不一致；不影响 hf-tasks 判断，建议在 design 真人确认时顺手清理"},
+    {"severity": "informational", "rule_id": "D5", "summary": "design § 11.1 INV 责任 commit 列仍写 T1/T4，未与 § 10.1 sub-commit 拆分同步（应为 INV-3=T1c, INV-1=T4c, INV-4=T1a/T2/T3 等）；同上仅叙事性残留"}
+  ]
+}
+```

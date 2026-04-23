@@ -4,7 +4,7 @@
 
 - Goal: F008 — Garage Coding Pack 与 Writing Pack（把 `.agents/skills/` 物化为可分发 packs）
 - Owner: hujianbest
-- Status: 🟡 In Progress — F008 design 草稿已落，等待 `hf-design-review`
+- Status: 🟡 In Progress — F008 design **已批准**（r2 通过 + auto-mode approval），进入 `hf-tasks`
 - Last Updated: 2026-04-22
 
 ## Previous Milestones
@@ -19,18 +19,19 @@
 
 ## Current Workflow State
 
-- Current Stage: `hf-design`
+- Current Stage: `hf-tasks`
 - Workflow Profile: `full`
 - Execution Mode: `auto`
 - Workspace Isolation: `in-place`（工作分支 `cursor/f008-coding-pack-and-writing-pack-bf33`；PR #22）
-- Current Active Task: 无（design 草稿已完成，等待 review）
-- Pending Reviews And Gates: `hf-design-review`（待派发）
-- Next Action Or Recommended Skill: `hf-design-review`
+- Current Active Task: 无（task plan drafting 阶段）
+- Pending Reviews And Gates: `hf-tasks-review`（待派发，task plan 完成后）
+- Next Action Or Recommended Skill: `hf-tasks`
 - Relevant Files:
-  - `docs/features/F008-garage-coding-pack-and-writing-pack.md`（已批准）
-  - `docs/approvals/F008-spec-approval.md`（auto-mode approval record）
+  - `docs/features/F008-garage-coding-pack-and-writing-pack.md`（已批准 r2 + design 阶段同步收紧 wording）
+  - `docs/approvals/F008-spec-approval.md`、`docs/approvals/F008-design-approval.md`（auto-mode approval records）
   - `docs/reviews/spec-review-F008-coding-pack-and-writing-pack.md`（r1 需修改 + r2 通过）
-  - `docs/designs/2026-04-22-garage-coding-pack-and-writing-pack-design.md`（草稿 r1，含 8 项 ADR）
+  - `docs/reviews/design-review-F008-coding-pack-and-writing-pack.md`（r1 需修改 + r2 通过）
+  - `docs/designs/2026-04-22-garage-coding-pack-and-writing-pack-design.md`（已批准，含 8 项 ADR + 9 sub-commit + 9 INV + 4 测试文件）
   - `docs/soul/manifesto.md`、`growth-strategy.md`、`design-principles.md`（愿景锚点）
   - `packs/README.md`、`packs/garage/`（F007 落下的现状）
   - `.agents/skills/harness-flow/`、`.agents/skills/write-blog/`、`.agents/skills/find-skills/`、`.agents/skills/writing-skills/`（搬迁源）
@@ -45,11 +46,12 @@
 
 ## Next Step
 
-派发独立 reviewer subagent 执行 `hf-design-review`，对 `docs/designs/2026-04-22-garage-coding-pack-and-writing-pack-design.md` 出 verdict。
+进入 `hf-tasks`，按 design § 10.1 9 个 sub-commit 拆分（T1a/T1b/T1c + T2 + T3 + T4a/T4b/T4c + T5）产出可评审任务计划。
 
-design 草稿已收敛 8 项 ADR（D8-1 ~ D8-8）+ 显式承认 §2.4 "F007 管道只复制 SKILL.md 单文件" 工程边界（ADR-D8-4 文档级提示策略）+ 给出 5 类提交分组（T1-T5）。每项 ADR 都可逐条对应 spec § 4.2 6 条 "Design Reviewer 可拒红线" 的判定。
+每个 task 至少含：
+- 覆盖的 INV（design § 11.1）
+- 触发的 spec FR/NFR
+- acceptance（具体到 `git diff` / `find` / 测试文件清单）
+- 失败模式应对（design § 14）
 
-下一节点候选（由 design-review 结果决定）：
-- 通过 → 写 `docs/approvals/F008-design-approval.md` → `hf-tasks` 拆分 5 个 task
-- 需修改 → 回 `hf-design` 按 review findings 修订
-- 阻塞 → 回 `hf-workflow-router` 重新判定
+task plan 完成后派发独立 reviewer subagent 执行 `hf-tasks-review`。

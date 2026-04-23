@@ -1,6 +1,6 @@
 # D008: Garage Coding Pack 与 Writing Pack 设计
 
-- 状态: 草稿
+- 状态: 已批准（auto-mode approval；见 `docs/approvals/F008-design-approval.md`）
 - 日期: 2026-04-22
 - Revision: r1
 - 关联规格: `docs/features/F008-garage-coding-pack-and-writing-pack.md`（已批准 r2，见 `docs/approvals/F008-spec-approval.md`）
@@ -545,15 +545,15 @@ uv run pytest tests/adapter/installer/test_full_packs_install.py -v
 
 | Invariant | 验证方式 | 责任 commit |
 |---|---|---|
-| INV-1 三 pack.json 总 skills[] 长度 = 29 | 自动化 `test_full_packs_install.py` | T4 |
-| INV-2 family asset 单点（spec § 4.2 红线 1）| `find packs -name <file> \| wc -l ≤ 1` | T1 |
-| INV-3 drift 收敛（spec § 4.2 红线 3）| `test_skill_anatomy_drift.py` sentinel | T1 |
-| INV-4 字节级 1:1 搬迁（CON-803）| 任一 SKILL.md SHA-256 与上游 `.agents/skills/...` 同名相等 | T1 / T2 / T3 |
-| INV-5 D7 src/garage_os 零修改（CON-801 + 红线 6）| `git diff main..HEAD -- src/garage_os/` 输出空 | 全 PR |
-| INV-6 git status 干净（红线 2）| `git status --porcelain` 输出空 | T4 |
-| INV-7 IDE 加载链可重放（红线 5）| `garage init --hosts cursor,claude` + `find .cursor/skills` 输出 ≥ 5 行 | walkthrough |
-| INV-8 .gitignore 排除 dogfood 产物 | grep `.cursor/skills/` `.claude/skills/` 在 .gitignore | T4 |
-| INV-9 NFR-801 grep 命中 0 | `grep -rE '\.claude/\|\.cursor/\|\.opencode/\|claude-code' packs/coding/ packs/writing/` | T1 / T2 |
+| INV-1 三 pack.json 总 skills[] 长度 = 29 | 自动化 `test_full_packs_install.py` | T4c |
+| INV-2 family asset 单点（spec § 4.2 红线 1）| `find packs -name <file> \| wc -l ≤ 1` | T1b（落 family-asset 时） |
+| INV-3 drift 收敛（spec § 4.2 红线 3）| `test_skill_anatomy_drift.py` sentinel | T1c |
+| INV-4 字节级 1:1 搬迁（CON-803）| 任一 SKILL.md SHA-256 与上游 `.agents/skills/...` 同名相等 | T1a / T2 / T3（每个 cp -r commit 内自然成立） |
+| INV-5 D7 src/garage_os 零修改（CON-801 + 红线 6）| `git diff main..HEAD -- src/garage_os/` 输出空 | 全 PR 守门 |
+| INV-6 git status 干净（红线 2）| `git status --porcelain` 输出空 | T4a（rm + .gitignore 后即成立） |
+| INV-7 IDE 加载链可重放（红线 5）| `garage init --hosts cursor,claude` + `find .cursor/skills` 输出 ≥ 5 行 | walkthrough（基于 T4a 落地后 dogfood） |
+| INV-8 .gitignore 排除 dogfood 产物 | grep `.cursor/skills/` `.claude/skills/` 在 .gitignore | T4a |
+| INV-9 NFR-801 grep 命中 0 | `grep -rE '\.claude/\|\.cursor/\|\.opencode/\|claude-code' packs/coding/ packs/writing/` | T1a / T1b / T2（每次 cp -r 后跑） |
 
 ### 11.2 不引入的契约
 
@@ -627,12 +627,12 @@ design-review-F008 r1 minor #8 显式回应：FR-806 三家宿主全装承诺与
 
 ## 15. 任务规划准备度
 
-D008 的 5 个工作分组（T1-T5）已清晰对应 NFR-804 五类 commit。`hf-tasks` 阶段可直接：
+D008 的 5 个工作分组（T1-T5，详见 § 10.1）已经在 design-review-F008 r1 important #3 反馈后被拆为 9 个 sub-commit（T1a/T1b/T1c + T2 + T3 + T4a/T4b/T4c + T5）。`hf-tasks` 阶段可直接：
 
-- 按 5 类拆 5 个 task
-- 每个 task 独立可 review
-- T4 是关键合流点（rm -rf + .gitignore + AGENTS.md + 集成测试）需注意原子性
-- T5 的 RELEASE_NOTES 必须在 finalize 阶段最后写
+- 按 9 个 sub-commit 拆 task（或视实际合并 sub-commit，但拆分粒度不能更粗，详见 § 10.1 段首约束）
+- 每个 task 独立可 review，不再有"T4 是关键合流点"的风险（已拆为 T4a 删除/T4b 文档/T4c 测试三个独立切片）
+- T5 的 RELEASE_NOTES 段落在 T5 commit 落占位，finalize 阶段填实测数据
+- INV 责任 commit 已与 § 10.1 sub-commit 拆分对齐（详见 § 11.1 表）
 
 ## 16. 关键决策记录（ADR 摘要）
 
