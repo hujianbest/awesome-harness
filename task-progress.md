@@ -4,7 +4,7 @@
 
 - Goal: F008 — Garage Coding Pack 与 Writing Pack（把 `.agents/skills/` 物化为可分发 packs）
 - Owner: hujianbest
-- Status: 🟡 In Progress — F008 task plan **已批准**（r4 通过 + auto-mode approval），进入 `hf-test-driven-dev` 实施 T1a 起步
+- Status: 🟡 In Progress — F008 9 个 task 全部 commit 落地（T1a/T1b/T1c/T2/T3/T4a/T4b/T4c/T5），等待 manual smoke walkthrough + hf-test-review 链路
 - Last Updated: 2026-04-22
 
 ## Previous Milestones
@@ -19,13 +19,13 @@
 
 ## Current Workflow State
 
-- Current Stage: `hf-test-driven-dev`
+- Current Stage: `hf-test-review`（待派发，9 个 task 全部 commit 落地后）
 - Workflow Profile: `full`
 - Execution Mode: `auto`
 - Workspace Isolation: `in-place`（工作分支 `cursor/f008-coding-pack-and-writing-pack-bf33`；PR #22）
-- Current Active Task: **T1a — packs/coding/ 22 skill cp -r 字节级搬迁**（task plan § 5 T1a，Selection Priority=1）
-- Pending Reviews And Gates: 无（实施阶段；review/gate 在所有 9 task 完成后）
-- Next Action Or Recommended Skill: `hf-test-driven-dev`（实施 T1a）
+- Current Active Task: 无（实施阶段全部完成，9/9 task commit 落地）
+- Pending Reviews And Gates: `hf-test-review` → `hf-code-review` → `hf-traceability-review` → `hf-regression-gate` → `hf-completion-gate` → `hf-finalize`
+- Next Action Or Recommended Skill: manual smoke walkthrough + `hf-test-review`
 - Relevant Files:
   - `docs/features/F008-garage-coding-pack-and-writing-pack.md`（已批准 r2 + design/tasks 阶段反向同步收紧 wording）
   - `docs/approvals/F008-{spec,design,tasks}-approval.md`（三份 auto-mode approval records）
@@ -48,13 +48,21 @@
 
 ## Next Step
 
-进入 `hf-test-driven-dev` 实施 **T1a — packs/coding/ 22 skill cp -r 字节级搬迁**。
+9 个 task 全部 commit 落地。下一步：
 
-T1a 详情（task plan § 5）：
-- 把 `.agents/skills/harness-flow/skills/{hf-*,using-hf-workflow}/` 共 22 skill 子目录 cp -r 到 `packs/coding/skills/<id>/`
-- Acceptance: `ls packs/coding/skills/ | wc -l == 22` + 抽样 SHA-256 字节级相等 + INV-9 grep = 0
-- Files: `packs/coding/skills/<id>/` × 22（新增）
-- Verify: `ls packs/coding/skills/ | wc -l == 22` + `find packs/coding/skills/hf-specify -type f -exec sha256sum {} \;` 抽样比对 + `grep -rE '\.claude/|\.cursor/|\.opencode/|claude-code' packs/coding/skills/ | wc -l == 0`
-- 完成条件: 22 skill 物理存在 + INV-9 通过 + commit 落地
+1. **Manual smoke walkthrough**（dogfood）：在 Garage 仓库自身根目录跑 `garage init --hosts cursor,claude`，归档 stdout / `host-installer.json` / `find .cursor/skills | head` 输出，作为 PR walkthrough 证据（INV-7 IDE 加载链）
+2. 派发独立 reviewer subagent 执行 `hf-test-review`（评审 5 个新增测试文件 + 现有 30 + 22 测试质量）
+3. 派发独立 reviewer subagent 执行 `hf-code-review`（评审无源码改动 cycle 内的"内容物搬迁 + 测试 + 文档"质量）
+4. 派发独立 reviewer subagent 执行 `hf-traceability-review`（评审 spec → design → tasks → 实施 → 验证全链路追溯）
+5. `hf-regression-gate`（NFR-802 测试基线 ≥ 633 + 0 退绿 + INV-5 src/garage_os/ 零修改 + INV-6 git status 干净）
+6. `hf-completion-gate`（任务完成判定 + 是否进 finalize）
+7. `hf-finalize`（cycle closeout: 用 manual smoke 实测数据替换 RELEASE_NOTES F008 段 5 项 TBD 占位 + workflow closeout pack）
 
-T1a 完成后 router 重选 → T1b → T1c → T2 → T3 → T4a → T4b → T4c → T5（按 § 8 P 升序串行）。9 个 task 全部完成后做 manual smoke walkthrough → `hf-test-review` → `hf-code-review` → `hf-traceability-review` → `hf-regression-gate` → `hf-completion-gate` → `hf-finalize`。
+## 实施完成证据
+
+- 测试基线: 586 (F007 baseline) → **633 passed** (+47 增量, 0 退绿)
+- INV-1..9 全部通过（design § 11.1，含 INV-7 IDE 加载链待 manual smoke 验证）
+- `git diff main..HEAD -- src/garage_os/` 输出空（CON-801 严守）
+- `git diff main..HEAD -- pyproject.toml uv.lock` 输出空（零依赖变更）
+- 9 sub-commit 分组提交（NFR-804 git diff 可审计）
+- 总 packs skills = 29（INV-1: 22 coding + 3 garage + 4 writing）
