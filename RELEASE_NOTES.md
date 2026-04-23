@@ -6,7 +6,7 @@
 
 ## F008 — Garage Coding Pack 与 Writing Pack（把 .agents/skills/ 物化为可分发 packs，兑现 manifesto "几秒变成你的 Agent" 承诺）
 
-- 状态: 🟡 实施完成，待 hf-test-review → hf-code-review → hf-traceability-review → hf-regression-gate → hf-completion-gate → hf-finalize 链路
+- 状态: ✅ 已完成（2026-04-23）
 - Workflow Profile: `full`
 - Execution Mode: `auto`
 - Branch / PR: `cursor/f008-coding-pack-and-writing-pack-bf33` / [#22](https://github.com/hujianbest/garage-agent/pull/22)
@@ -14,8 +14,11 @@
   - 规格 `docs/features/F008-garage-coding-pack-and-writing-pack.md`（已批准 r2 + design/tasks 阶段反向同步 wording）
   - 设计 `docs/designs/2026-04-22-garage-coding-pack-and-writing-pack-design.md`（已批准 r2，含 9 项 ADR + 9 sub-commit + 9 INV + 5 测试文件）
   - 任务计划 `docs/tasks/2026-04-22-garage-coding-pack-and-writing-pack-tasks.md`（已批准 r4，9 个 task）
-  - 完整 review 链路：`docs/reviews/{spec(r1+r2),design(r1+r2),tasks(r1+r2+r3+r4)}-review-F008-...md`
+  - 完整 review 链路：`docs/reviews/{spec(r1+r2),design(r1+r2),tasks(r1+r2+r3+r4),test,code,traceability}-review-F008-...md`
   - 三份 approval：`docs/approvals/F008-{spec,design,tasks}-approval.md`
+  - regression-gate `docs/verification/F008-regression-gate.md`
+  - completion-gate `docs/verification/F008-completion-gate.md`
+  - workflow closeout `docs/verification/F008-finalize-closeout-pack.md`
 
 ### 用户可见变化
 
@@ -48,15 +51,44 @@
 
 ### 验证证据
 
-- `pytest tests/ -q` → **TBD passed**（finalize 阶段填实测；预期 ≥ 633）
+- `pytest tests/ -q` → **633 passed in ~26.4s**（F007 baseline 586 → +47 增量, 0 改写、0 退绿；NFR-802 严格守门）
 - `git diff main..HEAD -- src/garage_os/` → 空（CON-801 严守，INV-5 验证）
-- `git diff main..HEAD -- pyproject.toml uv.lock` → 空（零依赖变更）
+- `git diff main..HEAD -- pyproject.toml uv.lock` → 空（零依赖变更，NFR-803 子项）
 - INV-1..9 全部通过（详见 design § 11.1）；INV-7（IDE 加载链）由 manual smoke walkthrough 验证
-- Manual smoke walkthrough → **TBD**（finalize 阶段填 dogfood `garage init --hosts cursor,claude` + `find .cursor/skills | head` 实测输出）
-- NFR-803 wall-clock：自动化口径 `test_full_packs_install` 实测 < 100ms（远低于 5s 上限）；manual smoke 口径 → **TBD**
-- 完整质量链 → **TBD**（finalize 阶段补完整 review/gate verdict 表）
-
-> **占位字段** 5 项（hf-tasks T5 acceptance 已 enum）：`manual_smoke_wall_clock` / `pytest_total_count` / `installed_packs_from_manifest` / `commit_count_per_group` / `release_notes_quality_chain` — 实施完成时占位 TBD，由 hf-finalize 阶段填实测数据。
+- **Manual smoke walkthrough**（双轨 dogfood + tmp）：
+  - **Garage 仓库自身 dogfood**（`/opt/cursor/artifacts/f008_dogfood_init.log`）：`garage init --hosts cursor,claude` → `Installed 58 skills, 1 agents into hosts: claude, cursor` (58 = 29 × 2 hosts; 1 agent = garage-sample-agent → claude only)
+  - **干净下游环境**（`/opt/cursor/artifacts/f008_smoke_first.log`，`/tmp/f008-smoke/`）：`garage init --hosts all` → `Installed 87 skills, 2 agents into hosts: claude, cursor, opencode` (87 = 29 × 3 hosts; 2 agents = 1 agent × 2 hosts claude+opencode；cursor 无 agent surface)
+  - **`Installed N skills` marker N 派生验证**：N == sum(三 pack.json.skills[]) == 22 (coding) + 3 (garage) + 4 (writing) = 29，与 `garage init --hosts <list>` 实测 `N × len(hosts)` 完全一致 ✓
+  - **manifest excerpt**（`/opt/cursor/artifacts/f008_smoke_manifest_excerpt.json`）：schema_version=1, installed_packs=["coding","garage","writing"], files=89 (87+2), 每条 entry 含 src/dst/host/pack_id/content_hash
+  - **目录树**（`/opt/cursor/artifacts/f008_smoke_claude_tree.txt`）：29 skill 全部落到 .claude/skills/
+- **NFR-803 wall-clock**（双轨）：
+  - 自动化口径：`test_full_packs_install::test_install_packs_under_5_seconds_NFR803` 实测 < **100ms** （远低于 5s 上限，50× margin）
+  - **manual smoke 口径**：第一次 `time garage init --hosts all` 实测 **0m0.120s**；第二次幂等 **0m0.107s**（远低于 NFR-803 5s + NFR-702 2s 双重上限）
+- **NFR-702 mtime stability 严格幂等**：第二次运行 `.claude/skills/hf-specify/SKILL.md` mtime = 1776952954 与首次完全相等 ✓
+- **完整质量链**（按 cycle 进度倒序）：
+  - hf-spec-review r1 (`需修改`, 4 important + 3 minor 全 LLM-FIXABLE) → r2 `通过`
+  - hf-spec auto-mode approval (`docs/approvals/F008-spec-approval.md`)
+  - hf-design-review r1 (`需修改`, 1 USER-INPUT 收敛 + 3 important + 4 minor LLM-FIXABLE) → r2 `通过`（reviewer 收回 USER-INPUT 标记）
+  - hf-design auto-mode approval (`docs/approvals/F008-design-approval.md`)
+  - hf-tasks-review r1 (`需修改`, 1 critical + 2 important + 6 minor + 3 缺失) → r2 (1 critical 升级到 ADR-D8-9 + 2 minor) → r3 (1 important + 3 minor wording 残留) → r4 `通过`
+  - hf-tasks auto-mode approval (`docs/approvals/F008-tasks-approval.md`)
+  - hf-test-review `通过` (4 minor LLM-FIXABLE 不阻塞，6 维均分 7.67/10)
+  - hf-code-review `通过` (5 minor LLM-FIXABLE 不阻塞，6 维均分 9.00/10)
+  - hf-traceability-review `通过` (5 minor LLM-FIXABLE 全 carry-forward 不阻塞，6 维均分 8.83/10)
+  - hf-regression-gate `通过` (`docs/verification/F008-regression-gate.md`，全套 7 项 fresh evidence + 1 wording 漂移自洽修复)
+  - hf-completion-gate `通过` (`docs/verification/F008-completion-gate.md`，9/9 task 落地 + 9 success criteria + 6 红线 + 9 INV 全部 ✓ + 无剩余 task)
+  - hf-finalize workflow closeout (`docs/verification/F008-finalize-closeout-pack.md`)
+- **9 sub-commit 分组**（NFR-804 git diff 可审计）：
+  - T1a `4f92b05 f008(coding/skills): packs/coding/ 22 skill cp -r 字节级搬迁`
+  - T1b `1a86212 f008(coding/family-asset): 11 个 family-level 资产 + pack.json + README`
+  - T1c `fa3d3fc f008(coding/drift-sync): 反向同步根级 skill-anatomy.md + sentinel test`
+  - T2 `f0f2c05 f008(writing): packs/writing/ 4 skill + LICENSE + family-level prompts/ + 宿主中性化替换`
+  - T3 `b81664a f008(garage): +find-skills +writing-skills, 0.1.0→0.2.0 + 宿主中性化替换`
+  - T4a `5a95b45 f008(layout/remove-agents): 删 .agents/skills/, dogfood 产物入 .gitignore`
+  - T4b `907bbfb f008(layout/agents-md): AGENTS.md Packs 段刷新 + 首次 clone 贡献者 onboarding`
+  - T4c `57a1efd f008(layout/tests): 4 集成测试 + EXEMPTION_LIST 扩展`
+  - T5 `6aa7587 f008(docs): packs/README + user-guide + RELEASE_NOTES F008 占位段`
+  - 加 `3002215`（task-progress 同步）+ `0119b50`（三 review record + regression-gate）+ `572689f`（completion-gate + 测试 wording 修复）= 共 12 个 cycle commit
 
 ### 已知限制 / 后续工作
 
