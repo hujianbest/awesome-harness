@@ -103,7 +103,7 @@ garage init --hosts claude
 ### 2.2 成功标准
 
 1. **承诺兑现可演示**：在干净的下游项目（`mkdir /tmp/f008-smoke && cd /tmp/f008-smoke && git init`）执行 `garage init --hosts all`，stdout 必须出现 `Installed N skills, M agents into hosts: claude, cursor, opencode` 形式 marker，其中 `N == sum(pack.json.skills[] 长度 for pack in [garage,coding,writing])`、`M == sum(pack.json.agents[] 长度 for pack in [garage,coding,writing])`（按本 spec § 4 收敛后的预期值，N≈29 / M∈{0,1}，但 acceptance 不锁字面值，由 manifest 派生）；三家宿主目录下 `*/skills/` 子目录数合计 == `N × 3`，退出码 0。
-2. **family-level docs / templates / principles 可被引用**：`packs/coding/skills/hf-specify/SKILL.md` 内任何 `references/spec-template.md` 形式相对引用，在被装到 `.claude/skills/hf-specify/` 后必须仍能 resolve 到磁盘存在的目标文件；具体路径模式（`packs/coding/docs/...` 或同级 `references/`）由 design 决定，本 spec 只约束"装完后引用不 404"。同时 design 选定的方案必须满足 **family-level 资产去重不变量**：同一 family-level 文件在仓库内不允许出现 ≥2 份磁盘副本（除非 design 明确以"内部不变 + lint 守门"形式 ADR 出例外，否则视为 design-review 阻塞）。
+2. **family-level docs / templates / principles 在源端可被引用**：`packs/coding/skills/hf-specify/SKILL.md` 内任何 `references/spec-template.md` / `skills/docs/<file>` / `templates/<file>` 形式相对引用，**在 packs/ 源端**必须能 resolve 到磁盘存在的目标文件（即 `packs/coding/` 内 family-level 资产相对路径自洽）；具体物理布局（`packs/coding/docs/...` 或 `packs/coding/skills/{docs,templates}/...`）由 design 决定。**注意**：F007 安装管道（D7 §10）只复制 `<pack>/skills/<id>/SKILL.md` 单文件、不递归 `references/` 等子目录，因此装到下游宿主（`.claude/skills/`）后内嵌引用是**文档级提示**（指向用户本地 Garage 仓库 git checkout 的 packs/ 路径），而不是装到 `.claude/skills/<id>/references/<file>` 的本地副本——这是本 cycle 显式承认的工程边界（详见 design ADR-D8-4 + § 5 deferred backlog "下游宿主 references 直接可达"）。同时 design 选定的方案必须满足 **family-level 资产去重不变量**：同一 family-level 文件在仓库 `packs/` 内不允许出现 ≥2 份磁盘副本（除非 design 明确以"内部不变 + lint 守门"形式 ADR 出例外，否则视为 design-review 阻塞）。
 3. **三个 pack 自描述完整**：`packs/{garage,coding,writing}/pack.json` 三个 manifest 的 `skills[]` 字段加和必须 == 装到任一宿主的 `*/skills/` 子目录数（即 § 2.2 #1 的 `N`，按本 spec 收敛后的预期值约 29，含 F007 已有 `garage-hello`）；任何 Agent 仅读 3 个 pack.json 必须能回答 "本仓库一共能装多少 skill / 哪些 skill / 各属哪个 pack" 三个问题。
 4. **F007 NFR-701 (宿主无关性) 仍守住**：`grep -rE '\.claude/|\.cursor/|\.opencode/|claude-code' packs/` 的命中数 ≤ F007 baseline（F007 已是 0）；本 cycle 搬迁动作不得引入新的宿主特定字面值。
 5. **F007 安装管道零退绿**：`uv run pytest tests/adapter/installer/` 在搬迁完成后必须仍 100% 通过；只允许新增 "全 packs 在三家宿主下都能被装" 的 smoke 用例（覆盖 FR-806），不允许改写既有 conflict / extend / manifest 测试。
@@ -152,7 +152,7 @@ garage init --hosts claude
    # claude: N / cursor: N / opencode: N
    ```
 
-3. **family 内引用**：装完 `.claude/skills/hf-specify/SKILL.md` 后，用户/Agent 在 Claude Code 里加载该 skill，skill 内 `references/spec-template.md` 形式的引用必须能定位到磁盘真实文件（具体路径由 § 4 决定）。
+3. **family 内引用（packs 源端 + 文档级提示）**：在 `packs/coding/` 内 `packs/coding/skills/hf-specify/SKILL.md` 引用 `references/spec-template.md` / `skills/docs/<file>` 必须 resolve（packs 源端可读）；装到 `.claude/skills/hf-specify/SKILL.md` 后，用户在 Claude Code 里加载该 skill 看到的 family-level 引用是文档级提示（指向用户本地 Garage 仓库 git checkout 路径），**不要求**装后宿主目录下子文件可达——这是 D7 管道当前边界，spec § 5 已留 D9 候选 "下游宿主 references 直接可达"（详见 FR-804）。
 
 4. **`garage` pack getting-started 入口**：
    ```bash
@@ -249,6 +249,7 @@ garage init --hosts claude
 | 让 `writing-skills` 的 `render-graphs.js` 在装到下游后能直接执行 | 需要 design Node 依赖管理；与 packs schema-only 原则冲突 | 单独候选 |
 | 多语言 / i18n 版本（write-blog 仅中文） | write-blog skill 本身就以中文场景为主；英文化是独立工作 | 单独候选 |
 | 反向同步：用户在 `.claude/skills/` 改了之后回流到 `packs/` | F007 已显式 deferred，本 cycle 不动 | 单独候选 |
+| **D7 安装管道扩展为递归 `references/` / `evals/` / `scripts/` 子目录**（让下游宿主装后 family-level 引用直接可达，闭合 design ADR-D8-4 接受的"文档级提示"工程边界） | CON-801 / § 4.2 红线 6 严禁本 cycle 修改 D7 管道；本 cycle 选 ADR-D8-4 "文档级提示" 路径 + 文档说明，把管道扩展独立成 cycle | D9 候选（与 uninstall / update 同 cycle 或独立小 cycle） |
 
 ## 6. 功能需求
 
@@ -283,14 +284,16 @@ garage init --hosts claude
   - Given 任意一次 `garage init --hosts claude` 成功，When 检查 `.claude/skills/`，Then 三个 skill 子目录全部存在。
   - Given `writing-skills` 子目录在 `.agents/skills/writing-skills/` 下有 `examples/` / `render-graphs.js` / `*.md` references，When 落到 `packs/garage/skills/writing-skills/`，Then 全部按 1:1 搬迁（render-graphs.js 不可执行不在本 cycle 处理，是 deferred）。
 
-### FR-804 family-level 共享资产可解析
+### FR-804 family-level 共享资产可解析（packs 源端）
 
 - **优先级**: Must
-- **来源**: § 1 现状摩擦 #2 "HF family 4 个共享 docs + 5 个 templates 不是 skill 但被 skill 引用" + § 2.2 验收 #2
-- **需求陈述**: 系统必须为 4 个 HF shared docs（command-entrypoints / workflow-entrypoints / workflow-shared-conventions / worktree-isolation）+ 5 个 HF templates（finalize-closeout-pack / review-record / task-board / task-progress / verification-record）+ 2 个 HF principles（skill-anatomy / hf-sdd-tdd-skill-design）共 11 个 family-level 资产选定一个稳定的物理位置，且在该位置下被 22 个 packs/coding/skills/* SKILL.md 内任意相对引用必须能 resolve。
+- **来源**: § 1 现状摩擦 #2 "HF family 4 个共享 docs + 5 个 templates 不是 skill 但被 skill 引用" + § 2.2 验收 #2 + design-review-F008 r1 finding important #1（spec wording 与 D7 工程边界对齐）
+- **需求陈述**: 系统必须为 4 个 HF shared docs（command-entrypoints / workflow-entrypoints / workflow-shared-conventions / worktree-isolation）+ 5 个 HF templates（finalize-closeout-pack / review-record / task-board / task-progress / verification-record）+ 2 个 HF principles（skill-anatomy / hf-sdd-tdd-skill-design）共 11 个 family-level 资产选定一个稳定的**包内（packs/coding/）**物理位置，且在该位置下被 22 个 packs/coding/skills/* SKILL.md 内任意相对引用必须能 resolve（**source 端口径**）。
+  - **下游宿主端口径**（与 F007 D7 安装管道边界对齐）：F007 安装管道只复制 `<pack>/skills/<id>/SKILL.md` 单文件、不递归 `references/` 等子目录，因此装到下游宿主（`.claude/skills/`）后内嵌引用是**文档级提示**（用户访问其本地 Garage 仓库 git checkout 的 packs/ 路径），不要求"装后宿主目录下引用文件可达"。这是本 cycle 显式承认的工程边界，由 design ADR-D8-4 承接，并在 § 5 deferred backlog 留 "下游宿主 references 直接可达 / D7 管道扩展" 作为 D9 候选。
 - **验收标准**:
-  - Given F008 实施完成 + 任意一次 `garage init --hosts claude` 成功，When 任意 hf-* SKILL.md 内含 `references/spec-template.md` / `skills/docs/hf-workflow-shared-conventions.md` / `templates/task-progress-template.md` 等形式相对引用，Then 该相对路径在 `.claude/skills/` 加载入口下必须能 resolve 到磁盘存在的真实文件（具体路径由 design 决定）。
-  - Given 任一 family-level 资产，When 用 SHA-256 比较其落盘内容与 `.agents/skills/harness-flow/skills/docs/<file>` 或 `.agents/skills/harness-flow/skills/templates/<file>` 或 `.agents/skills/harness-flow/docs/principles/<file>` 同名文件，Then 字节级相等。
+  - **(packs 源端)** Given F008 实施完成，When 任意 hf-* SKILL.md 内含 `references/spec-template.md` / `skills/docs/hf-workflow-shared-conventions.md` / `templates/task-progress-template.md` 等形式相对引用，Then 该相对路径在 `packs/coding/` 内必须能 resolve 到磁盘存在的真实文件（具体物理位置由 design 决定）。
+  - **(下游宿主端，已对齐 D7 边界)** Given F008 实施完成 + 任意一次 `garage init --hosts claude` 成功，When 检查 `.claude/skills/<id>/SKILL.md` 是否成功落盘，Then 必须存在且 front matter 含 `installed_by: garage` + `installed_pack: coding`；**不要求**装后宿主目录下 `references/<file>` 等子文件可达（D7 管道当前不复制子目录）。
+  - Given 任一 family-level 资产，When 用 SHA-256 比较其在 `packs/coding/` 内的落盘内容与 `.agents/skills/harness-flow/skills/docs/<file>` 或 `.agents/skills/harness-flow/skills/templates/<file>` 或 `.agents/skills/harness-flow/docs/principles/<file>` 同名文件，Then 字节级相等。
   - Given `AGENTS.md § "Skill 写作原则"` 引用的 `docs/principles/skill-anatomy.md`，When 任意 Agent 顺路径打开，Then 必须能定位到 F008 选定的物理位置（要么 `AGENTS.md` 路径同步更新，要么在仓库根 `docs/principles/skill-anatomy.md` 用 git 软链/复制保留入口）。
   - **去重不变量（与 § 4.2 "Design Reviewer 可拒红线" 第 1 条同精神）**: Given F008 落地后，When 对 11 个 family-level 资产任一个 `<file>` 跑 `find packs/ -name '<file>' -type f | wc -l`，Then 计数 ≤ 1（design 显式 ADR 例外 + lint 守门方案的情况下可豁免，但任一例外必须在 design 文档显式 anchor）。
   - **drift 收敛不变量**: Given F008 落地后，When 对 `docs/principles/skill-anatomy.md` 与 `packs/coding/principles/skill-anatomy.md`（或 design 选定的 family-level 等价路径）跑 `diff`，Then 输出为空（两者要么是同文件 / 同软链 / 字节级相等的 git 受控副本）。
