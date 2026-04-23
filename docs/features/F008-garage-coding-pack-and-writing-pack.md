@@ -340,12 +340,13 @@ garage init --hosts claude
 ### NFR-801 NFR-701 (宿主无关性) 在新 packs 下持续守住
 
 - **优先级**: Must
-- **来源**: F007 NFR-701 + `docs/soul/design-principles.md` § 1 + tasks-review-F008 r1 critical（明确豁免规则）
-- **需求陈述**: F008 新增的 `packs/coding/` 与 `packs/writing/` 全部 SKILL.md / agent.md / family-level docs+templates+principles 文件（`.md` / `.json` / `.js` / 其它）**不得**出现宿主特定术语（黑名单：`.claude/` / `.cursor/` / `.opencode/` / `claude-code` / "在 Claude Code 里" 等表述）。当上游 `.agents/skills/` 内同名源文件违反此约束时，按 CON-803 例外 #2 在搬迁时做最小宿主中性化替换（清单详见 CON-803 详细说明段）。
+- **来源**: F007 NFR-701 + `docs/soul/design-principles.md` § 1 + tasks-review-F008 r1 critical + r2 critical（enum 范围澄清 + 文件类别区分）
+- **需求陈述**: F008 新增的 `packs/coding/` 与 `packs/writing/` 全部 **SKILL.md / agent.md** 文件（pack 的运行时核心可分发载体）**不得**出现宿主特定术语（黑名单：`.claude/` / `.cursor/` / `.opencode/` / `claude-code` / "在 Claude Code 里" 等表述）。**README.md / examples/ / references/*.md / templates/*.md / docs/*.md** 等 meta / 教学 / 文档参考文件**显式豁免**（详见 CON-803 详细说明段的文件级豁免清单），因为这些文件的核心用途是描述/教学/参考、不是 skill 运行时载体；在豁免范围内，"`.claude/skills/`" 等字面值作为讨论对象 / example string 是合理且必要的。当上游 `.agents/skills/` 内 SKILL.md 类核心文件违反此约束时，按 CON-803 例外 #2 在搬迁时做最小宿主中性化替换。
 - **验收标准**:
-  - Given F008 实施完成，When 执行 `grep -rE '\\.claude/|\\.cursor/|\\.opencode/|claude-code' packs/coding/ packs/writing/ packs/garage/`（注意：本验收**不豁免** README 内 example 字符串——除非 README 在文中显式标注为 "宿主目录示例" 段落且 design 在 ADR 内白名单 enumerate；具体豁免列表由 design 决定），Then 命中数 = 0。
-  - Given `tests/adapter/installer/test_neutrality.py` 中已有的 NFR-701 glob `packs/*/skills/*/SKILL.md` + `packs/*/agents/*.md` 检查（F007 落下），When F008 后再跑，Then 该测试仍 100% 通过；search-and-replace 后的 SKILL.md 必须能通过同一 grep。
-  - Given CON-803 例外 #2 触发的 search-and-replace，When 检查 git diff，Then 每个被改 SKILL.md 文件的 diff 行数 ≤ 3 行（量化守门，防止 cycle 期间借机改写业务逻辑）。
+  - **(SKILL.md / agent.md 强约束)** Given F008 实施完成，When 执行 `find packs/coding/ packs/writing/ packs/garage/ \( -name 'SKILL.md' -o -path '*/agents/*.md' \) -exec grep -lE '\.claude/|\.cursor/|\.opencode/|claude-code' {} \;`，Then 命中数 = 0。
+  - **(既有自动化测试守门)** Given `tests/adapter/installer/test_neutrality.py` 中已有的 NFR-701 glob `packs/*/skills/*/SKILL.md` + `packs/*/agents/*.md` 检查（F007 落下），When F008 后再跑，Then 该测试仍 100% 通过；search-and-replace 后的 SKILL.md 必须能通过同一 grep。
+  - **(meta 文件豁免清单守门)** Given F008 实施完成，When 执行 `grep -rE '\.claude/|\.cursor/|\.opencode/|claude-code' packs/ --include='*.md' --exclude='SKILL.md'`，命中行的所属文件**必须**全部在 design ADR-D8-9 enumerate 的豁免清单内；不在清单内的命中视为 spec 违反。
+  - **(search-and-replace 量化守门)** Given CON-803 例外 #2 触发的 search-and-replace，When 检查 git diff，Then 每个被改 SKILL.md / agent.md 文件的 diff 行数 ≤ 3 行（量化守门，防止 cycle 期间借机改写业务逻辑）。
 
 ### NFR-802 测试基线零回归
 
@@ -404,11 +405,21 @@ garage init --hosts claude
   1. **family-level 资产的相对引用路径**：如 `references/spec-template.md` → `../docs/skill-anatomy.md` 按 § 4 收敛方案做的最小修复
   2. **宿主中性化替换**（NFR-801 守门）：当上游 SKILL.md / family-level 文件含宿主特定字面值（黑名单见 NFR-801），允许在搬迁时做最小 search-and-replace 把宿主特定 path 替换为宿主无关占位（如 `~/.claude/skills` → `<host-skills-dir>` 或 `~/<host-skills>/skills`），每文件改动行数 ≤ 3 行，且每处替换必须保留语义可读性（不允许把整段 example 砍掉）
   3. **drift 反向同步**：根级 `docs/principles/skill-anatomy.md` 与 `packs/coding/principles/skill-anatomy.md` 之间的字节同步（具体方向由 design ADR-D8-3 决定）
-- **详细说明**: 这是验收 #5 / FR-801/802/803 验收标准的根。例外 #2 的具体清单（实施期间已发现）：
+- **详细说明**: 这是验收 #5 / FR-801/802/803 验收标准的根。例外 #2 仅适用于 **SKILL.md / agent.md** 类 skill 运行时核心可分发载体；其它 README / examples / references / templates / docs 类 meta / 教学文件按 NFR-801 豁免清单处理（见下）。
+
+  **例外 #2 的 SKILL.md 替换清单**（实施期间已发现，涵盖 r1 critical 命中）：
   - `.agents/skills/write-blog/hv-analysis/SKILL.md` line 55：含 `/mnt/.claude/skills/web-access/SKILL.md` → 搬迁时改为 `<host-skills-dir>/web-access/SKILL.md` 或等价宿主无关表达
   - `.agents/skills/writing-skills/SKILL.md` line 12：含 `~/.claude/skills` 与 `~/.agents/skills/` → 改为 `<host-skills-dir>` + `<agent-personal-skills-dir>` 或等价宿主无关表达
   - hf-tasks T2 / T3 实施时必须把这些替换作为 cp 后的 sub-step；任何新发现的同类违反点应同步加到本清单（PR commit message 显式声明）。
-- **不变量**: 例外 #2 的 search-and-replace 必须保证：(a) 替换后文件通过既有 `tests/adapter/installer/test_neutrality.py` 黑名单 grep；(b) skill 业务语义未损（前后 prose 仍可读）；(c) git diff 在该文件上 ≤ 3 行变化（量化守门）。
+
+  **NFR-801 豁免文件清单**（见 design ADR-D8-9，r2 critical 闭合方案）：
+  - `packs/writing/skills/humanizer-zh/README.md`：3 处 `~/.claude/skills/humanizer-zh` 是 humanizer-zh skill 在 Claude Code 上的安装示例（meta 文档）
+  - `packs/writing/README.md`（如 T2 决策搬迁）：1 处 Claude Code 安装路径示例
+  - `packs/garage/skills/writing-skills/anthropic-best-practices.md`：1 处 `claude-code` 是 Anthropic 官方文档引用 link 的一部分（教学参考）
+  - `packs/garage/skills/writing-skills/examples/CLAUDE_MD_TESTING.md`：14 处 `~/.claude/skills/` 是 writing-skills skill 的**测试场景文档**（pressure scenarios for testing CLAUDE.md），其核心目的就是讨论 Claude Code 中 skills 目录的发现机制；改动会破坏教学意图。本文件作为豁免完整保留
+  - 任何后续发现的同类豁免必须先 amend 本清单 + design ADR-D8-9，不能 implementation 阶段单方面豁免
+
+- **不变量**: 例外 #2 的 search-and-replace 必须保证：(a) 替换后文件通过既有 `tests/adapter/installer/test_neutrality.py` 黑名单 grep；(b) skill 业务语义未损（前后 prose 仍可读）；(c) git diff 在该文件上 ≤ 3 行变化（量化守门）。豁免清单内的文件不需要任何 search-and-replace。
 
 ### CON-804 `.agents/skills/` 处置必须本 cycle 收敛
 

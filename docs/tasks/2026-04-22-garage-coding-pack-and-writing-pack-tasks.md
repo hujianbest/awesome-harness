@@ -211,7 +211,9 @@ D008 已稳定（8 项 ADR + 5 类提交分组拆为 9 个 sub-commit + 9 条 IN
   - `packs/writing/prompts/横纵分析法.md` 存在且与上游 `.agents/skills/write-blog/prompts/横纵分析法.md` SHA-256 相等
   - `packs/writing/pack.json` schema_version=1, pack_id="writing", version="0.1.0", skills[] 长度 = 4, agents[] = []
   - `discover_packs` 跑 `packs/` 不抛错（包含 writing pack）
-  - **INV-9 (宿主中性化)**: `grep -rE '\.claude/|\.cursor/|\.opencode/|claude-code' packs/writing/` 命中 = 0；这要求对 `hv-analysis/SKILL.md` line 55 `检查路径 '/mnt/.claude/skills/web-access/SKILL.md' 是否存在` 做最小替换（如改为 `检查路径 '<host-skills-dir>/web-access/SKILL.md' 是否存在` 或 `通过宿主原生机制检查 web-access skill 是否可用`），git diff ≤ 3 行
+  - **INV-9 (宿主中性化, ADR-D8-9 分类约束)**: `find packs/writing/ \( -name 'SKILL.md' -o -path '*/agents/*.md' \) -exec grep -lE '\.claude/|\.cursor/|\.opencode/|claude-code' {} \;` 命中 = 0（即 SKILL.md/agent.md 范围内宿主中性）；这要求对 `hv-analysis/SKILL.md` line 55 `检查路径 '/mnt/.claude/skills/web-access/SKILL.md' 是否存在` 做最小替换（如改为 `检查路径 '<host-skills-dir>/web-access/SKILL.md' 是否存在` 或 `通过宿主原生机制检查 web-access skill 是否可用`），git diff ≤ 3 行
+  - **INV-9 meta 文件豁免（ADR-D8-9）**: `humanizer-zh/README.md`（3 处含 `~/.claude/skills/humanizer-zh` 安装命令样板）+（如搬迁了 `write-blog/README.md`）按 ADR-D8-9 enum 豁免；豁免文件不需要 search-and-replace，但必须出现在 design ADR-D8-9 豁免清单内
+  - **INV-2 family-level 资产去重范围**: T2 把 `prompts/横纵分析法.md` 搬到 `packs/writing/prompts/`（顶层）后，按 INV-2 规则跑 `find packs -name '横纵分析法.md' -type f | wc -l == 1`（packs/ 内单点）；与 packs/coding/ 11 个 family asset 同精神，packs/writing/prompts/ 也属 family-level，需要计入 INV-2 enumerate 范围（实施时 test_full_packs_install::test_family_asset_uniqueness 应在 fixture 内将 packs/writing/prompts/横纵分析法.md 加入待检查文件清单）
   - 既有 `tests/adapter/installer/test_neutrality.py` 在 T2 完成后跑必须 100% 通过（NFR-802 + NFR-801）
 - **依赖**: 无（与 T1 系列并行可在依赖图层面无依赖；§ 8 调度仍按 P 升序串行）
 - **Ready When**: 当前分支已就位
@@ -253,7 +255,8 @@ D008 已稳定（8 项 ADR + 5 类提交分组拆为 9 个 sub-commit + 9 条 IN
   - **writing-skills/SKILL.md 经宿主中性化替换**（CON-803 例外 #2）：上游 line 12 含 `~/.claude/skills` + `~/.agents/skills/`（描述 personal skills 目录约定），改为 `<host-skills-dir>` + `<agent-personal-skills-dir>` 或等价宿主无关表达；git diff ≤ 3 行
   - writing-skills 的 examples/ + render-graphs.js + 3 reference .md（除 SKILL.md）全部 1:1 搬迁（INV-4 / CON-803）
   - discover_packs 不抛错
-  - **INV-9**: `grep -rE '\.claude/|\.cursor/|\.opencode/|claude-code' packs/garage/` 命中 = 0
+  - **INV-9 (ADR-D8-9 分类约束)**: `find packs/garage/ \( -name 'SKILL.md' -o -path '*/agents/*.md' \) -exec grep -lE '\.claude/|\.cursor/|\.opencode/|claude-code' {} \;` 命中 = 0
+  - **INV-9 meta 文件豁免（ADR-D8-9）**: `writing-skills/anthropic-best-practices.md`（1 处 Anthropic 官方文档 URL）+ `writing-skills/examples/CLAUDE_MD_TESTING.md`（14 处教学场景，超 ≤3 行硬上限不可用 search-and-replace 修复）按 ADR-D8-9 enum 整文件豁免；豁免文件不需要 search-and-replace
   - 既有 `tests/adapter/installer/test_neutrality.py` 在 T3 完成后跑必须 100% 通过
 - **依赖**: 无（与 T1/T2 并行可，但建议串行）
 - **Ready When**: 当前分支已就位
@@ -356,8 +359,12 @@ D008 已稳定（8 项 ADR + 5 类提交分组拆为 9 个 sub-commit + 9 条 IN
     - `test_gitignore_excludes_dogfood`：read .gitignore 文本，assert 含 `.cursor/skills/` 与 `.claude/skills/`
     - `test_agents_md_skill_anatomy_path`：grep AGENTS.md 含 `docs/principles/skill-anatomy.md`（红线 4）
     - `test_agents_md_dogfood_onboarding`：grep AGENTS.md 含 `garage init --hosts cursor,claude` 形式样板
-  - 新增 3 个测试文件全部通过；现有 30 个 installer 测试 + N 其它测试 0 退绿（NFR-802）
-  - `uv run pytest tests/ -q` 整体计数 ≥ 586 + 3 文件新增用例数（约 ≥ 596）
+  - `tests/adapter/installer/test_neutrality_exemption_list.py`（ADR-D8-9 守门）至少含：
+    - `test_skill_md_strict_neutrality`：枚举 `packs/**/SKILL.md` + `packs/**/agents/*.md`，assert 每个文件 grep 黑名单 = 0
+    - `test_meta_files_in_exemption_list`：枚举所有非 SKILL.md / agent.md 的 .md 文件含黑名单字面值的命中，assert 这些文件路径全部 ∈ ADR-D8-9 enum 的 EXEMPTION_LIST 常量（5 文件）
+    - 文件顶部维护一个 `EXEMPTION_LIST: frozenset[str]` 常量与 design ADR-D8-9 表手动同步；任一未在列表内的命中视为 RED
+  - 新增 4 个测试文件（包括 test_neutrality_exemption_list）全部通过；现有 30 个 installer 测试 + N 其它测试 0 退绿（NFR-802）
+  - `uv run pytest tests/ -q` 整体计数 ≥ 586 + 4 文件新增用例数（约 ≥ 598）
 - **依赖**: T4a + T4b（dogfood layout 已就位才能跑 test_dogfood_layout）
 - **Ready When**: T4a + T4b 完成
 - **初始队列状态**: pending
@@ -366,6 +373,7 @@ D008 已稳定（8 项 ADR + 5 类提交分组拆为 9 个 sub-commit + 9 条 IN
   - 新增 `tests/adapter/installer/test_full_packs_install.py`
   - 新增 `tests/adapter/installer/test_packs_garage_extended.py`
   - 新增 `tests/adapter/installer/test_dogfood_layout.py`
+  - 新增 `tests/adapter/installer/test_neutrality_exemption_list.py`（ADR-D8-9 守门）
 - **测试设计种子**（任务自身就是测试，种子已在 Acceptance 内）:
   - 主行为：3 个测试文件按上述 acceptance 落地
   - 关键边界：fixture 用 tmp_path 创建临时 .garage/ + 临时 packs/（参考 F007 既有 test_pipeline.py fixture 模式）；不污染真实 .garage/
@@ -374,7 +382,8 @@ D008 已稳定（8 项 ADR + 5 类提交分组拆为 9 个 sub-commit + 9 条 IN
   - `uv run pytest tests/adapter/installer/test_full_packs_install.py -v` 至少 4 passed
   - `uv run pytest tests/adapter/installer/test_packs_garage_extended.py -v` 至少 3 passed
   - `uv run pytest tests/adapter/installer/test_dogfood_layout.py -v` 至少 4 passed
-  - `uv run pytest tests/ -q` 整体 ≥ 596 passed
+  - `uv run pytest tests/adapter/installer/test_neutrality_exemption_list.py -v` 至少 2 passed
+  - `uv run pytest tests/ -q` 整体 ≥ 598 passed
 - **预期证据**: PR commit `f008(layout/tests): 全装集成测试 + dogfood layout 测试 + packs/garage 扩容测试`
 - **完成条件**: 3 测试文件 GREEN + 整体测试基线 ≥ 596 + commit 落地
 
@@ -456,18 +465,18 @@ cycle 完成定义（与 spec § 2.2 验收 #1-#9 对齐）：
 
 ## 8. 当前活跃任务选择规则
 
-按依赖图 DFS：
+按依赖图 DFS + Priority 升序串行（与 § 6 一致，router 不并发）：
 
-1. 若无 in_progress task → 选 `Selection Priority` 最低的 `ready` task
+1. 若无 in_progress task → 在所有 ready task 中选 `Selection Priority` 最低的
 2. T1a 是绝对起点（Selection Priority=1，无依赖）
 3. T1a 完成 → T1b ready
-4. T1b 完成 → T1c ready；同时 T2 / T3 也 ready（与 T1c 并行可，但建议串行）
+4. T1b 完成 → T1c ready；同时 T2 (P=4) / T3 (P=5) 在依赖图层面 ready；router 按 P 升序串行选 T1c → T2 → T3（不并发）
 5. T1c + T2 + T3 全部完成 → T4a ready
 6. T4a 完成 → T4b ready
 7. T4b 完成 → T4c ready（test_dogfood_layout 依赖 .gitignore + AGENTS.md 已落地）
 8. T4c 完成 → T5 ready
 
-router 在每个 task 完成后按上述规则重选下一 task；若候选不唯一，按 `Selection Priority` 升序选最小者。
+router 在每个 task 完成后按上述规则重选下一 task；若候选不唯一，按 `Selection Priority` 升序选最小者。"依赖图层面互不依赖" 与 "调度并发" 是两件事：本 plan 始终单线程 — § 9 队列投影即调度真相。
 
 ## 9. 任务队列投影视图
 

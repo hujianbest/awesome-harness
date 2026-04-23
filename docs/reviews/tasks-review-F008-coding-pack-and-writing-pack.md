@@ -118,3 +118,132 @@
 - `needs_human_confirmation = false`（修订前不进入 approval）。
 - `reroute_via_router = false`（不存在 route/stage/profile/上游证据冲突级阻塞——上游 spec 与 design 都已批准 r2，本评审 critical 暴露的是 spec/design/上游内容物三方一致性 gap，可在 hf-tasks 内通过 task plan 修订路径 + USER-INPUT 选择修复路径承接，必要时由 hf-tasks 触发 hf-increment 局部 amendment）。
 - 不修改 spec / design / tasks 文档；不修改 task-progress.md；不 git commit / push。
+
+---
+
+## 复审 r2
+
+- 复审日期: 2026-04-23
+- 复审输入: 父会话 commit `e8f1a35` 对 r1 全部 finding 完成的定向回修
+- 复审范围: 逐项校验 r1 critical / 2 important / 6 minor / 3 缺失项的闭合度，重点 critical 修复（CON-803 例外 + search-and-replace）的 spec / task / 测试守门三者一致性
+
+### r2 结论
+
+**需修改**
+
+理由：r1 critical 修复结构上正确（CON-803 例外条款 + T2/T3 search-and-replace acceptance + INV-9 守门三者形态都已就位），但 **CON-803 例外 #2 实施清单 enum 范围实测不完整**，仅覆盖到 2 个 SKILL.md，遗漏了上游 `cp -r` 整子目录会一并搬到 packs/ 的 3 个非-SKILL.md 文件（共 18 处黑名单命中）。这意味着 T2/T3 commit 后 task plan 自身定义的 INV-9 递归 grep 必然 RED，hf-test-driven-dev 实施时即被卡住。其余 r1 finding 均已闭合或基本闭合。
+
+### 维度评分（r2）
+
+| 维度 | r1 评分 | r2 评分 | 备注 |
+|---|---|---|---|
+| TR1 可执行性 | 8 | 8 | 9 task 粒度仍合理；T1c 拆出 Step 1-3 加分 |
+| TR2 任务合同完整性 | 7 | 7 | T1a/T4b/T5 acceptance 已收紧；但 T2/T3 acceptance 与 CON-803 enum 仍存在覆盖缺口 |
+| TR3 测试设计种子 | 7 | 8 | T1c 显式 Step 1 RED 截图证据 + sentinel 不依赖 .garage/ 标注；NFR-803 双轨清晰 |
+| TR4 依赖与顺序 | 8 | 8 | §6 措辞已澄清依赖图 vs 调度二分；§8 line 464 残留旧措辞但效果不变 |
+| TR5 追溯覆盖 | 7 | 7 | spec NFR-801 / CON-803 已 amend 但 enum 不完整 |
+| TR6 Router 重选就绪度 | 9 | 9 | 不变 |
+
+无关键维度 < 6，但 critical 残留要求"需修改"再过。
+
+### 逐条 r1 finding 闭合度判定
+
+| r1 finding | 严重度 | 闭合判定 | 证据 |
+|---|---|---|---|
+| critical: NFR-801/INV-9 三方冲突 | critical | **未完全闭合**（见下面"r2 残留 critical"详细说明）| spec CON-803 例外 #2 enum 仅 2 处 SKILL.md；上游 humanizer-zh/README.md + writing-skills/anthropic-best-practices.md + writing-skills/examples/CLAUDE_MD_TESTING.md 共 18 处黑名单命中未 enum 处置 |
+| important #2: T2 Files + family-level prompts/横纵分析法.md | important | **已闭合** | task plan line 201-206 补全 4 子 skill 实测 layout；line 211 + 225-226 把 prompts/横纵分析法.md 搬到 `packs/writing/prompts/`（pack 顶层），README 决定不单独搬 |
+| important #3: T1c fail-first 顺序 | important | **已闭合** | task plan line 180-183 显式 Sub-acceptance Step 1/2/3；line 195 PR walkthrough 含 RED 证据要求 |
+| minor #4: §6/§8 措辞冲突 | minor | **基本闭合 / 微残留** | task plan line 424-428 关键路径改为 9 跳 + 依赖图 vs 调度二分；但 § 8 line 464 仍留 "与 T1c 并行可，但建议串行" 旧措辞，与 § 6 新措辞表面冲突。效果不变（P 升序串行始终成立），不阻塞 |
+| minor #5: T1a Verify 自相矛盾 | minor | **已闭合** | task plan line 126 简化为 `ls ... wc -l == 22` + 备注 T1b 后变 24 |
+| minor #6: T4b AGENTS.md grep 过弱 | minor | **已闭合** | task plan line 316-321 升级到 5 个结构性 invariant；line 332-337 Verify 含 6 个 grep |
+| minor #7: T5 RELEASE_NOTES 占位 enum | minor | **已闭合** | task plan line 384-389 5 项占位字段清单；line 395 `TBD ≥ 5` 守门 |
+| minor #8: NFR-803 wall-clock 验收 | minor | **已闭合** | task plan line 451-454 双轨明确（pytest --durations + manual time） |
+| minor #9: T1c sentinel 不依赖 .garage/ | minor | **已闭合** | task plan line 186 + 188-190 显式标注 |
+| 缺失 #1: NFR-801 pre-flight | important | **部分闭合** | task plan line 450 "T2/T3 完成后立即跑 test_neutrality 守门" 已加；但与 critical 残留同因——pre-flight enumerate 不完整，依赖实施者主动发现 |
+| 缺失 #2: pyproject.toml/uv.lock 零变更 | minor | **已闭合** | task plan line 444 § 7 #6 守门 |
+| 缺失 #3: T4a dogfood 残留 4 步顺序 | minor | **已闭合** | task plan line 284-288 4 步硬门槛 |
+
+### r2 残留 / 新发现 finding
+
+#### Critical（必须修订后再复审）
+
+- **[critical][LLM-FIXABLE / 部分 USER-INPUT][TR2 + TR5][T2 + T3 + spec CON-803 enum + design ADR]** **CON-803 例外 #2 实施清单 enum 范围实测不完整，T2/T3 commit 后 INV-9 递归 grep 必然 RED**
+
+  实测证据（基于实际跑 grep）：
+
+  | 上游文件（被 T2/T3 cp -r 一并带入 packs/）| 黑名单命中数 | 内容性质 | r1 CON-803 enum 是否覆盖 |
+  |---|---|---|---|
+  | `.agents/skills/write-blog/hv-analysis/SKILL.md` line 55 | 1 | 业务示例 | ✅ enum 已覆盖 |
+  | `.agents/skills/writing-skills/SKILL.md` line 12 | 1 | 业务示例 | ✅ enum 已覆盖 |
+  | `.agents/skills/write-blog/humanizer-zh/README.md` line 33/40/45 | **3** | 安装命令样板 | ❌ **未 enum** |
+  | `.agents/skills/writing-skills/anthropic-best-practices.md` line 1143 | **1** | 含 `claude-code` 字面值 | ❌ **未 enum** |
+  | `.agents/skills/writing-skills/examples/CLAUDE_MD_TESTING.md` 14 行 | **14** | examples 文件，全篇是 `~/.claude/skills/` 路径示例 | ❌ **未 enum** |
+
+  与 task plan acceptance 的冲突：
+  - T2 task plan line 222（Files）：`新增 packs/writing/skills/humanizer-zh/ (SKILL.md + LICENSE + README.md)` — README.md 显式被 cp 入
+  - T2 task plan line 238（Verify）：`grep -rE '\.claude/|\.cursor/|\.opencode/|claude-code' packs/writing/ | wc -l == 0` — humanizer-zh/README.md 落入 packs/writing/ 后递归 grep 命中 3 行
+  - T3 task plan line 264（Files）：`新增 packs/garage/skills/writing-skills/（整子目录）` — examples/CLAUDE_MD_TESTING.md 与 anthropic-best-practices.md 都被 cp 入
+  - T3 task plan line 275（Verify）：`grep -rE ... packs/garage/ | wc -l == 0` — 落入后递归 grep 命中 1 + 14 = 15 行
+
+  与 spec 验收的冲突：
+  - spec NFR-801 验收 #1：`packs/coding/ packs/writing/ packs/garage/` 三 pack 整体递归 grep 命中数 = 0；spec wording 明确"不豁免 README 内 example 字符串——除非 README 在文中显式标注为 '宿主目录示例' 段落且 design 在 ADR 内白名单 enumerate"。当前 design 没有该 ADR，README 不享豁免；examples/ 文件类型更不在豁免话术内
+  - spec CON-803 不变量 (c)：`每个被改 SKILL.md 文件 git diff ≤ 3 行`。该不变量 wording 限定 "SKILL.md 文件"——但 humanizer-zh/README.md 与 anthropic-best-practices.md 是 .md 但不是 SKILL.md，CON-803 例外 #2 当前是否覆盖非-SKILL.md 文件 wording 不清；CLAUDE_MD_TESTING.md 14 行命中无论如何都超 ≤ 3 行硬上限，需要更宽口径
+
+  与既有 `tests/adapter/installer/test_neutrality.py` 的关系：
+  - 该测试 glob 是 `packs/*/skills/*/SKILL.md` + `packs/*/agents/*.md`（非递归，不扫子目录或 README） — 因此 README/examples 命中**不会让 test_neutrality.py 直接 RED**（NFR-802 baseline 不破）
+  - 但 task plan T2/T3 自身写明的 `grep -rE ... packs/writing|garage/` 是递归 grep，会自检 RED
+  - spec NFR-801 验收 #1 也是三 pack 整体递归 grep，会 spec-acceptance RED
+
+  **修复路径**（critical 闭合 = spec 例外 + task acceptance + 测试守门三者一致）：
+
+  必须同步 3 处文档：
+
+  1. **spec CON-803 例外 #2 enum 扩充**：把 3 个新发现的违反点 enumerate 进清单；clarify 例外是否覆盖非-SKILL.md（README / examples 类）.md 文件
+  2. **spec CON-803 不变量 (c) ≤ 3 行 wording 修订**：要么把限定从 "SKILL.md 文件" 拓宽到 "任意被搬迁的 .md 文件"；要么对超 3 行的 examples 类文件提供另一条例外（如 examples/ 文件允许整段重写或整文件删除，需 design ADR 显式裁决）
+  3. **design 新增 ADR-D8-9（或 amend ADR-D8-1/2）**：对 humanizer-zh/README.md / writing-skills/anthropic-best-practices.md / writing-skills/examples/CLAUDE_MD_TESTING.md 三类文件分别给出处置策略——三选一：
+      - (a) ≤ 3 行 search-and-replace（适合 humanizer-zh/README.md 3 行 + anthropic-best-practices.md 1 行；不适合 14 行 CLAUDE_MD_TESTING.md）
+      - (b) 文件级删除（适合 examples/CLAUDE_MD_TESTING.md，因其是教学示例，删除不损 writing-skills 主干；需 design 显式裁决"删除 examples/CLAUDE_MD_TESTING.md 是否影响 writing-skills 业务语义"）
+      - (c) 推到 deferred backlog（不推荐，与 spec § 2.1 "字节级 1:1 + 必要相对引用路径修复" 已列入本 cycle 收敛精神冲突）
+  4. **task plan T2 / T3 acceptance + Files 同步**：T2 acceptance 加 humanizer-zh/README.md 处置 sub-step + git diff 守门；T3 acceptance 加 anthropic-best-practices.md + CLAUDE_MD_TESTING.md 处置 sub-step + 量化守门
+  5. **缺失 #1 NFR-801 pre-flight 实质升级**：task plan § 7 加一步 "T2 / T3 cp -r 后立即跑 `grep -rE ... packs/writing/ packs/garage/` 全 enum 命中清单，与 spec CON-803 例外 #2 enum 比对，发现新命中点必须 PR 描述显式声明"——这条已在 spec CON-803 详细说明段以 "PR commit message 显式声明" 形式存在，但 task plan 没把它 lift 到验证流程
+
+  分类细分：
+  - humanizer-zh/README.md（3 行）→ LLM-FIXABLE（直接 ≤ 3 行 search-and-replace）
+  - writing-skills/anthropic-best-practices.md（1 行 `claude-code`）→ LLM-FIXABLE
+  - writing-skills/examples/CLAUDE_MD_TESTING.md（14 行）→ **USER-INPUT**（删除整文件 vs 整段重写 vs 推 deferred 三选一须人决定）
+
+#### Minor（不阻塞，但建议本轮顺手收）
+
+- **[minor][LLM-FIXABLE][TR4][§ 8 line 464]** § 8 选择规则正文仍写 "T1b 完成 → T1c ready；同时 T2 / T3 也 ready（与 T1c 并行可，但建议串行）"，与 § 6 新增的 "依赖图层面 vs 调度层面" 二分措辞表面冲突。建议把括号改为 "（依赖图层面 ready，调度按 P 升序选最小者）"，与 § 6 严格对齐。
+
+- **[minor][LLM-FIXABLE][TR5][T2 prompts/横纵分析法.md vs INV-2]** T2 把 `prompts/横纵分析法.md` 搬到 `packs/writing/prompts/` 作为 family-level 资产。spec FR-804 / design INV-2 锁定的 11 项 family asset enumerate 仅含 hf-* family 4 docs + 5 templates + 2 principles，不含 writing family 资产。task plan 当前没说明 writing family `prompts/` 是否计入 INV-2 单点不变量。建议在 T2 acceptance 加一句 "writing family `prompts/` 不计入 INV-2 enumerate（INV-2 锁定 hf-* family 11 项）；但 prompts/横纵分析法.md 自身在 `packs/writing/` 内单点（`find packs -name 横纵分析法.md \| wc -l == 1`）"，避免 hf-test-driven-dev 阶段对 INV-2 范围困惑。
+
+### 关键 r2 维度判断
+
+| 关键问题 | 判定 |
+|---|---|
+| spec CON-803 例外条款 (语法层面) | ✅ wording 已闭合（三类例外 + 量化守门 + 不变量） |
+| spec CON-803 例外 enum (实施清单) | ❌ 未完整覆盖 cp -r 整子目录的 3 处非-SKILL.md 命中 |
+| task T2/T3 acceptance (search-and-replace sub-step) | ⚠️ 仅 enum 内 2 处 SKILL.md 显式覆盖；非 SKILL.md 命中无 acceptance |
+| 测试守门 (test_neutrality + task INV-9) | ⚠️ test_neutrality.py 不会 RED（其 glob 不扫子目录），但 task INV-9 递归 grep 自检会 RED |
+| spec NFR-801 / task acceptance / 测试守门三者一致 | ❌ 不一致（task INV-9 与 spec NFR-801 都会 RED；test_neutrality 不会 RED 形成假阴性） |
+
+### 下一步
+
+`hf-tasks` — 父会话按 r2 critical 残留 + 2 minor 做定向回修：
+
+1. 与用户协商 USER-INPUT 决定 `writing-skills/examples/CLAUDE_MD_TESTING.md` 14 行命中处置策略（删除整文件 / 整段重写 / 推 deferred 三选一）
+2. spec CON-803 例外 #2 enum 扩充 + 不变量 (c) wording 修订
+3. design 新增 ADR-D8-9（或 amend）裁决 3 类文件处置
+4. task plan T2 / T3 acceptance 同步加 humanizer-zh/README.md / anthropic-best-practices.md / CLAUDE_MD_TESTING.md 处置 sub-step
+5. § 8 line 464 措辞 + T2 INV-2 范围注释（minor 顺手）
+
+修订完成后重派 hf-tasks-review 复审 r3。
+
+### 交接说明
+
+- 结论 `需修改`，不进入"任务真人确认" approval step。
+- `next_action_or_recommended_skill = hf-tasks`。
+- `needs_human_confirmation = false`。
+- `reroute_via_router = false`（不存在 route/stage/profile/上游证据冲突级阻塞——上游 spec/design 已批准 r2，本轮 critical 残留是 r1 修复 enum 不完整，可在 hf-tasks 内通过 spec amendment + design ADR + task acceptance 三处同步修订）。
+- 不修改 spec / design / tasks 文档；不修改 task-progress.md；不 git commit / push。
