@@ -4,7 +4,7 @@
 
 - Goal: F008 — Garage Coding Pack 与 Writing Pack（把 `.agents/skills/` 物化为可分发 packs）
 - Owner: hujianbest
-- Status: 🟡 In Progress — F008 design **已批准**（r2 通过 + auto-mode approval），进入 `hf-tasks`
+- Status: 🟡 In Progress — F008 task plan 草稿已落（9 个 task），等待 `hf-tasks-review`
 - Last Updated: 2026-04-22
 
 ## Previous Milestones
@@ -23,15 +23,16 @@
 - Workflow Profile: `full`
 - Execution Mode: `auto`
 - Workspace Isolation: `in-place`（工作分支 `cursor/f008-coding-pack-and-writing-pack-bf33`；PR #22）
-- Current Active Task: 无（task plan drafting 阶段）
-- Pending Reviews And Gates: `hf-tasks-review`（待派发，task plan 完成后）
-- Next Action Or Recommended Skill: `hf-tasks`
+- Current Active Task: 无（task plan 草稿已完成，等待 review）
+- Pending Reviews And Gates: `hf-tasks-review`（待派发）
+- Next Action Or Recommended Skill: `hf-tasks-review`
 - Relevant Files:
   - `docs/features/F008-garage-coding-pack-and-writing-pack.md`（已批准 r2 + design 阶段同步收紧 wording）
   - `docs/approvals/F008-spec-approval.md`、`docs/approvals/F008-design-approval.md`（auto-mode approval records）
   - `docs/reviews/spec-review-F008-coding-pack-and-writing-pack.md`（r1 需修改 + r2 通过）
   - `docs/reviews/design-review-F008-coding-pack-and-writing-pack.md`（r1 需修改 + r2 通过）
   - `docs/designs/2026-04-22-garage-coding-pack-and-writing-pack-design.md`（已批准，含 8 项 ADR + 9 sub-commit + 9 INV + 4 测试文件）
+  - `docs/tasks/2026-04-22-garage-coding-pack-and-writing-pack-tasks.md`（草稿 r1，9 个 task：T1a/T1b/T1c + T2 + T3 + T4a/T4b/T4c + T5）
   - `docs/soul/manifesto.md`、`growth-strategy.md`、`design-principles.md`（愿景锚点）
   - `packs/README.md`、`packs/garage/`（F007 落下的现状）
   - `.agents/skills/harness-flow/`、`.agents/skills/write-blog/`、`.agents/skills/find-skills/`、`.agents/skills/writing-skills/`（搬迁源）
@@ -46,12 +47,11 @@
 
 ## Next Step
 
-进入 `hf-tasks`，按 design § 10.1 9 个 sub-commit 拆分（T1a/T1b/T1c + T2 + T3 + T4a/T4b/T4c + T5）产出可评审任务计划。
+派发独立 reviewer subagent 执行 `hf-tasks-review`，对 `docs/tasks/2026-04-22-garage-coding-pack-and-writing-pack-tasks.md` 出 verdict。
 
-每个 task 至少含：
-- 覆盖的 INV（design § 11.1）
-- 触发的 spec FR/NFR
-- acceptance（具体到 `git diff` / `find` / 测试文件清单）
-- 失败模式应对（design § 14）
+task plan 已含 9 个 task（T1a/T1b/T1c + T2 + T3 + T4a/T4b/T4c + T5），每个 task 已写：目标 / Acceptance / 依赖 / Ready When / 初始队列状态 / Selection Priority / Files / 测试设计种子 / Verify / 预期证据 / 完成条件；§ 4 给出完整 spec/design → task 追溯表；§ 6 关键路径；§ 8 Current Active Task 选择规则；§ 10 风险与顺序。
 
-task plan 完成后派发独立 reviewer subagent 执行 `hf-tasks-review`。
+下一节点候选（由 tasks-review 结果决定）：
+- 通过 → 写 `docs/approvals/F008-tasks-approval.md` → `hf-test-driven-dev` 进入 T1a 实施
+- 需修改 → 回 `hf-tasks` 按 review findings 修订
+- 阻塞 → 回 `hf-workflow-router` 重新判定
