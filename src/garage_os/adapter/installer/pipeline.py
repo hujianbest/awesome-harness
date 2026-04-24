@@ -74,11 +74,14 @@ class _Target:
     src_abs: Path
     dst_abs: Path
     src_rel: str  # POSIX, project-rooted
-    dst_rel: str  # POSIX, project-rooted
+    dst_rel: str  # POSIX (project-rooted for project scope; absolute home-rooted for user scope, F009)
     host: str
     pack_id: str
     source_kind: SourceKind  # "skill" or "agent"
     skill_or_agent_id: str
+    # F009 ADR-D9-2: scope 字段 (project / user). 默认 "project" 兼容 F007/F008 既有调用方
+    # (CON-901 严守: phase 1 + phase 3 算法主体字节级不变, 仅扩展 type signature).
+    scope: str = "project"
 
 
 @dataclass
@@ -96,6 +99,7 @@ def install_packs(
     hosts: list[str],
     *,
     force: bool = False,
+    scopes_per_host: dict[str, str] | None = None,
     stderr: IO[str] | None = None,
     stdout: IO[str] | None = None,
 ) -> InstallSummary:
@@ -107,6 +111,10 @@ def install_packs(
             tests can fixture-construct alternate locations.
         hosts: Pre-resolved host id list (CLI layer handles ``all``/``none``).
         force: When True, overwrite locally-modified files; otherwise skip.
+        scopes_per_host: F009 (FR-906 + ADR-D9-2) optional dict mapping host_id
+            → "project" | "user". Hosts not present default to "project"
+            (CON-901 兼容). When None (F007/F008 既有调用), 全部 host 默认
+            "project" 完全等价 F007/F008 行为字节级.
         stderr / stdout: Streams for stable markers; default to ``sys.stderr``
             / ``sys.stdout``.
 
@@ -121,6 +129,12 @@ def install_packs(
         MalformedFrontmatterError: from marker.inject for bad SKILL.md.
         OSError: for file system errors (CLI maps to exit code 1).
     """
+    # F009 ADR-D9-2: 归一化 scopes_per_host (None 或缺失 host → "project")
+    scopes_resolved: dict[str, str] = {h: "project" for h in hosts}
+    if scopes_per_host is not None:
+        for host_id, scope in scopes_per_host.items():
+            if host_id in scopes_resolved:
+                scopes_resolved[host_id] = scope
     err = stderr if stderr is not None else sys.stderr
     out = stdout if stdout is not None else sys.stdout
 
@@ -131,7 +145,7 @@ def install_packs(
     adapters: dict[str, HostInstallAdapter] = {h: get_adapter(h) for h in hosts}
 
     # Phase 2: resolve targets + conflict detection.
-    targets = _resolve_targets(workspace_root, packs, adapters)
+    targets = _resolve_targets(workspace_root, packs, adapters, scopes_resolved)
     _check_conflicts(targets)
 
     if not packs:
@@ -151,12 +165,19 @@ def install_packs(
         return InstallSummary(n_skills=0, n_agents=0, hosts=sorted(set(hosts)))
 
     # Phase 3-4: decide + apply.
+    # F009 ADR-D9-2: prior_entries_index key 从 F007 二元组 (src, dst) 扩展为
+    # 5 元组 (src, dst, host, pack_id, scope) — 让跨 scope 同 src+dst 不串扰
+    # (e.g. claude:user 与 claude:project 装同一 SKILL.md 是两条独立 entry).
+    # F008 schema 1 manifest 由 manifest.read_manifest 自动 migrate 到 schema 2
+    # (T3 commit 实施); 在 T3 之前 schema 1 entry 没有 scope 字段, 暂用 "project" 兜底.
     prior_manifest = read_manifest(workspace_root / ".garage")
-    prior_entries_index: dict[tuple[str, str], ManifestFileEntry] = (
-        {(e.src, e.dst): e for e in prior_manifest.files}
-        if prior_manifest is not None
-        else {}
-    )
+    prior_entries_index: dict[tuple[str, str, str, str, str], ManifestFileEntry] = {}
+    if prior_manifest is not None:
+        for e in prior_manifest.files:
+            # F009: getattr 兜底兼容 schema 1 entry (无 scope 字段) — T3 实施 migration 后
+            # entry.scope 字段始终存在, 此处兼容只在 T2 单 commit 中起作用.
+            scope_val = getattr(e, "scope", "project")
+            prior_entries_index[(e.src, e.dst, e.host, e.pack_id, scope_val)] = e
 
     new_entries: list[ManifestFileEntry] = []
     n_skills_written = 0
@@ -174,7 +195,13 @@ def install_packs(
         rendered_hash = hashlib.sha256(rendered_bytes).hexdigest()
 
         prior_entry: ManifestFileEntry | None = prior_entries_index.get(
-            (target.src_rel, target.dst_rel)
+            (
+                target.src_rel,
+                target.dst_rel,
+                target.host,
+                target.pack_id,
+                target.scope,
+            )
         )
 
         action = _decide_action(
@@ -253,56 +280,99 @@ def _resolve_targets(
     workspace_root: Path,
     packs: Iterable[Pack],
     adapters: dict[str, HostInstallAdapter],
+    scopes_resolved: dict[str, str] | None = None,
 ) -> list[_Target]:
-    """Expand each pack × host × (skill|agent) into a list of _Target."""
+    """Expand each pack × host × (skill|agent) into a list of _Target.
+
+    F009 ADR-D9-2: phase 2 scope 分流主改动点。按 target.scope 选 base path
+    (project = workspace_root, user = Path.home()) 和 adapter method
+    (target_skill_path vs target_skill_path_user). dst_abs / dst_rel 字段
+    在 user scope 下是 absolute POSIX path (含 home), 在 project scope 下
+    保持 F007/F008 既有相对路径行为 (CON-901).
+
+    F008 既有调用方 (scopes_resolved=None) 行为字节级保留: 全部 host 默认
+    project scope, 完全等价 F007 _resolve_targets 算法.
+    """
+    # F009: scopes_resolved=None → F007/F008 既有行为 (全 host 默认 project)
+    if scopes_resolved is None:
+        scopes_resolved = {host_id: "project" for host_id in adapters}
+
     out: list[_Target] = []
     for pack in packs:
         for skill_id in pack.skills:
             skill_src_abs = pack.skill_source_path(skill_id)
             for host_id, adapter in adapters.items():
-                skill_dst_path: Path = adapter.target_skill_path(skill_id)
+                scope = scopes_resolved.get(host_id, "project")
+                if scope == "user":
+                    # F009 user scope: absolute path under Path.home()
+                    skill_dst_abs = adapter.target_skill_path_user(skill_id)
+                    skill_dst_rel = _to_posix(skill_dst_abs)  # absolute POSIX
+                else:
+                    # F007/F008 project scope: relative path under workspace_root
+                    skill_dst_path: Path = adapter.target_skill_path(skill_id)
+                    skill_dst_abs = workspace_root / skill_dst_path
+                    skill_dst_rel = _to_posix(skill_dst_path)
                 out.append(
                     _Target(
                         src_abs=skill_src_abs,
-                        dst_abs=workspace_root / skill_dst_path,
+                        dst_abs=skill_dst_abs,
                         src_rel=_to_posix(
                             skill_src_abs.relative_to(workspace_root)
                         ),
-                        dst_rel=_to_posix(skill_dst_path),
+                        dst_rel=skill_dst_rel,
                         host=host_id,
                         pack_id=pack.pack_id,
                         source_kind="skill",
                         skill_or_agent_id=skill_id,
+                        scope=scope,
                     )
                 )
         for agent_id in pack.agents:
             agent_src_abs = pack.agent_source_path(agent_id)
             for host_id, adapter in adapters.items():
-                agent_dst_path: Path | None = adapter.target_agent_path(agent_id)
-                if agent_dst_path is None:
-                    continue  # cursor: no agent surface
+                scope = scopes_resolved.get(host_id, "project")
+                if scope == "user":
+                    agent_dst_path: Path | None = adapter.target_agent_path_user(agent_id)
+                    if agent_dst_path is None:
+                        continue  # cursor: no agent surface (user 与 project scope 一致)
+                    agent_dst_abs = agent_dst_path
+                    agent_dst_rel = _to_posix(agent_dst_path)
+                else:
+                    agent_dst_path = adapter.target_agent_path(agent_id)
+                    if agent_dst_path is None:
+                        continue  # cursor: no agent surface
+                    agent_dst_abs = workspace_root / agent_dst_path
+                    agent_dst_rel = _to_posix(agent_dst_path)
                 out.append(
                     _Target(
                         src_abs=agent_src_abs,
-                        dst_abs=workspace_root / agent_dst_path,
+                        dst_abs=agent_dst_abs,
                         src_rel=_to_posix(
                             agent_src_abs.relative_to(workspace_root)
                         ),
-                        dst_rel=_to_posix(agent_dst_path),
+                        dst_rel=agent_dst_rel,
                         host=host_id,
                         pack_id=pack.pack_id,
                         source_kind="agent",
                         skill_or_agent_id=agent_id,
+                        scope=scope,
                     )
                 )
     return out
 
 
 def _check_conflicts(targets: list[_Target]) -> None:
-    """Raise ConflictingSkillError when two different srcs map to the same dst."""
-    by_dst: dict[tuple[str, str], _Target] = {}
+    """Raise ConflictingSkillError when two different srcs map to the same dst.
+
+    F009 ADR-D9-2 / FR-907: 比对 key 从 F007 二元组 ``(host, dst_rel)`` 扩展为
+    三元组 ``(host, scope, dst_rel)`` —— 跨 scope 同 dst_rel 不视作冲突
+    (e.g. ``--hosts claude:user,claude:project`` 同一 SKILL.md 同时装到 user +
+    project 是合法的, 由 dst 不同 (~/... vs ./...) 自然区分). 算法分支结构
+    字节级保持原状, 仅 key 扩展 (CON-902 enum 内允许的最小改动).
+    """
+    by_dst: dict[tuple[str, str, str], _Target] = {}
     for t in targets:
-        key = (t.host, t.dst_rel)
+        key = (t.host, t.scope, t.dst_rel)
         if key in by_dst and by_dst[key].src_rel != t.src_rel:
             other = by_dst[key]
             raise ConflictingSkillError(
