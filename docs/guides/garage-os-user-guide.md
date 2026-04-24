@@ -746,6 +746,76 @@ garage init --hosts all --force
 
 ---
 
+## Sync & Session Import (F010 新增)
+
+F010 让 F003-F006 build 的 memory 子系统真正进入用户日常 host 对话: `garage sync` 把知识 push 到三家宿主 context surface, `garage session import` 把宿主对话 ingest 回 Garage 喂给 F003 提取链.
+
+### `garage sync` — push 路径
+
+```bash
+# 默认: --hosts all + --scope project
+garage sync
+# → ./CLAUDE.md + ./.cursor/rules/garage-context.mdc + ./.opencode/AGENTS.md
+
+# 指定 host + scope
+garage sync --hosts claude --scope user
+# → ~/.claude/CLAUDE.md
+
+# per-host scope override (复用 F009 syntax)
+garage sync --hosts claude:user,cursor:project
+
+# 用户改了 marker 之间内容, 强制覆写
+garage sync --hosts claude --force
+```
+
+stdout 输出: `Synced N knowledge entries + M experience records into hosts: <list>`
+
+### `garage session import` — pull 路径
+
+```bash
+# 交互式: TTY 显示 ≤ 30 条对话, 用户选 (输入 '1,3,5' / 'all' / 'q' quit)
+garage session import --from claude-code
+
+# 非交互式: --all 直接 batch import
+garage session import --from claude-code --all
+# stdout: Imported N conversations from claude-code (batch-id: <id>)
+
+# alias: claude → claude-code 自动解析
+garage session import --from claude --all
+
+# cursor 当前 deferred (D-1010)
+garage session import --from cursor   # exit 1 + stderr "deferred to F010 D-1010"
+```
+
+ingest 后 candidate 入 `.garage/memory/candidates/{items, batches}/`. 用 `garage memory review <batch-id> --action accept --candidate-id <id>` 审批入库 (复用 F003/F004 既有链路, F010 不引入新审批 CLI).
+
+### 三家宿主路径表
+
+| Host | project | user |
+|---|---|---|
+| Claude Code | `<cwd>/CLAUDE.md` | `~/.claude/CLAUDE.md` |
+| Cursor | `<cwd>/.cursor/rules/garage-context.mdc` | `~/.cursor/rules/garage-context.mdc` |
+| OpenCode | `<cwd>/.opencode/AGENTS.md` | `~/.config/opencode/AGENTS.md` (XDG default) |
+
+Cursor `.mdc` 文件含 YAML front matter `alwaysApply: true`, 让 Cursor 自动加载.
+
+### 不变量与守门
+
+- **CON-1003**: Garage 写入段用 HTML comment marker 圈定 (`<!-- garage:context-begin -->` / `<!-- garage:context-end -->`); marker 外用户内容字节级保留 (NFR-1003)
+- **NFR-1002**: 第二次 `garage sync` 内容相同 → mtime 不刷新
+- **CON-1004**: `garage session import` 不绕过 F003 candidate 审批; `--all` 是 explicit opt-in (B5 user-pact "你做主")
+- **ADR-D10-3 三方 hash 决策**: 用户改了 marker 之间内容 → SKIP_LOCALLY_MODIFIED + stderr warn; `--force` 强制覆写
+
+### 已知限制 / F011+ 候选
+
+- Cursor history 路径未稳定 → cursor reader stub (D-1010)
+- 无 `garage sync watch` 自动 file-watcher (D-1011, F012-D 候选)
+- top-N (12) + budget (16KB) 当前不可配置 (D-1013)
+
+详见 spec + design + RELEASE_NOTES F010 段.
+
+---
+
 ## 相关文档
 
 - [Garage OS 开发者指南](./garage-os-developer-guide.md) — 架构细节和扩展开发
