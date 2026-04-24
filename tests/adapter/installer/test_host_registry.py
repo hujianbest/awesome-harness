@@ -9,6 +9,11 @@ F007 T2 — covers FR-707 (host adapter registry + resolve_hosts_arg) by accepta
 - resolve_hosts_arg("none") returns []
 - resolve_hosts_arg("claude,cursor") returns sorted list
 - resolve_hosts_arg with unknown member raises UnknownHostError
+
+F009 T1 carry-forward (in-cycle API 演化):
+- ``resolve_hosts_arg`` 返回类型从 ``list[str]`` 改为 ``list[tuple[str, str | None]]``
+  (FR-902 per-host scope override 语法)；既有测试 wording 同步更新（assertions 用
+  二元组 + scope_override=None 表示用 --scope 全局默认）
 """
 
 from __future__ import annotations
@@ -57,21 +62,36 @@ class TestHostRegistry:
 
 
 class TestResolveHostsArg:
-    """FR-702/707: --hosts argument resolution."""
+    """FR-702/707/902: --hosts argument resolution.
+
+    F009 carry-forward: 返回类型从 ``list[str]`` 改为
+    ``list[tuple[str, str | None]]``，scope_override=None 表示用 --scope 全局默认。
+    """
 
     def test_all_expands_to_sorted_full_list(self) -> None:
-        assert resolve_hosts_arg("all") == ["claude", "cursor", "opencode"]
+        # F009: scope_override=None 表示用 --scope 全局默认 (CLI 注入)
+        assert resolve_hosts_arg("all") == [
+            ("claude", None),
+            ("cursor", None),
+            ("opencode", None),
+        ]
 
     def test_none_returns_empty_list(self) -> None:
         assert resolve_hosts_arg("none") == []
 
     def test_comma_list_returns_sorted_dedup(self) -> None:
         # Output is sorted (ADR-D7 stable order); duplicates are de-duped.
-        assert resolve_hosts_arg("cursor,claude") == ["claude", "cursor"]
-        assert resolve_hosts_arg("claude,claude") == ["claude"]
+        assert resolve_hosts_arg("cursor,claude") == [
+            ("claude", None),
+            ("cursor", None),
+        ]
+        assert resolve_hosts_arg("claude,claude") == [("claude", None)]
 
     def test_comma_list_with_whitespace_is_trimmed(self) -> None:
-        assert resolve_hosts_arg("claude, cursor ") == ["claude", "cursor"]
+        assert resolve_hosts_arg("claude, cursor ") == [
+            ("claude", None),
+            ("cursor", None),
+        ]
 
     def test_unknown_member_raises(self) -> None:
         with pytest.raises(UnknownHostError) as exc_info:

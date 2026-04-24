@@ -1,6 +1,16 @@
 """Host install adapter registry and ``--hosts`` argument resolver.
 
 Implements F007 FR-707 + design D7 §11.1 / ADR-D7-1.
+F009 (FR-902 + ADR-D9-6 + ADR-D9-9) adds:
+
+- Optional ``target_skill_path_user`` / ``target_agent_path_user`` methods
+  on ``HostInstallAdapter`` (return absolute Path under ``Path.home()``).
+- ``host_id`` MUST NOT contain literal ``:`` character (used as scope
+  override delimiter in ``--hosts <host>:<scope>`` syntax). Enforced by
+  import-time assert in ``_build_registry()``.
+- ``resolve_hosts_arg`` returns ``list[tuple[str, str | None]]`` (host_id +
+  optional per-host scope override) instead of ``list[str]``.
+- New ``UnknownScopeError`` for invalid scope values.
 
 Design choice (ADR-D7-1):
     The install-time adapter (``HostInstallAdapter`` here) is a **separate
@@ -14,7 +24,11 @@ Design choice (ADR-D7-1):
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Protocol, runtime_checkable
+from typing import Literal, Protocol, runtime_checkable
+
+# F009 ADR-D9-1: scope literal type. Used by FR-901/902 + manifest schema 2.
+ScopeLiteral = Literal["project", "user"]
+SUPPORTED_SCOPES: tuple[str, ...] = ("project", "user")
 
 
 class UnknownHostError(ValueError):
@@ -25,18 +39,33 @@ class UnknownHostError(ValueError):
     """
 
 
+class UnknownScopeError(ValueError):
+    """F009: Raised when a scope value is not in SUPPORTED_SCOPES.
+
+    Symmetric with UnknownHostError. The error message must enumerate the
+    supported scopes so users can self-correct without having to read source.
+    """
+
+
 @runtime_checkable
 class HostInstallAdapter(Protocol):
     """Install-time adapter mapping (skill_id, agent_id) to host-specific paths.
 
-    Each first-class host implements this protocol with three slots:
+    Each first-class host implements this protocol with these slots:
 
     - ``host_id``: stable identifier; must equal the key in HOST_REGISTRY.
-    - ``target_skill_path(skill_id)``: project-root-relative ``Path`` to the
-      installed SKILL.md. Mandatory for every host.
-    - ``target_agent_path(agent_id)``: project-root-relative ``Path`` to the
-      installed agent file, or ``None`` if the host has no native agent
-      surface (e.g. Cursor).
+      **MUST NOT contain literal ``:`` character** (F009 ADR-D9-9 — used as
+      scope override delimiter in ``--hosts <host>:<scope>`` syntax).
+    - ``target_skill_path(skill_id)``: project-scope (cwd-relative) ``Path``
+      to the installed SKILL.md. Mandatory for every host.
+    - ``target_agent_path(agent_id)``: project-scope (cwd-relative) ``Path``
+      to the installed agent file, or ``None`` if the host has no native
+      agent surface (e.g. Cursor).
+    - ``target_skill_path_user(skill_id)``: F009 user-scope (absolute,
+      ``Path.home()``-rooted) ``Path`` to the installed SKILL.md.
+    - ``target_agent_path_user(agent_id)``: F009 user-scope (absolute) Path
+      to the installed agent file, or ``None`` if no agent surface in user
+      scope (cursor: returns ``None`` like project scope).
     - ``render(content)``: optional content transform applied before write;
       defaults to identity passthrough. Reserved for future host-specific
       metadata injection beyond the standard marker.
@@ -46,6 +75,8 @@ class HostInstallAdapter(Protocol):
 
     def target_skill_path(self, skill_id: str) -> Path: ...
     def target_agent_path(self, agent_id: str) -> Path | None: ...
+    def target_skill_path_user(self, skill_id: str) -> Path: ...
+    def target_agent_path_user(self, agent_id: str) -> Path | None: ...
     def render(self, content: str) -> str: ...
 
 
@@ -54,6 +85,9 @@ def _build_registry() -> dict[str, HostInstallAdapter]:
 
     Indirected through a function so tests can introspect without triggering
     circular imports between this module and adapters/hosts/*.
+
+    F009 ADR-D9-9: assert no host_id contains literal ``:`` (scope override
+    delimiter). Triple守门: docstring + import-time assert + test.
     """
     # Local import to keep the Protocol module standalone-importable without
     # pulling adapter implementations.
@@ -61,11 +95,20 @@ def _build_registry() -> dict[str, HostInstallAdapter]:
     from garage_os.adapter.installer.hosts.cursor import CursorInstallAdapter
     from garage_os.adapter.installer.hosts.opencode import OpenCodeInstallAdapter
 
-    return {
+    registry: dict[str, HostInstallAdapter] = {
         "claude": ClaudeInstallAdapter(),
         "opencode": OpenCodeInstallAdapter(),
         "cursor": CursorInstallAdapter(),
     }
+
+    # F009 ADR-D9-9 host_id 命名约束 import-time 守门
+    invalid = [hid for hid in registry if ":" in hid]
+    assert not invalid, (
+        f"F009 ADR-D9-9 violation: host_id MUST NOT contain literal ':' "
+        f"(used as --hosts <host>:<scope> override delimiter). Offenders: {invalid}"
+    )
+
+    return registry
 
 
 HOST_REGISTRY: dict[str, HostInstallAdapter] = _build_registry()
@@ -96,36 +139,69 @@ def get_adapter(host_id: str) -> HostInstallAdapter:
         ) from None
 
 
-def resolve_hosts_arg(arg: str) -> list[str]:
-    """Resolve a ``--hosts`` argument value to a sorted, deduplicated host id list.
+def resolve_hosts_arg(arg: str) -> list[tuple[str, str | None]]:
+    """Resolve a ``--hosts`` argument value to a sorted host (host_id, scope_override?) list.
 
-    Accepted shapes (FR-702):
+    Accepted shapes:
 
-    - ``"all"``  → every registered host id, ASCII sorted
+    - ``"all"``  → every registered host id with ``scope_override=None``, ASCII sorted
     - ``"none"`` → empty list
     - ``""``     → empty list (matches "none" semantics for safety)
-    - ``"a,b,c"`` → individual host ids; whitespace trimmed; deduped; sorted
+    - ``"a,b,c"`` → individual host ids; whitespace trimmed; deduped; sorted; ``scope_override=None``
+    - ``"a:user,b:project,c"`` → F009 per-host scope override syntax (FR-902 + ADR-D9-9):
+        - ``a:user`` → ``("a", "user")``
+        - ``b:project`` → ``("b", "project")``
+        - ``c`` → ``("c", None)`` (用 ``--scope`` 全局默认)
+
+    Returns:
+        list[tuple[str, str | None]]: 按 (host_id ASCII, scope_override stable order) 排序，
+        每项为 ``(host_id, scope_override)`` 二元组。``scope_override=None`` 表示用 ``--scope``
+        全局默认 (CLI 层接收后注入)。
 
     Raises:
-        UnknownHostError: when any member of a comma list is not registered.
+        UnknownHostError: when any host id is not registered.
+        UnknownScopeError: when any scope value is not in SUPPORTED_SCOPES (F009).
     """
     if arg in ("all",):
-        return list_host_ids()
+        # F009: ``all`` 默认 scope_override=None (用 --scope 全局默认)
+        return [(hid, None) for hid in list_host_ids()]
     if arg in ("", "none"):
         return []
 
     tokens = [token.strip() for token in arg.split(",")]
     tokens = [t for t in tokens if t]  # drop empty after trim
 
-    # Validate each token before returning, so the user gets a clear error
-    # listing all supported ids (consistent with get_adapter's error shape).
-    seen: set[str] = set()
+    # F009 FR-902: parse each token as either "<host>" or "<host>:<scope>"
+    parsed: list[tuple[str, str | None]] = []
+    seen: set[tuple[str, str | None]] = set()
     for token in tokens:
-        if token not in HOST_REGISTRY:
-            supported = ", ".join(list_host_ids())
-            raise UnknownHostError(
-                f"Unknown host: {token}. Supported hosts: {supported}"
-            )
-        seen.add(token)
+        if ":" in token:
+            host_part, scope_part = token.split(":", 1)
+            host_part = host_part.strip()
+            scope_part = scope_part.strip()
+            if host_part not in HOST_REGISTRY:
+                supported = ", ".join(list_host_ids())
+                raise UnknownHostError(
+                    f"Unknown host: {host_part}. Supported hosts: {supported}"
+                )
+            if scope_part not in SUPPORTED_SCOPES:
+                supported_scopes = ", ".join(SUPPORTED_SCOPES)
+                raise UnknownScopeError(
+                    f"Unknown scope: {scope_part} in '{token}'. "
+                    f"Supported scopes: {supported_scopes}"
+                )
+            entry: tuple[str, str | None] = (host_part, scope_part)
+        else:
+            if token not in HOST_REGISTRY:
+                supported = ", ".join(list_host_ids())
+                raise UnknownHostError(
+                    f"Unknown host: {token}. Supported hosts: {supported}"
+                )
+            entry = (token, None)
 
-    return sorted(seen)
+        if entry not in seen:
+            seen.add(entry)
+            parsed.append(entry)
+
+    # F009: 排序按 host_id ASCII (主键), scope_override 稳定 (None < 'project' < 'user')
+    return sorted(parsed, key=lambda x: (x[0], x[1] or ""))

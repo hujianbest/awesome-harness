@@ -43,16 +43,21 @@ def _make_entry(
 
 
 class TestSchemaVersion:
-    def test_constant_is_one(self) -> None:
-        assert MANIFEST_SCHEMA_VERSION == 1
+    def test_constant_is_two(self) -> None:
+        # F009 carry-forward: schema 1 → 2 升级 (FR-905 + ADR-D9-1)
+        assert MANIFEST_SCHEMA_VERSION == 2
 
 
 class TestManifestRoundTrip:
     def test_write_then_read_equivalent(self, tmp_path: Path) -> None:
+        # F009 carry-forward: write_manifest 始终写 schema_version=2 (覆盖 input);
+        # read_manifest 直接读 schema 2 (无 migration). entries 在 schema 2 默认
+        # scope='project'. dst 字段 schema 1=relative / schema 2=absolute (本测试
+        # 用 entry.dst 是 absolute 形态以测 v2 round-trip).
         garage_dir = tmp_path / ".garage"
         (garage_dir / "config").mkdir(parents=True)
         manifest = Manifest(
-            schema_version=1,
+            schema_version=2,
             installed_hosts=["claude", "cursor"],
             installed_packs=["garage"],
             installed_at=datetime(2026, 4, 19, 12, 0, 0).isoformat(),

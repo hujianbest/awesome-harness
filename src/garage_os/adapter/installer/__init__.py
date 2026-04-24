@@ -19,8 +19,11 @@ from __future__ import annotations
 
 from garage_os.adapter.installer.host_registry import (
     HOST_REGISTRY,
+    SUPPORTED_SCOPES,
     HostInstallAdapter,
+    ScopeLiteral,
     UnknownHostError,
+    UnknownScopeError,
     get_adapter,
     list_host_ids,
     resolve_hosts_arg,
@@ -29,6 +32,9 @@ from garage_os.adapter.installer.manifest import (
     MANIFEST_SCHEMA_VERSION,
     Manifest,
     ManifestFileEntry,
+    ManifestMigrationError,
+    UserHomeNotFoundError,
+    migrate_v1_to_v2,
     read_manifest,
     write_manifest,
 )
@@ -56,7 +62,10 @@ __all__ = [
     # Registry
     "HOST_REGISTRY",
     "HostInstallAdapter",
+    "ScopeLiteral",
+    "SUPPORTED_SCOPES",
     "UnknownHostError",
+    "UnknownScopeError",
     "get_adapter",
     "list_host_ids",
     "resolve_hosts_arg",
@@ -73,6 +82,9 @@ __all__ = [
     "MANIFEST_SCHEMA_VERSION",
     "Manifest",
     "ManifestFileEntry",
+    "ManifestMigrationError",
+    "UserHomeNotFoundError",
+    "migrate_v1_to_v2",
     "read_manifest",
     "write_manifest",
     # Pipeline
