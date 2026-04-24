@@ -32,6 +32,9 @@ from garage_os.adapter.installer.manifest import (
     MANIFEST_SCHEMA_VERSION,
     Manifest,
     ManifestFileEntry,
+    ManifestMigrationError,
+    UserHomeNotFoundError,
+    migrate_v1_to_v2,
     read_manifest,
     write_manifest,
 )
@@ -79,6 +82,9 @@ __all__ = [
     "MANIFEST_SCHEMA_VERSION",
     "Manifest",
     "ManifestFileEntry",
+    "ManifestMigrationError",
+    "UserHomeNotFoundError",
+    "migrate_v1_to_v2",
     "read_manifest",
     "write_manifest",
     # Pipeline

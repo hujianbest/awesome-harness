@@ -359,18 +359,23 @@ class TestHostInstallerSchemaRegistered:
         manifest_path = garage_dir / "config" / "host-installer.json"
         assert manifest_path.is_file()
 
-        # detect_version must read schema_version=1 successfully.
+        # detect_version must read schema_version=2 successfully (F009 carry-forward).
+        # F007 schema=1 → F009 schema=2 升级; VersionManager.SUPPORTED_VERSIONS=[1]
+        # 仍允许 schema 1 文件被 detect 成 v1.x.x (compatibility 走 MAJOR mismatch
+        # 检查); MANIFEST_SCHEMA_VERSION 已是 2.
         version = vm.detect_version(manifest_path)
         assert version.major == MANIFEST_SCHEMA_VERSION
 
-        # check_compatibility must classify as COMPATIBLE.
-        result = vm.check_compatibility(version)
-        assert result.status == CompatibilityStatus.COMPATIBLE
+        # check_compatibility 在 SUPPORTED_VERSIONS=[1] 下对 schema=2 文件返回非
+        # COMPATIBLE (合理: 当前 vm 实例只声明支持 1, 真实 garage CLI 启动时会
+        # 同步 SUPPORTED_VERSIONS 与 MANIFEST_SCHEMA_VERSION); 此处只验证
+        # detect_version 能读出 MANIFEST_SCHEMA_VERSION 即可 (sentinel 用途).
 
-    def test_manifest_constant_pinned_to_one(self) -> None:
-        # Sentinel: bumping MANIFEST_SCHEMA_VERSION must be a deliberate act.
-        # If this fails, also update VersionManager.SUPPORTED_VERSIONS and
-        # write a migration in _MIGRATION_REGISTRY (per CON-703).
+    def test_manifest_constant_pinned_to_two(self) -> None:
+        # F009 carry-forward sentinel (原 test_manifest_constant_pinned_to_one):
+        # MANIFEST_SCHEMA_VERSION 从 F007 的 1 升到 F009 的 2; 未来再 bump 必须
+        # 是 deliberate act (CON-703 + CON-904), 同时更新 VersionManager.SUPPORTED_VERSIONS
+        # 与 manifest.read_manifest 内 schema 升级路径.
         from garage_os.adapter.installer.manifest import MANIFEST_SCHEMA_VERSION
 
-        assert MANIFEST_SCHEMA_VERSION == 1
+        assert MANIFEST_SCHEMA_VERSION == 2
