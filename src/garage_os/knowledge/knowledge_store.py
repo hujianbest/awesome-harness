@@ -31,6 +31,7 @@ class KnowledgeStore:
         KnowledgeType.DECISION: "knowledge/decisions",
         KnowledgeType.PATTERN: "knowledge/patterns",
         KnowledgeType.SOLUTION: "knowledge/solutions",
+        KnowledgeType.STYLE: "knowledge/style",  # F011 FR-1101
     }
 
     def __init__(self, storage: FileStorage):

@@ -80,11 +80,12 @@ def compile_garage_section(
     knowledge_store = KnowledgeStore(storage)
     experience_index = ExperienceIndex(storage)
 
-    # Per-kind top selection (ADR-D10-4 ranking)
+    # Per-kind top selection (ADR-D10-4 ranking + ADR-D11-2 STYLE)
     selected_knowledge: dict[str, list[KnowledgeEntry]] = {
         "decision": _top_n_by_type(knowledge_store, KnowledgeType.DECISION, PER_KIND_TOP),
         "solution": _top_n_by_type(knowledge_store, KnowledgeType.SOLUTION, PER_KIND_TOP),
         "pattern": _top_n_by_type(knowledge_store, KnowledgeType.PATTERN, PER_KIND_TOP),
+        "style": _top_n_by_type(knowledge_store, KnowledgeType.STYLE, PER_KIND_TOP),  # F011
     }
     selected_experience: list[ExperienceRecord] = _top_m_experience(
         experience_index, experience_top_m
@@ -98,12 +99,14 @@ def compile_garage_section(
     truncated = 0
     accumulated_bytes = 0
 
-    # ADR-D10-5 ordering: decision > solution > pattern > experience
-    kind_order = ["decision", "solution", "pattern"]
+    # ADR-D10-5 ordering: decision > solution > pattern > style > experience
+    # (F011 ADR-D11-2: STYLE 与 decision/solution/pattern 同 ranking)
+    kind_order = ["decision", "solution", "pattern", "style"]
     kind_titles = {
         "decision": "Recent Decisions",
         "solution": "Recent Solutions",
         "pattern": "Recent Patterns",
+        "style": "Recent Style Preferences",
     }
 
     for kind in kind_order:
