@@ -179,3 +179,127 @@
   4. F-T5-1 baseline 录制是否选定方式 A（人工 enum 静态 fixture）并三处一致
   5. F-T1-1 / F-T5-2 / F-Trace-1 minor 是否一并修订
 - 修订后再次走 `hf-tasks-review` → 通过则 `任务真人确认` → `hf-test-driven-dev`
+
+---
+
+## 复审 r2
+
+- 复审日期：2026-04-24
+- 复审对象：r1 commit `829a8cf` 后的 `docs/tasks/2026-04-23-garage-init-scope-selection-tasks.md`
+- 复审范围：仅 r1 给出的 3 important + 4 minor finding 是否完全闭合（最小复审）
+- 复审者：独立 reviewer subagent（被父会话派发）
+
+### r1 finding 闭合度逐条
+
+| Finding | r1 严重度 | r2 状态 | 证据 |
+|---|---|---|---|
+| **F-T3-1** ManifestFileEntryV2 命名 | important | **未完全闭合** | § 3.2 T3 行（line 64）显式声明"不引入新 dataclass `ManifestFileEntryV2`，直接给既有 `ManifestFileEntry` 字段扩展"✓；但 § 5 T3 Acceptance 第 2 条（line 189）仍写 "`ManifestFileEntryV2` dataclass：`src: str / dst: str (absolute POSIX) / host: str / pack_id: str / scope: ... / content_hash: str`"，与 § 3.2 直接矛盾 — 实施期 executor 读 § 5 acceptance 时仍可能创建 `ManifestFileEntryV2` 新类 |
+| **F-T4-1** carry-forward 目标对象错误 | important | **未完全闭合** | § 3.2 已显式分清三行（T4 test_cli.py 5 处 fixture 字符串无需修改 + T3 真实目标 test_manifest.py + T1 同步 test_host_registry.py）✓；§ 4 追溯表追加 § 4.2 9 行 enum ✓；但下列 r1 模糊措辞仍残留未同步修订：(a) T3 Verify line 214 仍写 "既有 `tests/adapter/installer/test_manifest.py` 0 退绿（如有 schema_version=1 hard-coded assertion，allow carry-forward 放宽到 `in (1, 2)`，commit message 显式声明）" — § 3.2 line 70 已说明 6 处 schema_version=1 fixture 输入**保留**而非放宽，line 47 assert 改为 `== 2`，与此处"放宽到 in (1, 2)"不一致；(b) T4 Acceptance 末条（line 230）仍写 "如有 schema_version assertion 必要时 carry-forward 修复" — 与 § 3.2 line 69 "旧 fixture **不必修改**" 直接矛盾；(c) § 10 风险表 line 374 "T4 既有 test_cli.py 既有 init 相关 schema_version assertion 破坏 / 同上" — grep 实测无此风险，应改为"实测无此风险"或删除该行 |
+| **F-T5-1** baseline 录制方式自相矛盾 | important | **已闭合** | § 5 T5 测试种子 (a)（line 274）显式 enum 候选 A/B + 选定候选 A + reject 候选 B 理由（"F009 实施期 marker injection 逻辑无变化，首跑 SHA-256 即等价 F008 baseline；候选 B 需要历史 commit 重跑增加复杂度"）+ 关键约束 ✓；§ 10 风险表 T5 行（line 375）措辞 "T5 commit 一次性人工 enum + 由 hf-test-driven-dev executor 在 fixture 里实跑 install 后 read SHA-256 写入 JSON" 与候选 A 语义一致 ✓；候选 A 与 r1 推荐方式 A（纯人工 enum）不同但有显式合理理由 + reject 候选 B，符合 hf-tasks-review 不替用户决定优先级原则 |
+| **F-T3-2** migration 失败安全语义 | minor | **未完全闭合** | § 3.2 T3 manifest.py 行 point (5)（line 64）声明 "`read_manifest` 自动 detect schema_version=1 → 调用 migrate；migration 失败时**不覆盖**旧 manifest（FR-905 验收 #4 + CON-904 安全语义）" ✓；但 T3 Acceptance（line 187-195）+ 测试种子（line 206-209）+ Verify（line 210-214）均**未显式守门**该安全语义 — 既无 acceptance 条目"host-installer.json 文件 SHA-256 不变" 也无测试种子 "test_migration_failure_preserves_old_manifest"；实施期 executor 仅读 Acceptance + 测试种子时可能漏掉此守门 |
+| **F-T1-1** resolve_hosts_arg API 演化 | minor | **已闭合** | § 3.2 line 71 显式新增 `tests/adapter/installer/test_host_registry.py` 行 + 标注 "T1（in-cycle API 演化同步）" + 措辞 "`resolve_hosts_arg` 返回类型从 `list[str]` 改为 `list[tuple[str, str \| None]]`，既有测试 assert 同步更新（与 T1 commit 同 commit 落地，与 F008 carry-forward wording 修复同精神）" ✓ |
+| **F-T5-2** 三家 user scope 落盘 enum | minor | **已闭合** | § 5 T5 Acceptance 第 3 条（line 258-261）逐家 enum：claude `tmp_path/home/.claude/skills/<id>/SKILL.md × 29` + agents × 1 / opencode `tmp_path/home/.config/opencode/skills/<id>/SKILL.md × 29` + agent × 1 + 显式 "**XDG default**，不走 dotfiles `~/.opencode/skills/` 路径" / cursor 无 agent surface ✓ |
+| **F-Trace-1** § 4.2 8 条逐条 enum | minor | **已闭合** | § 4 line 103-112 增 9 行子项（1 表头 + 8 条边界），每条均映射 (design 锚点 / 任务 / verify 命令)：F007 算法不变 → CON-902 + ADR-D9-2 → T2 → inspect.getsource；schema migration 单向 → CON-904 + ADR-D9-1/3 → T3 → test_no_v2_to_v1_reverse；Path.home() stdlib → NFR-903 + ADR-D9-10 → T1 + T3；OpenCode XDG 默认 → ADR-D9-6 → T1；不动 Protocol → ADR-D9-6 → T1；不动 packs/ → CON-903 → 全 PR；不动 EXEMPTION_LIST → CON-903 → 全 PR；dogfood 不受影响 → NFR-901 + ADR-D9-11 → T5；scope 不引入新优先级 → spec § 4.2 + ADR-D9-1 → 全 PR ✓ |
+
+### 闭合度总览
+
+| 严重度 | r1 总数 | r2 已闭合 | r2 未完全闭合 | r2 新风险 |
+|---|---|---|---|---|
+| important | 3 | 1（F-T5-1）| 2（F-T3-1 / F-T4-1）| 0 |
+| minor | 4 | 3（F-T1-1 / F-T5-2 / F-Trace-1）| 1（F-T3-2）| 0 |
+| **合计** | **7** | **4** | **3** | **0** |
+
+### r2 新增 finding（仅记录，不重复 r1）
+
+无新风险。3 条未完全闭合均为 r1 finding 在 task plan **多处冗余表述**未同步修订所致（§ 3.2 已修订但 § 5 acceptance / Verify / § 10 风险表未级联修订），属于纯文本一致性问题，定向修订量小。
+
+### 复审结论
+
+**需修改**
+
+理由：
+- 3 条 important finding 中 F-T3-1 + F-T4-1 在 § 3.2 已正确修订，但 § 5 T3 Acceptance / T4 Acceptance / T3 Verify / § 10 风险表存在与 § 3.2 直接矛盾的残留 r1 措辞 — 实施期 executor 读 task plan 5 章 acceptance 时仍可能按错误措辞执行
+- 1 条 minor finding F-T3-2 安全语义仅在 § 3.2 改动范围说明中声明，未在 T3 Acceptance / 测试种子守门 — 实施期可能漏
+- 全部 3 条均 LLM-FIXABLE，纯文本级联同步，定向修订量极小（约 3-4 处文字修订 + 1 条测试种子补充）
+- 不属于 route/stage/上游证据冲突 → 不需 router 重编排
+
+### r2 复审下一步
+
+`hf-tasks`（针对 3 条未完全闭合 finding 做最后一轮级联同步修订）
+
+### r2 复审交接说明
+
+修订要点（按 task plan 行号定位）：
+
+1. **F-T3-1 级联修订**：把 § 5 T3 Acceptance 第 2 条（line 189）`ManifestFileEntryV2 dataclass：...` 改为 `既有 ManifestFileEntry dataclass 字段扩展：dst: str (absolute POSIX) + 新增 scope: Literal["project", "user"]，类名保留` — 与 § 3.2 line 64 措辞一致
+
+2. **F-T4-1 级联修订三处**：
+   - § 5 T3 Verify（line 214）"如有 schema_version=1 hard-coded assertion，allow carry-forward 放宽到 `in (1, 2)`" 改为 "按 § 3.2 line 70 实施：line 47 `MANIFEST_SCHEMA_VERSION == 1` → `== 2`；6 处 `schema_version=1` fixture 输入保留（测 v1 manifest 行为）；新增 v2 fixture；commit message 显式声明 carry-forward"
+   - § 5 T4 Acceptance 末条（line 230）"如有 schema_version assertion 必要时 carry-forward 修复" 改为 "grep 实测 test_cli.py 内 manifest 断言（line 3038-3046）不含 schema_version 检查，5 处 schema_version 字符串均为 candidate_store fixture 输入（受 read_manifest 自动 migration 保护，不必修改）；test_cli.py 无 carry-forward 需求"
+   - § 10 风险表（line 374）"T4 既有 test_cli.py 既有 init 相关 schema_version assertion 破坏" 整行改为 "T4 既有 test_cli.py 不需 carry-forward（grep 实测无 manifest schema_version assert）；fixture 输入字符串由 read_manifest 自动 migration 透明保护" 或直接删除该行（由 T3 行单独承担 carry-forward 风险）
+
+3. **F-T3-2 守门补强**：在 § 5 T3 Acceptance 增加一条："migration 失败（ManifestMigrationError 抛出）时 `host-installer.json` 文件保持 schema 1 字节级不变（FR-905 验收 #4 + CON-904 安全语义）—— 测试种子加 `test_migration_failure_preserves_old_manifest`：fixture 写入 v1 manifest → 注入损坏字段 → 调用 read_manifest → 断言抛 ManifestMigrationError + 文件 SHA-256 与原始 v1 manifest 一致"；并在 T3 测试种子（line 206-209）的"关键边界"加 "(e) migration 失败时旧 manifest 字节不被覆盖（SHA-256 一致）"
+
+---
+
+## 复审 r3
+
+- 复审日期：2026-04-24
+- 复审对象：r2 commit `b689873` 后的 `docs/tasks/2026-04-23-garage-init-scope-selection-tasks.md`
+- 复审范围：仅 r2 给出的 3 个 partially closed finding（F-T3-1 / F-T4-1 / F-T3-2）级联修订是否完全闭合（最小复审）
+- 复审者：独立 reviewer subagent（被父会话派发）
+
+### r2 partially closed finding 闭合度逐条
+
+| Finding | r2 严重度 | r3 状态 | 证据 |
+|---|---|---|---|
+| **F-T3-1** ManifestFileEntryV2 命名级联 | important | **已闭合** | (a) § 5 T3 目标段（line 186）加 "既有 `ManifestFileEntry` dataclass **字段扩展**（不引入新类，参见 § 3.2 改动范围）" ✓ (b) § 5 T3 Acceptance 第 2 条（line 189）改为 "**既有 `ManifestFileEntry` 类名保留 + 字段扩展**（与 § 3.2 修改范围段一致；不引入新 `ManifestFileEntryV2` 类）" — 与 § 3.2 line 64 措辞完全一致 ✓ — r2 残留矛盾消除 |
+| **F-T4-1** carry-forward 措辞级联 | important | **已闭合** | (a) T3 Files line 207 加 "carry-forward (in-cycle wording 修复)" 块：显式 grep 实测 6 处 schema_version=1 (line 55/77/100/121/154/171) + 1 处 assert (line 47) + 修复策略（line 47 改 == 2，6 处 fixture 保留以测 v1→v2 migration 路径，新增 v2 fixture）+ commit message 显式声明 ✓ (b) T3 Verify line 215 新增 "既有 test_manifest.py GREEN（含 carry-forward wording 修复后；既有 6 处 schema_version=1 fixture 输入保留 + line 47 assert 改为 == 2 + 新增 v2 测试覆盖）" ✓ (c) T3 Verify line 217 显式说明 "既有 test_cli.py 中 5 处 fixture 输入 line 457/505/563/640/703 不必修改：T3 加 read_manifest 自动 migration 后透明兼容（design-review-F009 r1 important #2 + tasks-review-F009 r1 important #2 显式分清 carry-forward 真实目标在 test_manifest.py 而非 test_cli.py）" ✓ (d) T4 Acceptance 末条 line 233 由 r1 模糊措辞替换为含 grep 实测说明 + "T4 不需要修改 test_cli.py 中 schema_version 相关 fixture" ✓ (e) § 10 风险表 T3 行（line 376）改为具体修复路径 + T4 行（line 377）改为 "T4 不需要修改 test_cli.py 中 schema_version 相关 fixture" ✓ (f) T3 预期证据 line 218 commit message 加 "+ carry-forward test_manifest.py wording 修复" ✓ (g) T3 完成条件 line 219 加 "既有 test_manifest.py carry-forward 修复后 GREEN + 安全语义硬门槛测试 GREEN" ✓ — 三处 acceptance / Verify / 风险表 + Files + commit message 五处级联完整 |
+| **F-T3-2** 安全语义守门补强 | minor | **已闭合** | (a) T3 目标段 line 186 加 "migration 失败时**不覆盖**旧 manifest（FR-905 验收 #4 + CON-904 安全语义硬门槛）" ✓ (b) T3 Acceptance line 194 新增 "**(安全语义硬门槛, FR-905 验收 #4 + CON-904)** Migration 失败时旧 manifest 文件**字节级不被覆盖**：测试 `test_manifest_migration_v1_to_v2::test_corrupted_manifest_not_overwritten` 守门 — fixture 写一个损坏 JSON 到 host-installer.json，调用 `read_manifest` 抛 ManifestMigrationError 后，`stat` 文件 mtime + 内容 SHA-256 与 fixture 写入时完全一致" ✓ (c) 测试设计种子 line 210 关键边界 (a) 改为 "JSON 损坏抛 ManifestMigrationError + **旧 manifest 不被覆盖**（FR-905 验收 #4 安全语义硬门槛，由 `test_corrupted_manifest_not_overwritten` 测试守门）" ✓ (d) 测试设计种子 line 211 fail-first 适用点显式 anchor "先写 RED 测试（特别是 `test_corrupted_manifest_not_overwritten`：先写 + 跑应 RED → 实现 read_manifest 错误处理路径不覆盖文件 → GREEN）" ✓ (e) Verify line 214 加 "**含 `test_corrupted_manifest_not_overwritten` 安全语义守门**" ✓ — 目标 / Acceptance / 测试种子（关键边界 + fail-first）/ Verify 四处级联守门完整 |
+
+### 闭合度总览（r3）
+
+| 严重度 | r2 partially closed | r3 已闭合 | r3 未完全闭合 | r3 新风险 |
+|---|---|---|---|---|
+| important | 2（F-T3-1 / F-T4-1）| 2 | 0 | 0 |
+| minor | 1（F-T3-2）| 1 | 0 | 0 |
+| **合计** | **3** | **3** | **0** | **0** |
+
+### r3 整体闭合度（含 r1 → r2 → r3 累积）
+
+| 严重度 | r1 总数 | r3 累积已闭合 | r3 累积未完全闭合 |
+|---|---|---|---|
+| important | 3 | 3（F-T5-1 r2 闭合 + F-T3-1 / F-T4-1 r3 闭合）| 0 |
+| minor | 4 | 4（F-T1-1 / F-T5-2 / F-Trace-1 r2 闭合 + F-T3-2 r3 闭合）| 0 |
+| **合计** | **7** | **7** | **0** |
+
+### r3 新增 finding（仅记录，不重复 r1/r2）
+
+无新风险。本轮纯文本级联同步精准，未引入回滚或新矛盾。
+
+### 复审结论
+
+**通过**
+
+理由：
+- r2 残留的 3 个 partially closed finding（2 important + 1 minor）在 r2 commit `b689873` 后均已完全闭合
+- F-T3-1：§ 5 T3 目标段 + Acceptance 与 § 3.2 改动范围段措辞完全一致，"不引入新类" 在 task plan 三处对齐
+- F-T4-1：carry-forward 修订在 5 处级联完整（T3 Files + T3 Verify ×2 + T4 Acceptance + § 10 风险表 ×2 + T3 commit message + T3 完成条件）
+- F-T3-2：安全语义守门在 4 处对齐（T3 目标段 + Acceptance + 测试种子关键边界 + 测试种子 fail-first + Verify），并显式给出 `test_corrupted_manifest_not_overwritten` 测试规约（fixture / 触发点 / assert 内容）
+- 无新风险，无未闭合 finding
+- task plan 6 task 整体结构、依赖、追溯（含 § 4.2 9 行子项 enum）、router 重选就绪度、测试设计种子完整性均维持 r2 已达标状态
+- 已具备进入 `任务真人确认` 的全部条件
+
+### r3 复审下一步
+
+`任务真人确认`（按 reviewer-return-contract.md 约定 `needs_human_confirmation=true`；auto 模式下父会话写 approval record 后进入 `hf-test-driven-dev`）
+
+### r3 复审交接说明
+
+- 父会话按执行模式处理：
+  - `Execution Mode=auto`：写 `docs/approvals/F009-tasks-approval.md` 后进入 `hf-test-driven-dev`，从 T1 起按依赖图串行推进
+  - `Execution Mode=interactive`：先向用户展示 r3 通过结论 + 闭合度总览，等待真人确认后再进入 `hf-test-driven-dev`
+- 实施阶段重点关注（reviewer 视角的非阻塞 anchor，仅记录不阻塞）：
+  1. T3 `test_corrupted_manifest_not_overwritten` 实现时确保 fixture 写入后用 `os.utime` 锁定 mtime 或用 mtime ± SHA-256 双重断言（避免文件系统时间精度差异导致假性 RED）
+  2. T5 baseline JSON 候选 A executor 首跑后人工 review SHA-256 数值合理性时，建议同时记录 packs/ 内 SKILL.md 数量 × 三家 host = 87 + agent 1 = 88 文件清单作为旁证（与 design § 13 sentinel 11 文件 enum 对照）
+  3. T4 既有 test_cli.py 5 处 fixture 实施期跑全量测试时若意外 fail（与 task plan 预期不符），应优先排查 T3 read_manifest 自动 migration 路径是否完整覆盖字符串 "1" / 整数 1 两种 schema_version 形态，再考虑 wording carry-forward

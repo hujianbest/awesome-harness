@@ -1,6 +1,6 @@
 # F009: `garage init` 双 Scope 安装 + 交互式 Scope 选择 任务计划
 
-- 状态: 草稿
+- 状态: 已批准（auto-mode approval；见 `docs/approvals/F009-tasks-approval.md`）
 - 主题: 把已批准 D009 设计拆解为可单任务推进、可冷读、可追溯的工作单元
 - 日期: 2026-04-23
 - Revision: r1
