@@ -268,7 +268,7 @@ F008 spec § 5 deferred backlog 已明确指出："全局安装到 `~/.claude/sk
 | 新增宿主（Codex / Gemini CLI / Windsurf）| F007/F008 已确立 first-class adapter 注册模式；本 cycle 不动注册表 | F010+ 增量候选 |
 | LLM 辅助"自动建议 scope" | 与 manifesto "你做主" 信念冲突 | 不做 |
 | 反向同步：用户在 `~/.claude/skills/` 改了之后回流到 `packs/` | F007 已 deferred | 单独候选 |
-| D7 管道扩展为递归 `references/` 子目录 | F008 已 deferred 为 D9 候选；与 F009 正交 | 仍是 D9 候选（与 F009 同 stage 但独立 cycle） |
+| D7 管道扩展为递归 `references/` 子目录 | F008 已 deferred；与 F009 正交，独立 cycle | F010 候选 |
 
 ## 6. 功能需求
 

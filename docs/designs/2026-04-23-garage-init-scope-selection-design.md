@@ -1,6 +1,6 @@
 # D009: `garage init` 双 Scope 安装 + 交互式 Scope 选择 设计
 
-- 状态: 草稿
+- 状态: 已批准（auto-mode approval；见 `docs/approvals/F009-design-approval.md`）
 - 日期: 2026-04-23
 - Revision: r1
 - 关联规格: `docs/features/F009-garage-init-scope-selection.md`（已批准 r2，见 `docs/approvals/F009-spec-approval.md`）
@@ -595,7 +595,7 @@ T6 (docs):       packs/README.md 增 "Install Scope" 段
 | NFR / CON | 落地模块 / 步骤 |
 |---|---|
 | NFR-901 字节级 + Dogfood | T5 sentinel test + T2/T3/T4 各测试 carry-forward |
-| NFR-902 测试基线 ≥ 633 + 25 增量 | T1+T2+T3+T4+T5 共 ≥ 8 个新增测试文件 |
+| NFR-902 测试基线 ≥ 633 + 25 增量 | T1+T2+T3+T4+T5 共 ≥ 11 个新增测试文件（详见 § 13.1 表） |
 | NFR-903 跨平台 POSIX | adapter / pipeline 全用 `Path.home()` + `Path.as_posix()` |
 | NFR-904 git diff 可审计 | 6 类提交分组 (T1-T6) |
 | CON-901 不破坏 F002/F007/F008 | 默认 scope project + carry-forward wording |
@@ -680,7 +680,7 @@ D009 6 类工作分组（T1-T6）已清晰对应 NFR-904 六类 commit。`hf-tas
 | 新增宿主 | 仍 first-class adapter 模式 | F010+ 增量 |
 | LLM 辅助"自动建议 scope" | 与 manifesto "你做主" 信念冲突 | 不做 |
 | 反向同步 user → packs/ | F007 已 deferred | 单独候选 |
-| D7 管道扩展为递归 references/ | F008 已 deferred；F009 同 stage 但独立 cycle（spec § 5 表标 "F010 候选" — 与 spec § 5 wording 一致）| F010 候选 |
+| D7 管道扩展为递归 references/ | F008 已 deferred；与 F009 正交，独立 cycle | F010 候选 |
 
 ## 18. 风险与开放问题
 

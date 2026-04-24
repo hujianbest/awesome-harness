@@ -115,3 +115,63 @@ verdict 理由：D009 设计**整体扎实**，对 spec § 4.2 关键边界 / NF
 - `hf-workflow-router`：route / stage / 证据无冲突，不需要 reroute（`reroute_via_router=false`）。
 - 不修改 `task-progress.md`、不修改 D009 design 文档、不 git commit / push（由父会话执行）。
 - 不进入 `hf-tasks`（design 未通过 approval step 前不得拆任务）。
+
+---
+
+## 复审 r2
+
+- 复审时间: 2026-04-24
+- 复审目标: 验证父会话在 commit `b023a2e` 中针对 r1 的 2 important + 7 minor finding 是否全部闭合
+- Reviewer: 同 r1 独立 reviewer subagent
+- 复审范围: **仅** r1 finding 闭合状态 + 是否引入新风险；不重新执行 D1-D6 全量 rubric
+
+### 结论
+
+**通过**
+
+verdict 理由：r1 列出的 2 important + 7 minor LLM-FIXABLE finding 全部闭合到 design / ADR / 测试矩阵层；新增 ADR-D9-10（UserHomeNotFoundError 类型与退出码）+ ADR-D9-11（Dogfood SHA-256 sentinel 等价语义边界）形式与既有 ADR 一致（带 Compare + Decision + Consequences + Reversibility）；ADR-D9-9 / ADR-D9-4 补 Compare 表；ADR-D9-2 标题 + Consequences 同步精细化；§ 13 测试矩阵 10 → 11 文件并加测试边界澄清段；§ 14 F1 与 ADR-D9-10 锚定；§ 17 deferred wording 与 spec 语义对齐；ADR-D9-5 与 dogfood 非交互关系显式 anchor。回修过程未引入新设计泄漏 / 未引入新模糊词 / 未破坏 spec § 4.2 关键边界 / 未发明业务事实 / 未引入需要 USER-INPUT 升级的 ADR；所剩仅 1 条**叙事 narrative gap**（M4 的 design 注释引用 spec wording 不严格一致）+ 1 条 informational refinement（§ 13 预期增量行 "11 文件" 与 § 12 NFR-902 落地表 "≥ 8 个新增测试文件" 数字小误差），均不属于 acceptance / 验收硬约束、不影响 design 启动判断与 hf-tasks 拆解，故判 `通过`，下一步 `设计真人确认`。
+
+### 9 条 r1 finding 闭合状态
+
+| # | r1 finding | 闭合状态 | 证据锚点（design 行号）|
+|---|---|---|---|
+| I1 | [important][LLM-FIXABLE][D4] § 14 F1 UserHomeNotFoundError 类型缺独立 ADR 锚定 | **已闭合** | L109 § 5 总览表新增 ADR-D9-10 行；L345-365 ADR-D9-10 完整结构（Context + Compare 2 候选 + Decision: exit 1 + 新类型 `UserHomeNotFoundError(RuntimeError)` + Consequences ✅ 与 ADR-D9-8 对称 + 实现位置由 hf-tasks 决定 + Reversibility 高）；L646 § 14 F1 引用更新为 "(定义见 ADR-D9-10) ... ADR-D9-10 守门"；与 ADR-D9-8 ManifestMigrationError 处理对称性恢复 |
+| I2 | [important][LLM-FIXABLE][D6] § 13 dogfood SHA-256 sentinel 在 ADR-D9-3 绝对展开 + 跨贡献者 cwd 差异下 manifest 等价语义边界未锚定 | **已闭合** | L110 § 5 总览表新增 ADR-D9-11 行（3 候选）；L367-388 ADR-D9-11 完整结构（Context 显式说"不同贡献者 cwd 差异如 `/workspace` vs `/home/contributor-a/garage-agent` 下 manifest dst 必然不同" + Compare 3 候选（含 manifest 全字段 / 仅 SKILL.md+agent.md / 含 manifest 但豁免 3 字段）+ Decision: 仅 SKILL.md+agent.md 落盘字节级，manifest 显式不参与 sentinel + Consequences ✅ 跨贡献者 cwd 可重放 + ✅ 与 NFR-901 验收 #4 自然对齐 + 🔧 baseline 静态 fixture 存放位置 + Reversibility 高）；L620-622 § 13 测试矩阵新增 `test_manifest_v2_dogfood_fields_stable.py` 守门 manifest 字段稳定性（content_hash + scope + host），与 SHA-256 sentinel 互补 |
+| M1 | [minor][LLM-FIXABLE][D3] ADR-D9-9 缺 Compare 表 | **已闭合** | L325-331 ADR-D9-9 加 3 候选 Compare 表（仅运行时检查 / 仅静态文档 / 双层）+ 各列优点 + 主要代价 + 守门强度；L333-336 三层守门 Decision 升级为：(1) Protocol docstring + (2) host_registry import-time assert + (3) 测试守门（比 r1 仅 "双层" 更显式）|
+| M2 | [minor][LLM-FIXABLE][D3] ADR-D9-4 Compare 表退化为单选 | **已闭合** | L194-199 ADR-D9-4 补 2 候选 Compare 表（不追求跨用户可移植 vs 追求可移植）+ 各列优点 + 主要代价；Decision + Consequences 锚定 |
+| M3 | [minor][LLM-FIXABLE][D5] § 10.1 T1 commit '4 个新增测试文件' 与列出的 2 个 inconsistency | **已闭合** | L526 改为 "2 个新增测试文件: test_adapter_user_scope.py + test_host_registry_colon_assert.py"，与实际一致 |
+| M4 | [minor][LLM-FIXABLE][D1] § 17 deferred 第 14 项 'D9 候选' vs 'D10 候选' inconsistency | **已闭合（含小 narrative gap）** | L683 design § 17 第 14 行改为 "F010 候选"，与 spec § 5 修复方向语义一致（D9 已是当前 cycle，候选只能延后到 F010）。注：design L683 注释 "spec § 5 表标 'F010 候选' — 与 spec § 5 wording 一致"，但 spec L271 实测仍写 "D9 候选"。design 选 "F010 候选" 是更准确的语义修复（D9 不能既是当前 cycle 又是候选），但 design 注释中"与 spec § 5 wording 一致"的引用与 spec 实测 wording 不严格一致。**闭合方向正确，叙事注释引用是零成本可顺手清理的小 narrative gap，不阻塞 verdict** |
+| M5 | [minor][LLM-FIXABLE][D3] ADR-D9-2 标题 'phase 2 唯一改动点' 与跨 phase 2/4/5 实际改动 narrative gap | **已闭合** | L147 标题改为 "Pipeline scope 分流主改动点（CON-902 enum 严守）"；L149 Context 显式澄清 "design-review r1 minor #5 显式澄清 ADR 标题应反映'主改动点 phase 2 + phase 4/5 enum 内允许变化'，而非误读为'仅 phase 2 改动'"；L155 候选 1 改为 "Phase 2 主改动 + phase 4/5 enum 内允许变化"；L158 Decision 同步；L162-164 Consequences 补 phase 4 5 元组扩展 + phase 5 schema 升级 + phase 5 内部 `if prior_schema_version == 1: VersionManager.migrate` 是 ManifestSerializer 内部 migration 调用而非 phase 5 算法分支结构（phase 5 仍是"decide action → write file → write manifest"三步骨架不变）的精细澄清 |
+| M6 | [minor][LLM-FIXABLE][D6] § 13 user scope 集成测试与 dogfood sentinel 边界未显式分清 | **已闭合** | L624-627 § 13 加"测试边界澄清"段，逐条说明 (a) `test_dogfood_invariance_F009.py` 用 tmp_path + `cp -r packs/` + 默认 project (b) `test_manifest_v2_dogfood_fields_stable.py` 同 fixture 但比对 manifest 字段稳定（豁免 dst / installed_at / schema_version）(c) `test_full_init_user_scope.py` 用 monkeypatch `Path.home()` 隔离到 tmp_path 子目录；L622 行内也补充了 user scope 集成测试与 dogfood sentinel 边界关系 |
+| M7 | [minor][LLM-FIXABLE][D6] ADR-D9-5 candidate C 与 dogfood 非交互关系未 anchor | **已闭合** | L229 ADR-D9-5 Consequences 加 "✅ **与 dogfood 关系**（design-review r1 minor #7 显式 anchor）：dogfood 走 `garage init --hosts cursor,claude`（CLI 形式，**非交互**），完全跳过 candidate C 第二轮 a/u/p 提示；ADR-D9-11 dogfood SHA-256 sentinel 不受 candidate C 影响（sentinel 测的是 CLI 直传 hosts + 默认 scope project 路径，与交互式 candidate C 二轮 prompt 完全正交）" |
+
+### 新风险（不构成新 finding，但建议父会话知晓）
+
+- **[新风险/叙事 narrative gap][D1]** L683 design § 17 第 14 行 deferred 的注释引用 "spec § 5 表标 'F010 候选'" 与 spec L271 实测 wording "D9 候选"（spec 原文 "F008 已 deferred 为 D9 候选；与 F009 正交 — 仍是 D9 候选"）不严格一致。design 修复语义方向正确（D9 已是当前 cycle，候选编号必须 ≥ F010），但 design 注释假设 spec 已同步而 spec 实际未同步。建议父会话在 `设计真人确认` 节点顺手把 design L683 注释从 "spec § 5 表标 'F010 候选' — 与 spec § 5 wording 一致" 改为 "(spec § 5 wording 仍写 'D9 候选'，design 此处按 D9 已是当前 cycle 的语义修复为 F010 候选；建议在下一次 spec touch 时同步)" — 零成本叙事一致性修复。**不阻塞 r2 verdict**（spec 已批准 r2 不在本 cycle 触动范围内，design 与 spec § 5 实质 deferred 集合等价性不受影响）。
+
+- **[新风险/informational refinement][D6]** L629 § 13 末尾 "预期总增量 ≥ 30（11 文件 × 平均 3 用例）" 与 L598 § 12 NFR-902 落地表 "T1+T2+T3+T4+T5 共 ≥ 8 个新增测试文件" 字数有 informational gap（实际 11 文件 vs 描述 "≥ 8"）。注：spec NFR-902 informational anchor 是 "≥ 25"，design 实际预期 ≥ 30 高于 anchor 是好事；§ 12 行的 "≥ 8" 是 r1 残留未同步到新增 11 文件。建议父会话在 `设计真人确认` 顺手把 § 12 行更新为 "≥ 11 个新增测试文件"。**不阻塞 r2 verdict**（design 给的是更精确的实际预期，spec NFR-902 informational anchor "≥ 25" 仍受 design § 13 实际 ≥ 30 安全覆盖；hf-tasks 阶段以 § 13 为准）。
+
+- **[新风险/无]** 未发现新设计泄漏；未发现 9 项 ADR 任一选定与 spec § 4.2 关键边界 / NFR-901 字节级 / CON-902 phase 5 enum / CON-904 跨用户立场 等多重硬约束冲突；未发现 USER-INPUT 缺失（所有 ADR 决策均与 spec § 11 默认值或 design-review r1 升级方向收敛）；未发现 deferred backlog 范围溢出（§ 17 与 spec § 5 14 项一一对应）；未发现失败模式 F1-F7 任一与 INV-F9-1..9 任一冲突；未发现 hf-tasks 阶段不可消化的设计空洞。
+
+### 下一步
+
+`设计真人确认`（interactive 模式下父会话向真人确认 design；auto 模式下父会话写 approval record 后进入 `hf-tasks`）
+
+接下来 `hf-tasks` 阶段直接消化的输入：
+- 6 类 commit 分组（T1-T6，design § 10.1）+ 11 个新增测试文件（design § 13）+ 9 个 INV（design § 11.1）+ 11 个 ADR（design § 7，含 r1 升级出的 ADR-D9-10 + ADR-D9-11）
+- spec 已批准 r2（10 FR + 4 NFR + 4 CON + 4 ASM + § 11 非阻塞 7 项）
+- F007/F008 baseline 633 测试 + ADR-D8-2 候选 C dogfood 作为硬约束
+- design § 18 非阻塞 3 项由 hf-tasks 阶段细化（dogfood baseline 录制方式 + ManifestMigrationError stderr wording + T6 docs 拆分）
+
+### 复审记录位置
+
+`docs/reviews/design-review-F009-garage-init-scope-selection.md`（与 r1 同文件，本段为 `## 复审 r2` 追加段）
+
+### 交接说明
+
+- `设计真人确认`：本轮 r2 verdict = `通过`，父会话应执行 approval step（interactive 等待真人 / auto 写 approval record）；执行后由父会话同步 `task-progress.md` Current Stage 与 design 文档状态字段（`草稿` → `已批准`）。
+- `hf-design`：r2 已通过，无需回修；建议父会话在 approval step 顺手清理上面"新风险" 2 项零成本叙事 / informational refinement（M4 注释引用 wording + § 12 NFR-902 落地表数字 "≥ 8" → "≥ 11"）。
+- `hf-workflow-router`：route / stage / 证据无冲突，不需要 reroute（`reroute_via_router=false`）。
+- 不修改 design 文档（只读复审）、不修改 `task-progress.md`、不 git commit / push（由父会话执行）。
+- 不进入 `hf-tasks`（approval step 完成后由父会话推进）。
+
