@@ -86,11 +86,17 @@ class SessionMetadata:
 
 
 class KnowledgeType(Enum):
-    """Types of knowledge entries."""
+    """Types of knowledge entries.
+
+    F011 (FR-1101 + ADR-D11-1): added STYLE for "user coding/writing style preferences"
+    (e.g. "prefer functional Python", "Chinese long-form follows Khazix rhythm").
+    Reuses KnowledgeEntry dataclass; only enum + TYPE_DIRECTORIES mapping extended.
+    """
 
     DECISION = "decision"
     PATTERN = "pattern"
     SOLUTION = "solution"
+    STYLE = "style"
 
 
 @dataclass
