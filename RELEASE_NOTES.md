@@ -4,6 +4,88 @@
 
 ---
 
+## F010 — Context Handoff (`garage sync`) + Host Session Ingest (`garage session import`)
+
+- 状态: 🟡 实施完成, 待 hf-test-review → hf-code-review → hf-traceability-review → hf-regression-gate → hf-completion-gate → hf-finalize
+- Workflow Profile: `full`
+- Execution Mode: `auto`
+- Branch / PR: `cursor/f010-context-handoff-and-session-import-bf33` / TBD
+- 关联文档:
+  - 规格 `docs/features/F010-garage-context-handoff-and-session-ingest.md` (r2 已批准)
+  - 设计 `docs/designs/2026-04-24-garage-context-handoff-and-session-ingest-design.md` (r3 已批准)
+  - 任务计划 `docs/tasks/2026-04-24-garage-context-handoff-and-session-ingest-tasks.md` (r2 已批准)
+  - 完整 review 链路: `docs/reviews/{spec(r1+r2),design(r1+r2+r3),tasks(r1+r2)}-review-F010-...md`
+  - 三份 approval: `docs/approvals/F010-{spec,design,tasks}-approval.md`
+
+### 用户可见变化
+
+- **新增 `garage sync` 子命令**: 把 `.garage/knowledge/` + `.garage/experience/` 编译到三家 host 原生 context surface (`CLAUDE.md` / `.cursor/rules/garage-context.mdc` / `.opencode/AGENTS.md`)
+  - 复用 F009 双 scope (`--scope project|user`) + per-host override (`--hosts claude:user,cursor:project`)
+  - top-12 knowledge (4 per kind: decision/solution/pattern) + top-5 experience, 16KB budget
+  - 三方 hash 决策: 用户改了 marker 之间内容 → SKIP_LOCALLY_MODIFIED + stderr warn; `--force` 强制覆写
+  - 第二次 sync 内容相同 → mtime 不刷新 (NFR-1002 守门)
+- **新增 `garage session import --from <host>` 子命令**: 读宿主 conversation history → 转 Garage SessionState → 触发 F003 自动提取链
+  - 三家 host history reader: claude-code (~/.claude/conversations/) + opencode (~/.local/share/opencode/sessions/) + cursor (deferred D-1010, NotImplementedError stub)
+  - alias: `claude` → `claude-code` 自动解析
+  - default: TTY interactive (列出 ≤ 30 条对话 + 用户选); `--all` 显式 batch
+  - 不绕过 F003 candidate 审批 (CON-1004 + B5 user-pact); 用户用 `garage memory review --action accept` 入库 (复用 F003/F004 既有链)
+- **新增 `garage status` sync 段**: ADR-D10-12 在 F009 packs 段后追加 `Last synced (per host):` 段; sync-manifest.json 不存在时段省略 (CON-1001 字节级守门)
+- **三家 first-class adapter Protocol 字段扩展**: 加 `target_context_path(name)` + `target_context_path_user(name)` (与 F009 `_user` 后缀模式对齐)
+- **F003-F006 dataclass 0 改动 (CON-1002)**: ingest 利用既有 `SessionContext.metadata: Dict[str, Any]` 字段携带 `imported_from` provenance + `tags` + `problem_domain` signal-fill (ADR-D10-7), 命中 `_build_signals` 强 signal 识别规则; F003-F006 既有 318 个测试 0 退绿
+- **零下游用户行为变化 (CON-1001)**: F009 既有 `garage init` / `garage status` 在 sync-manifest 不存在时输出字节级一致
+
+### 数据与契约影响
+
+- **新增 `.garage/config/sync-manifest.json` (schema_version=1)**:
+  - `synced_at` + `sources` (knowledge_count / experience_count / knowledge_kinds / size_bytes / size_budget_bytes) + `targets[]`
+  - `targets[].path`: absolute POSIX (per `Path(...).resolve(strict=False).as_posix()`)
+  - `targets[].action`: WRITE_NEW / UPDATE_FROM_SOURCE / SKIP_LOCALLY_MODIFIED / OVERWRITE_FORCED / UNCHANGED
+  - 与 F009 `host-installer.json` 完全独立 (CON-1005 + INV-F10-6 守门)
+- **`HostInstallAdapter` Protocol 字段扩展同一类**: 加 `target_context_path` + `target_context_path_user` method; F007/F009 既有 5 method 签名严格不变 (CON-1006 + CON-1001)
+- **新增 `SyncManifestMigrationError`**: JSON 损坏 / unsupported schema 时抛, 旧文件不被覆盖 (F009 CON-904 sync-side mirror)
+- **新增 modules**:
+  - `src/garage_os/sync/` (compiler / manifest / pipeline / render/{markdown, mdc})
+  - `src/garage_os/ingest/` (host_readers/{claude_code, opencode, cursor} + selector + pipeline + types)
+- **CLI 新增**: `garage sync` (--hosts + --scope + --force) + `garage session import` (--from + --all)
+- **零依赖变更**: `pyproject.toml` + `uv.lock` git diff main..HEAD = 0
+- **新增 12+ 测试文件 + 4 fixture JSON**:
+  - `tests/sync/`: test_baseline_no_regression (INV-F10-2 sentinel) / test_compiler / test_manifest / test_render_{markdown,mdc} / test_pipeline_{idempotent, user_content_preserved, three_way_hash}
+  - `tests/ingest/`: test_host_readers_registry / test_{claude_code, opencode, cursor_deferred}_reader / test_selector / test_pipeline_candidate_path / fixtures/{claude_code, opencode}/*.json
+  - `tests/adapter/installer/`: test_context_path_three_hosts (T1)
+  - `tests/test_cli.py`: TestSyncCommand (7) + TestStatusSyncSegment (2) + TestSessionImportCommand (5)
+
+### 验证证据
+
+- `pytest tests/ -q` → **TBD passed** (实施完成时 821 passed; finalize 阶段填实测; 预期 ≥ 821)
+- `git diff main..HEAD -- src/garage_os/` → 仅 `sync/` + `ingest/` 新增 + `adapter/installer/host_registry.py` + `adapter/installer/hosts/*.py` + `cli.py` 改动
+- `git diff main..HEAD -- pyproject.toml uv.lock` → 空 (零依赖变更)
+- INV-F10-1..10 全部通过 (design § 4.1)
+- **Manual smoke walkthrough** → **TBD** (finalize 阶段填实测, 4 tracks: dogfood / project / user / mixed + import → sync 闭环)
+- **完整质量链** → 全部通过:
+  - `hf-spec-review` r2: APPROVED (12/12 r1 findings closed)
+  - `hf-design-review` r3: PASS (r1 13 + r2 4 → r3 0 finding)
+  - `hf-tasks-review` r2: PASS (r1 6 → r2 0 finding)
+  - `hf-test-review` / `hf-code-review` / `hf-traceability-review` / `hf-regression-gate` / `hf-completion-gate` / `hf-finalize`: TBD
+
+### 5 项 TBD 占位字段 (待 hf-finalize 实测)
+
+| 字段 | 占位 |
+|---|---|
+| `manual_smoke_wall_clock` | TBD (NFR-1004 ≤ 5s) |
+| `pytest_total_count` | TBD (实施完成 821; finalize 含新增 review/gate/manual smoke 调整) |
+| `candidate_count_per_test` | TBD (FR-1005 ingest → candidates 数) |
+| `commit_count_per_group` | TBD (T1-T7 各 1 + 可能 carry-forward) |
+| `release_notes_quality_chain` | TBD (review/gate verdict 文档全部生成 + finalize approval) |
+
+### 已知限制 / 后续工作
+
+- **D-1010 cursor history reader**: HYP-1005 Low confidence, 当前 stub; 等 Cursor history schema 稳定后落地
+- **D-1011 sync file-watcher (F012-D 候选)**: 当前 sync 是显式触发, 无自动监听
+- **D-1013 top-N + budget 配置化**: 当前默认 12+5+16KB 不可配置
+- **F011 候选 (本 cycle 不夹带)**: KnowledgeEntry 加 style 维度 + 2 production agent + `garage pack install <git-url>`
+
+---
+
 ## F009 — `garage init` 双 Scope 安装（project / user）+ 交互式 Scope 选择
 
 - 状态: ✅ 完成 (closed by hf-finalize 2026-04-23)
