@@ -4,7 +4,7 @@
 
 - Goal: F009 — `garage init` 双 Scope 安装（project / user）+ 交互式 Scope 选择
 - Owner: hujianbest
-- Status: 🟡 In Progress — F009 spec 草稿已落，等待 `hf-spec-review`
+- Status: 🟡 In Progress — F009 spec **已批准**（r2 通过 + auto-mode approval），进入 `hf-design`
 - Last Updated: 2026-04-23
 
 ## Previous Milestones
@@ -20,15 +20,17 @@
 
 ## Current Workflow State
 
-- Current Stage: `hf-specify`
+- Current Stage: `hf-design`
 - Workflow Profile: `full`
 - Execution Mode: `auto`
-- Workspace Isolation: `in-place`（工作分支 `cursor/f009-init-scope-selection-bf33`）
-- Current Active Task: 无（spec drafting 阶段）
-- Pending Reviews And Gates: `hf-spec-review`（待派发）
-- Next Action Or Recommended Skill: `hf-spec-review`
+- Workspace Isolation: `in-place`（工作分支 `cursor/f009-init-scope-selection-bf33`；PR #24）
+- Current Active Task: 无（design drafting 阶段）
+- Pending Reviews And Gates: `hf-design-review`（待派发，design 完成后）
+- Next Action Or Recommended Skill: `hf-design`
 - Relevant Files:
-  - `docs/features/F009-garage-init-scope-selection.md`（草稿 r1，10 FR + 4 NFR + 4 CON + 4 ASM）
+  - `docs/features/F009-garage-init-scope-selection.md`（已批准 r2，10 FR + 4 NFR + 4 CON + 4 ASM）
+  - `docs/approvals/F009-spec-approval.md`（auto-mode approval record）
+  - `docs/reviews/spec-review-F009-garage-init-scope-selection.md`（r1 需修改 + r2 通过）
   - `docs/soul/manifesto.md`、`user-pact.md`、`design-principles.md`、`growth-strategy.md`（价值锚点；本 cycle 与 workspace-first 信念有 trade-off，需显式评估）
   - F008 spec § 5 deferred backlog 第 3 行（"全局安装到 `~/.claude/skills/...`：solo creator 跨多客户仓库的需求"——本 cycle 即落地）
   - F007 安装管道 `src/garage_os/adapter/installer/{pack_discovery,pipeline,manifest,host_registry}.py` + 三家 adapter `hosts/{claude,opencode,cursor}.py`（F009 扩展点）
@@ -43,9 +45,16 @@
 
 ## Next Step
 
-派发独立 reviewer subagent 执行 `hf-spec-review`，对 `docs/features/F009-garage-init-scope-selection.md` 出 verdict。
+进入 `hf-design`，产出 F009 设计文档，覆盖 9 项 ADR：
 
-下一节点候选（由 spec-review 结果决定）：
-- 通过 → `hf-design`（需含 user/project scope trade-off ADR + manifest schema 2 ADR + adapter Protocol 扩展 ADR + 交互式 UX ADR）
-- 需修改 → 回 `hf-specify` 按 review findings 修订
-- 阻塞 → 回 `hf-workflow-router` 重新判定 scope
+1. manifest schema 2 字段命名（`"project"`/`"user"` vs `"workspace"`/`"global"`）
+2. `Path.home()` 抛 RuntimeError 的退出码
+3. stdout 多 scope 段格式
+4. manifest absolute path 是否带 `~/` 前缀
+5. 交互式 UX 三选一（A 两轮 / B 一轮带后缀 / C 两轮+all P/all u/per-host）
+6. HostInstallAdapter Protocol 新增 method 命名（`target_skill_path_user` vs `target_skill_path(scope=...)`）
+7. `garage status` 输出格式
+8. ManifestMigrationError 类型与退出码常量（spec r1 important #2 升级出）
+9. host_id 命名约束（不允许字面 `:` 字符；spec r1 minor #2 升级出）
+
+每项 ADR 必须能通过 spec § 11 + NFR-901 字节级 + CON-902 phase 5 enum + CON-904 跨用户立场等多重约束的检查。design 完成后派发独立 reviewer subagent 执行 `hf-design-review`。

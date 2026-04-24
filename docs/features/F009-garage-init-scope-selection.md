@@ -1,6 +1,6 @@
 # F009: `garage init` 双 Scope 安装（project / user）+ 交互式 Scope 选择
 
-- 状态: 草稿
+- 状态: 已批准（auto-mode approval；见 `docs/approvals/F009-spec-approval.md`）
 - 主题: 让 `garage init` 在装到下游宿主时支持两种 scope（project 当前项目 / user 用户家目录），并在交互式入口让用户每个宿主独立选 scope；非交互入口提供新 flag 显式声明 scope
 - 日期: 2026-04-23
 - 关联:
@@ -340,7 +340,7 @@ F008 spec § 5 deferred backlog 已明确指出："全局安装到 `~/.claude/sk
 - **来源**: § 2.1 核心目标 "pipeline scope 拼接根分流" + § 2.2 success criteria #11
 - **需求陈述**: `pipeline.install_packs` 函数体的 5 个 phase 算法骨架（discover → resolve → conflict → decide → apply + manifest）字节级不变；本 cycle 仅在 phase 2 `_resolve_targets` 内按 target scope 选 base path：project scope 用 `workspace_root`（F007 既有），user scope 用 `Path.home()`。`_Target` dataclass 增 `scope` 字段。其它 phase 算法（特别 phase 3 conflict / phase 4 decide / phase 5 manifest write）算法骨架不动，仅按 5 元组 key 而非 4 元组 key 比对。
 - **验收标准**:
-  - Given F007 既有 `pipeline.install_packs` 在 F009 实施后再读，When `git diff main..HEAD -- src/garage_os/adapter/installer/pipeline.py` 检查 phase 1 / 3 / 4 / 5 的算法逻辑，Then 仅 phase 2 `_resolve_targets` + 相关 dataclass 有改动；phase 1 (discover) / phase 3 (conflict) / phase 4 (decide) / phase 5 (apply + manifest) 的算法主体字节级保持原状（仅 type signatures 因 _Target 增 scope 字段而扩展）
+  - Given F007 既有 `pipeline.install_packs` 在 F009 实施后再读，When `git diff main..HEAD -- src/garage_os/adapter/installer/pipeline.py` 检查算法逻辑，Then **phase 1 (discover) + phase 3 (conflict) 算法主体字节级严格保持原状**（CON-902 硬约束，design-review 可拒红线）；phase 2 (_resolve_targets) / phase 4 (decide_action 5 元组扩展) / phase 5 (apply + manifest schema 升至 2 + 字段集合按 FR-905 + CON-902 phase 5 enum 扩展) 按 CON-902 enum 各自允许的最小改动落地
   - Given 同一次 init 含混合 scope（如 `--hosts claude:project,cursor:user`），When pipeline 运行，Then phase 3 conflict detection 按"同 scope 内同 dst"判定（不同 scope 不视作冲突）；phase 4 decide_action 按"同 scope 内同 src+dst+host"比对 manifest entry
   - Given 同一 SKILL.md 同时装到同 host 不同 scope（如 `--hosts claude:user,claude:project`），Then 不视为 conflict（FR-902 验收 #4 已说明）；manifest 含两条 entry
 
