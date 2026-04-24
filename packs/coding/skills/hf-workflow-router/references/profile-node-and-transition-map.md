@@ -14,6 +14,9 @@
 
 ### full profile 主链推荐节点
 
+- `hf-product-discovery`（conditional：当会话从模糊产品 idea 起步、或已存在 discovery 草稿时激活）
+- `hf-discovery-review`（conditional：`hf-product-discovery` 被激活后存在）
+- `hf-experiment`（conditional：discovery / spec 中存在 Blocking 或低 confidence 关键假设时，作为上游 stage 的 **conditional insertion**）
 - `hf-specify`
 - `hf-spec-review`
 - `规格真人确认`
@@ -36,7 +39,8 @@
 说明：
 
 - `hf-ui-design` / `hf-ui-review` 属于 **design stage 内部的 conditional peer**，不是 side-line。激活判定见 `ui-surface-activation.md`
-- `standard` / `lightweight` profile 不加入 `hf-ui-design` / `hf-ui-review` 节点；若新 iteration 需要改动 UI 设计，应升级到 `full`
+- `hf-experiment` 属于 **discovery / spec stage 内部的 conditional insertion**（Phase 0 引入）：在 discovery 或 spec 中发现 Blocking / 低 confidence 关键假设时临时插入，完成后回到插入点（`hf-product-discovery` / `hf-discovery-review` / `hf-specify` / `hf-spec-review`）；激活判定见本文件的 `hf-experiment 激活与回流` 一节
+- `standard` / `lightweight` profile 不加入 `hf-ui-design` / `hf-ui-review` / `hf-product-discovery` / `hf-experiment` 作为主链节点；若新 iteration 需要补 discovery 或假设验证，应升级到 `full`
 
 ### standard profile 主链推荐节点
 
@@ -135,7 +139,19 @@ branches:
 
 | 当前节点 | 结论 | 下一推荐节点 |
 |---|---|---|
+| `hf-product-discovery` | 草稿 ready | `hf-discovery-review` |
+| `hf-discovery-review` | `通过` 且无 Blocking 假设 | `hf-specify` |
+| `hf-discovery-review` | `通过` 但存在 Blocking 假设 | `hf-experiment` |
+| `hf-discovery-review` | `需修改` / `阻塞` | `hf-product-discovery` |
+| `hf-discovery-review` | `阻塞`（需重编排） | `hf-workflow-router` |
+| `hf-experiment`（上游 = discovery） | `probe-result = Pass`，Blocking 清除 | `hf-specify` |
+| `hf-experiment`（上游 = discovery） | `probe-result = Fail` | `hf-product-discovery`（修订 OST / 候选方向 / 排除项） |
+| `hf-experiment`（上游 = discovery） | `probe-result = Inconclusive` | `hf-workflow-router`（决定追加 probe / 接受风险 / 回 discovery） |
+| `hf-experiment`（上游 = spec） | `probe-result = Pass`，Blocking 清除 | `hf-specify`（修订 HYP Confidence 后回 spec-review） |
+| `hf-experiment`（上游 = spec） | `probe-result = Fail` | `hf-specify`（按假设证伪同步修订 FR/NFR） |
+| `hf-experiment`（上游 = spec） | `probe-result = Inconclusive` | `hf-workflow-router` |
 | `hf-spec-review` | `通过` | 规格真人确认 |
+| `hf-spec-review` | `通过` 但存在 Blocking 假设 | `hf-experiment` |
 | `hf-spec-review` | `需修改` / `阻塞` | `hf-specify` |
 | `hf-spec-review` | `阻塞`（需重编排） | `hf-workflow-router` |
 | 规格真人确认 | approval step 完成 | `hf-design` |
@@ -214,13 +230,37 @@ branches:
 
 上表主要描述“内容回修型”默认迁移。若 reviewer 返回摘要显式要求 `reroute_via_router=true`，或把 `next_action_or_recommended_skill` 指向 `hf-workflow-router`，该显式重编排信号优先于表内默认下一步。
 
+## `hf-experiment` 激活与回流（Phase 0 新增）
+
+`hf-experiment` 不是主链节点，而是 **discovery / spec stage 内部的 conditional insertion**。它在以下证据下激活：
+
+- `hf-product-discovery` 草稿中存在标记为 Blocking、且 confidence 低的关键假设
+- `hf-discovery-review` 返回 `通过` 但同时提示存在 Blocking 假设
+- `hf-specify` 草稿 section 4 (Key Hypotheses) 中存在 `Blocking? = 是` 的假设
+- `hf-spec-review` 返回 `通过` 但同时提示存在 Blocking 假设
+- reviewer 返回摘要中 `next_action_or_recommended_skill` 指向 `hf-experiment`
+
+激活时必须记录：
+
+- **插入点 (Insertion Point)**：`hf-product-discovery` / `hf-discovery-review` / `hf-specify` / `hf-spec-review`
+- **假设 ID 集合**：本轮 probe 要覆盖的 `HYP-xxx`
+
+回流规则：
+
+- `probe-result = Pass` 且 Blocking 清除 → 回到原插入点的 **下一合法节点**（见迁移表中的 `hf-experiment` 行）
+- `probe-result = Fail` → 回到插入点对应的 **上游正文 skill**，修订 OST / 候选方向 / 排除项 / FR-NFR
+- `probe-result = Inconclusive` → 回 `hf-workflow-router`，由 router 决定：追加一次 probe / 显式接受风险 / 回上游修订
+- 回流时必须更新对应 HYP 的 `Confidence` / `Blocking?` 字段
+
+`standard` / `lightweight` profile 不激活 `hf-experiment`。若 standard / lightweight 会话中发现关键 Blocking 假设，应先升级到 `full` profile 再激活。
+
 ## 恢复编排协议
 
 当某个节点完成后，按以下顺序恢复状态机：
 
 1. 读取该节点的最新结论
-2. 确认当前 workflow profile（从 `task-progress.md` 读取）
-3. 若 `task-progress.md` 或等价工件已经写入合法或可归一化的 `Next Action Or Recommended Skill`，且它来自上一个已完成节点并与最新证据不冲突，优先采用这个显式下一步
+2. 确认当前 workflow profile（从 feature `progress.md`，默认 `features/<active>/progress.md` 读取）
+3. 若 feature `progress.md` 或等价工件已经写入合法或可归一化的 `Next Action Or Recommended Skill`，且它来自上一个已完成节点并与最新证据不冲突，优先采用这个显式下一步
 4. 否则检查该结论对应的上游 / 下游迁移是否在当前 profile 迁移表中有明确规则
 5. 若当前结论是 `hf-completion-gate=通过`，优先检查已批准任务计划或 `Task Board Path` 指向的等价工件：
    - 若存在唯一 `next-ready task`，先把 `Current Active Task` 切换到该任务，并把显式下一步锁定为 `hf-test-driven-dev`
@@ -236,18 +276,18 @@ branches:
 前提工件：
 
 ```markdown
-# task-progress.md
+# features/003-parser/progress.md
 
 - Current Stage: hf-completion-gate
 - Workflow Profile: standard
 - Execution Mode: auto
 - Current Active Task: T1
 - Next Action Or Recommended Skill: hf-completion-gate
-- Task Board Path: `docs/tasks/2026-04-09-parser-task-board.md`
+- Task Board Path: `features/003-parser/task-board.md`
 ```
 
 ```markdown
-# docs/tasks/2026-04-09-parser-task-board.md
+# features/003-parser/task-board.md
 
 ## Task Queue
 
