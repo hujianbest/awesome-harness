@@ -302,9 +302,16 @@ def _resolve_init_hosts(
         --yes (no --hosts)     → [] (equivalent to --hosts none, FR-702)
         no flags + TTY         → interactive.prompt_hosts(...)
         no flags + non-TTY     → [] + stderr notice (FR-703)
+
+    F009 T1 carry-forward: ``resolve_hosts_arg`` 返回类型从 ``list[str]`` 改为
+    ``list[tuple[str, str | None]]`` (FR-902 per-host scope override 语法)。
+    本函数当前仍返回 ``list[str]``，把 scope_override 部分丢弃 (兼容 F007/F008
+    既有 install_packs 调用方)；T2/T3/T4 commit 时把 scope 维度真正传到 install_packs。
     """
     if hosts_arg is not None:
-        return resolve_hosts_arg(hosts_arg)
+        # F009 T1 carry-forward: 解构二元组取 host_id 部分, 丢弃 scope_override
+        # (T4 commit 把 scope 传到 install_packs 后再扩展)
+        return [host_id for host_id, _scope in resolve_hosts_arg(hosts_arg)]
     if yes:
         return []
     return prompt_hosts(list_host_ids(), stdin=sys.stdin, stderr=sys.stderr)

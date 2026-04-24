@@ -5,6 +5,11 @@ Implements F007 ADR-D7-3 row 3:
     skill path: .cursor/skills/<skill_id>/SKILL.md
     agent path: None (Cursor has no native agent surface)
 
+F009 ADR-D9-6 + § 2.3 (调研锚点 Cursor 官方文档):
+
+    user-scope skill path: ~/.cursor/skills/<skill_id>/SKILL.md (absolute)
+    user-scope agent path: None (与 project scope 一致, cursor 无 agent surface)
+
 ADR-D7-3 chose ``.cursor/skills/`` over ``.cursor/rules/*.mdc`` because:
 
 - SKILL.md format is identical to Anthropic's, so source files can be
@@ -24,12 +29,27 @@ from pathlib import Path
 
 
 class CursorInstallAdapter:
+    """HostInstallAdapter for Cursor.
+
+    F009 (ADR-D9-6) adds optional ``_user`` suffix methods returning absolute
+    paths under ``Path.home()``. F007 既有 method 签名严格不变（CON-901）。
+    Cursor 在 user scope 下也无 agent surface（与 project scope 一致）。
+    """
+
     host_id: str = "cursor"
 
     def target_skill_path(self, skill_id: str) -> Path:
         return Path(".cursor/skills") / skill_id / "SKILL.md"
 
     def target_agent_path(self, agent_id: str) -> Path | None:
+        return None
+
+    def target_skill_path_user(self, skill_id: str) -> Path:
+        """F009 user-scope skill path (absolute, under ~/.cursor/skills/)."""
+        return Path.home() / ".cursor" / "skills" / skill_id / "SKILL.md"
+
+    def target_agent_path_user(self, agent_id: str) -> Path | None:
+        """F009 user-scope agent path: None (cursor 无 agent surface, 与 project scope 一致)."""
         return None
 
     def render(self, content: str) -> str:

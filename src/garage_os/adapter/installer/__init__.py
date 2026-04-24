@@ -19,8 +19,11 @@ from __future__ import annotations
 
 from garage_os.adapter.installer.host_registry import (
     HOST_REGISTRY,
+    SUPPORTED_SCOPES,
     HostInstallAdapter,
+    ScopeLiteral,
     UnknownHostError,
+    UnknownScopeError,
     get_adapter,
     list_host_ids,
     resolve_hosts_arg,
@@ -56,7 +59,10 @@ __all__ = [
     # Registry
     "HOST_REGISTRY",
     "HostInstallAdapter",
+    "ScopeLiteral",
+    "SUPPORTED_SCOPES",
     "UnknownHostError",
+    "UnknownScopeError",
     "get_adapter",
     "list_host_ids",
     "resolve_hosts_arg",
