@@ -2,7 +2,7 @@
 
 ## 保存路径
 
-默认：`docs/reviews/code-review-<task>.md`
+默认：`features/<active>/reviews/code-review-task-NNN.md`
 
 若 `AGENTS.md` 声明了等价路径，按映射保存。
 
@@ -15,7 +15,7 @@
 
 ## 发现项
 
-- [critical|important|minor][USER-INPUT|LLM-FIXABLE][CR2|CR5|CA3] 问题
+- [critical|important|minor][USER-INPUT|LLM-FIXABLE][CR2|CR5|CR7|CR7.3|CA3|CA8] 问题
 
 ## 代码风险与薄弱项
 
