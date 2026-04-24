@@ -4,7 +4,7 @@
 
 - Goal: F009 — `garage init` 双 Scope 安装（project / user）+ 交互式 Scope 选择
 - Owner: hujianbest
-- Status: 🟡 In Progress — F009 task plan **已批准**（r3 通过 + auto-mode approval），进入 `hf-test-driven-dev` T1
+- Status: 🟡 In Progress — F009 6 个 task 全部 commit 落地（T1-T6），等待 manual smoke walkthrough + hf-test-review 链路
 - Last Updated: 2026-04-23
 
 ## Previous Milestones
@@ -20,13 +20,13 @@
 
 ## Current Workflow State
 
-- Current Stage: `hf-test-driven-dev`
+- Current Stage: `hf-test-review`（待派发，6 个 task 全部 commit 落地后）
 - Workflow Profile: `full`
 - Execution Mode: `auto`
 - Workspace Isolation: `in-place`（工作分支 `cursor/f009-init-scope-selection-bf33`；PR #24）
-- Current Active Task: **T1 — Adapter user scope path + host_id 命名约束**（task plan § 5 T1，P=1）
-- Pending Reviews And Gates: 无（实施阶段；review/gate 在 6 task 全部完成后）
-- Next Action Or Recommended Skill: `hf-test-driven-dev`（实施 T1）
+- Current Active Task: 无（6/6 task commit 落地）
+- Pending Reviews And Gates: `hf-test-review` → `hf-code-review` → `hf-traceability-review` → `hf-regression-gate` → `hf-completion-gate` → `hf-finalize`
+- Next Action Or Recommended Skill: manual smoke walkthrough + `hf-test-review`
 - Relevant Files:
   - `docs/features/F009-garage-init-scope-selection.md`（已批准 r2，10 FR + 4 NFR + 4 CON + 4 ASM）
   - `docs/designs/2026-04-23-garage-init-scope-selection-design.md`（已批准 r2，11 ADR + 6 task + 9 INV + 11 测试文件）
@@ -49,13 +49,23 @@
 
 ## Next Step
 
-进入 `hf-test-driven-dev` 实施 **T1 — Adapter user scope path + host_id 命名约束**。
+6/6 task commit 落地。下一步：
 
-T1 详情（task plan § 5）：
-- 三家 first-class adapter（claude/opencode/cursor）各加 `target_skill_path_user` + `target_agent_path_user` optional method（绝对路径返回值）
-- `host_registry.py` 加 host_id 不含 `:` import-time assert + Protocol docstring 约束
-- `resolve_hosts_arg` 改造：返回 `list[tuple[str, str | None]]` 而非 `list[str]`
-- 新增 2 个测试文件：test_adapter_user_scope.py + test_host_registry_colon_assert.py
-- carry-forward (in-cycle 同步): tests/adapter/installer/test_host_registry.py
+1. **Manual smoke walkthrough**（dogfood + tmp 双轨）：
+   - dogfood: 在 Garage 仓库自身根目录跑 `garage init --hosts cursor,claude` 验证 NFR-901 Dogfood 不变性
+   - tmp: 在 `/tmp/f009-smoke/` 跑 `garage init --hosts all --scope user` 验证 user scope 三家宿主全装
+2. 派发 `hf-test-review` reviewer subagent
+3. 派发 `hf-code-review` reviewer subagent
+4. 派发 `hf-traceability-review` reviewer subagent
+5. `hf-regression-gate`
+6. `hf-completion-gate`
+7. `hf-finalize`（用 manual smoke 实测填 RELEASE_NOTES F009 段 5 项 TBD + workflow closeout pack）
 
-T1 完成后 router 重选 → T2 → T3 → T4 → T5 → T6（按 § 8 P 升序串行）。6 个 task 全部完成后做 manual smoke walkthrough → `hf-test-review` → `hf-code-review` → `hf-traceability-review` → `hf-regression-gate` → `hf-completion-gate` → `hf-finalize`。
+## 实施完成证据
+
+- 测试基线: 633 (F008 baseline) → **708 passed** (+75 增量, 0 退绿)
+- INV-F9-1..9 全部通过（design § 11.1，含 INV-F9-1 dogfood SHA-256 sentinel + INV-F9-7 manifest schema 2 + INV-F9-8 fixture-isolated）
+- `git diff main..HEAD -- pyproject.toml uv.lock` 输出空（零依赖变更）
+- `git diff main..HEAD -- src/garage_os/` 仅 installer + cli 改动（CON-901 + CON-902 严守）
+- 6 sub-commit 分组提交（NFR-904 git diff 可审计）：T1 adapter / T2 pipeline / T3 manifest / T4 cli / T5 tests / T6 docs
+- F009 总 11 个新增测试文件（含 baseline JSON fixture）+ 4 处 carry-forward wording 修复
