@@ -1,6 +1,6 @@
 # F012: Pack Lifecycle 完整化 (uninstall + update + publish + 脱敏导出 + F009 carry-forward)
 
-- 状态: 草稿（待 hf-spec-review）
+- 状态: 草稿 r2 (回应 spec-review-F012-r1; 待 r2 hf-spec-review)
 - 主题: F011 落了 `garage pack install <git-url>` + `garage pack ls`，但用户**卸不掉 / 升不了 / 分享不出**, lifecycle 不完整. F012 补齐: `pack uninstall` + `pack update` + `pack publish` + `knowledge export --anonymize` (与 publish 一起) + F009 carry-forward (VersionManager 注册 host-installer migration 链, 反向操作天然要重审 phase 3)
 - 日期: 2026-04-25
 - 关联:
@@ -100,7 +100,7 @@ E. **F012-E (Should)** F009 carry-forward — VersionManager 注册 host-install
 | **SM-1201** | pack lifecycle install ↔ uninstall 对称 | install + init → uninstall 后 packs/ + host 目录 + manifest 三处全清 | manual smoke Track 2 + 自动 e2e test | 不衡量删除速度 |
 | **SM-1202** | pack lifecycle install ↔ update 对称 | update 比对版本 + 替换 + 重新 init 同步 host | manual smoke Track 3 + 自动 e2e test | 不衡量 git pull 网络 |
 | **SM-1203** | pack lifecycle install ↔ publish 对称 | publish 后远端 git clone 能拿回完整 pack | manual smoke Track 4 (file:// remote) | 不衡量真 GitHub push (留给用户实测) |
-| **SM-1204** | publish 隐私自检守门 | sensitive token 命中时默认 abort | TestPublishSensitive (regex 库覆盖率 ≥ 5 类) | 不追求 100% 召回 (用户自管 + B5) |
+| **SM-1204** | publish 隐私自检守门 + knowledge anonymize 召回代理 | sensitive token 命中时默认 abort + 5 类规则 (email / password / api_key / SHA-1 hash / private key) **全部命中 fixture 视为召回率代理度量** (不追求 100% 召回, B5 用户兜底) | TestPublishSensitive 5 类 fixture all hit + TestAnonymize 5 类 fixture all hit | 不追求 100% 召回; 不追求 ground-truth dataset 量化 (B5 user 自管补 ~/.garage/anonymize-patterns.txt extra rules) |
 | **SM-1205** | F009 carry-forward 闭环 | `_MIGRATION_REGISTRY[(1, 2)]` 含 host-installer migration | 单元测试 import-time 验证 | - |
 | **SM-1206** | 0 regression | 859 → ≥ 859 + 增量 | pytest | - |
 
@@ -116,7 +116,7 @@ E. **F012-E (Should)** F009 carry-forward — VersionManager 注册 host-install
 | **HYP-1201** | uninstall 通过 `host-installer.json files[]` 查到该 pack 的所有 entry → 反向删 host 目录 + sidecar 不会误删别 pack 文件 | F | High | 自动 e2e test (TestUninstallE2E) + manual smoke Track 2 | Yes |
 | **HYP-1202** | update 通过 source_url 重新 clone 行为可复用 F011 install 内部步骤 (subprocess git + 验证 + 替换) | F | High | 复用 F011 install_pack_from_url 内部 helper | Yes |
 | **HYP-1203** | publish push to file:// bare git URL 可工作 (用 `git init --bare` 创 remote, `git push --set-upstream`) | F | High | manual smoke Track 4 + 单元测试 (subprocess git push file://) | Yes |
-| **HYP-1204** | 脱敏 regex 列表对常见敏感词 (email / password / api_key / token / RSA private key) 召回率 ≥ 80% | V | Medium | TestAnonymize 5 类敏感词 fixture + 命中率统计 | No (用户兜底) |
+| **HYP-1204** | 脱敏 regex 列表 5 类规则 (email / password / api_key / SHA-1 hash / private key) 全部命中 fixture (作为召回率代理度量, 不追求 100%) | V | Medium | TestAnonymize 5 类敏感词 fixture all match (1:1 with SM-1204) | No (B5 用户兜底) |
 | **HYP-1205** | F009 既有 read_manifest 自动 migrate 与 VersionManager.register_migration(1, 2) 协调可行 (二者都 write 1 → 2 但语义一致) | F | High | 单元测试 import 双源一致性 | Yes |
 | **HYP-1206** | uninstall 不影响 F010 sync-manifest.json (pack 与 sync 是独立 namespace) | F | High | 自动 e2e (uninstall 后 sync-manifest unchanged) | Yes |
 
@@ -151,6 +151,7 @@ E. **F012-E (Should)** F009 carry-forward — VersionManager 注册 host-install
 - D-1214: pack info / pack search (planning § 2.2 add candidates)
 - D-1215: knowledge export 反向 import (--unanonymize / restore from tarball)
 - D-1216: publish 时自动跑 hf-doc-freshness-gate skill (PR #32 提供 evaluator pattern)
+- D-1217: `garage pack publish --commit-author / --commit-message` 增强配置出口的 deferred 子项 (本 cycle 已含 minimal `--commit-author` 默认读 git global config + `--commit-message` flag, FR-1207 step 5; D-1217 留更复杂的 multi-author / signed commit / GPG 签名 / commit footer template 等)
 
 ## 6. 功能需求 (FR)
 
@@ -213,7 +214,7 @@ E. **F012-E (Should)** F009 carry-forward — VersionManager 注册 host-install
   4. 若不同, default interactive prompt 显示 old → new + diff 提示 + `[y/N]` (与 FR-1202 同精神; `--yes` 跳过)
   5. 替换 `packs/<pack-id>/` 内容 (atomic: temp dir → 备份 → swap → 删备份)
   6. 重跑 `install_packs(workspace_root, packs_root, hosts=已装 host list)` 反向同步 host 目录 (host-installer.json 自动 update entries; F009 manifest 既有逻辑承接)
-- Acceptance:
+- Acceptance (BDD, --yes happy path):
   ```
   Given packs/test-pack v0.1.0 已装 + remote source_url 现 v0.2.0
   When 用户跑 garage pack update test-pack --yes
@@ -221,6 +222,15 @@ E. **F012-E (Should)** F009 carry-forward — VersionManager 注册 host-install
   And host 目录的 SKILL.md 已重新装 (manifest content_hash 更新)
   And stdout "Updated pack 'test-pack' from v0.1.0 to v0.2.0"
   And exit code = 0
+  ```
+- Acceptance (BDD, interactive cancel, 回应 spec-review-r1 Mi-1):
+  ```
+  Given packs/test-pack v0.1.0 已装 + remote v0.2.0 + TTY stdin
+  When 用户跑 garage pack update test-pack (无 --yes)
+  Then stdout 显示 "test-pack: v0.1.0 → v0.2.0. Continue? [y/N]:"
+  And 用户输入 'n' / 回车 / EOF → exit 0
+  And packs/test-pack/ 字节级与 update 前一致 (含 pack.json.version 仍 v0.1.0)
+  And host 目录未被改 (host-installer.json content_hash 不变)
   ```
 
 ### FR-1205 — update 失败滚回
@@ -245,13 +255,37 @@ E. **F012-E (Should)** F009 carry-forward — VersionManager 注册 host-install
 ### FR-1207 — `garage pack publish <pack-id> --to <git-url>` 命令
 
 - 优先级: Must
-- 来源: § 1 + SM-1203
-- Statement (Event-driven): When 用户跑 `garage pack publish <pack-id> --to <git-url>` (`--dry-run` 仅 build temp git不 push; `--force` 跳过 sensitive 检查; `--yes` 跳过 prompt), the system SHALL:
+- 来源: § 1 + SM-1203 + spec-review-F012-r1 I-1/I-2/I-5/Mi-4
+- Statement (Event-driven): When 用户跑 `garage pack publish <pack-id> --to <git-url>` (flag 状态表见下), the system SHALL:
   1. 验证 `packs/<pack-id>/` 存在
-  2. 跑 sensitive scan (FR-1208); 命中且无 `--force` → abort exit 1
-  3. interactive prompt 显示 "Will publish <pack-id> v<version> to <to-url>. Continue? [y/N]:" (无 `--yes` 时); 用户取消 → exit 0
-  4. 创 temp git repo: `git init` + `git add .` + `git -c user.email=garage-publish@local -c user.name=Garage commit -m "Publish <pack-id> v<version> from Garage"` + `git remote add origin <to-url>` + `git push --force origin main` (用 --force 因初始 publish 通常空 remote; 后续 publish 改用普通 push)
-  5. 写回 `packs/<pack-id>/pack.json.source_url = <to-url>` (push 成功后)
+  2. 跑 sensitive scan (FR-1208); 命中且无 `--force` → abort exit 1 + stderr 列出命中
+  3. **检测 remote 是否为空**: `git ls-remote <to-url>`; 若 remote 已有 ref → 显示 remote head 信息 + 必须二次确认 (除 `--yes` 外仍 prompt)
+  4. interactive prompt 显示完整影响摘要 (无 `--yes` 时):
+     ```
+     Will publish '<pack-id>' v<version> to <to-url>:
+       - Force push to remote (will OVERWRITE existing content if any)
+       - Update packs/<pack-id>/pack.json source_url field locally
+       - Sensitive scan: <PASSED | SKIPPED via --force>
+     Continue? [y/N]:
+     ```
+     用户取消 → exit 0
+  5. 创 temp git repo: `git init` + `git add .` + `git -c user.email=<author-email> -c user.name=<author-name> commit -m "<commit-msg>"` + `git remote add origin <to-url>` + `git push --force origin main`
+     - **`--commit-author "Name <email>"` flag** 显式覆盖 author; 默认尝试读 `git config user.email` / `user.name`, 失败再 fallback 到 `garage-publish@local <Garage>`
+     - **`--commit-message <msg>` flag** 覆盖默认 commit message `Publish <pack-id> v<version> from Garage`
+  6. 写回 `packs/<pack-id>/pack.json.source_url = <to-url>` (push 成功后); 用户加 `--no-update-source-url` 时跳过本步, source_url 保持原值
+- **Flag 状态表** (回应 I-5):
+
+| 组合 | sensitive 命中 | 行为 |
+|---|---|---|
+| (默认) | 命中 | abort exit 1, 不 push |
+| (默认) | 未命中 | prompt → 用户确认 → push |
+| `--yes` | 命中 | abort exit 1 (--yes 不绕 sensitive 检查) |
+| `--yes` | 未命中 | 跳过 prompt, 直接 push |
+| `--force` | 命中 | prompt → 用户确认 → push (--force 仅绕 sensitive scan, 不绕主 prompt) |
+| `--force` | 未命中 | 同 (默认) 未命中 (--force 在未命中时无作用) |
+| `--yes --force` | 命中 | 跳过 prompt + push (完全 unattended) |
+| `--yes --force` | 未命中 | 同 `--yes` 未命中 |
+| `--dry-run` | 任意 | 隐含 `--yes` (不 prompt 主 publish), 创 temp git + sensitive scan + 不 push (FR-1209) |
 - Acceptance:
   ```
   Given packs/my-pack v0.1.0 已装 (无 sensitive)
@@ -266,8 +300,8 @@ E. **F012-E (Should)** F009 carry-forward — VersionManager 注册 host-install
 ### FR-1208 — publish 隐私自检 (sensitive scan)
 
 - 优先级: Must
-- 来源: § 2.2 #6 + SM-1204
-- Statement (Ubiquitous): The system SHALL 在 `pack publish` 默认行为下扫 `packs/<pack-id>/**/*` 文件文本内容; 若命中以下任一 regex → abort exit 1 + stderr 列出命中文件 + 行号 + 命中规则名:
+- 来源: § 2.2 #6 + SM-1204 + spec-review-F012-r1 I-3
+- Statement (Ubiquitous): The system SHALL 在 `pack publish` 默认行为下**仅扫文本文件** (extension allowlist: `.md .py .txt .json .yaml .yml .toml .sh .js .ts .ini .cfg .conf .env .lock .gitignore`; binary 文件 + 未在列表内的扩展跳过, 在 stdout summary 中以 "Skipped N binary/non-text files" 列出); 对扫描的文本内容若命中以下任一 regex → abort exit 1 + stderr 列出命中文件 + 行号 + 命中规则名:
   - `password\s*[:=]\s*\S+`
   - `api[_-]?key\s*[:=]\s*\S+`
   - `secret\s*[:=]\s*\S+`
@@ -289,8 +323,9 @@ E. **F012-E (Should)** F009 carry-forward — VersionManager 注册 host-install
 ### FR-1209 — publish `--dry-run`
 
 - 优先级: Must
-- Statement: With `--dry-run`, the system SHALL 创 temp git repo + 跑 sensitive scan + 显示 git log 但**不** push to remote + 不改 source_url
-- Acceptance: 测试 verify temp dir 创建后被清 + remote 不存在新 commit
+- 来源: § 2.2 + spec-review-F012-r1 Mi-2
+- Statement: With `--dry-run`, the system SHALL 创 temp git repo + 跑 sensitive scan + 显示 git log 但**不** push to remote + **不**改 source_url + **隐含 `--yes`** (不 prompt 主 publish 确认; sensitive scan 仍跑并 print)
+- Acceptance: 测试 verify temp dir 创建后被清 + remote 不存在新 commit + packs/<pack-id>/pack.json source_url 字节级不变 + 即使 sensitive 命中仅 stderr warn (不 abort, 因 dry-run 本就不 push)
 
 ### FR-1210 — publish stdout marker
 
@@ -302,9 +337,11 @@ E. **F012-E (Should)** F009 carry-forward — VersionManager 注册 host-install
 - 优先级: Must
 - 来源: § 1 + SM-1204
 - Statement (Event-driven): When 用户跑 `garage knowledge export --anonymize [--output <path>] [--dry-run]`, the system SHALL:
-  1. 读 `.garage/knowledge/{decisions, patterns, solutions, style}/*.md`, 拿全部 KnowledgeEntry
-  2. 对每个 entry 走脱敏规则 (FR-1212), 替换敏感词为 `<REDACTED>`
-  3. tarball 输出到 `<output>/knowledge-<ISO timestamp>.tar.gz` (default `<workspace>/exports/`)
+  1. **混合策略** (回应 spec-review-r1 Mi-5):
+     (a) 用 `KnowledgeStore.list_entries()` 拿全部 KnowledgeEntry **metadata** (id / topic / tags / type / date / source_session) 用于统计 + tarball 内 manifest.json 索引;
+     (b) 直接 **filesystem read** `.garage/knowledge/<kind>/<id>.md` 拿原 markdown bytes (含 YAML front matter + 正文 content) 用于脱敏 (复刻原文件结构进 tarball, 而非重新序列化 dataclass)
+  2. 对每个 markdown 文件的内容走脱敏规则 (FR-1212), 替换敏感词为 `<REDACTED>` (front matter 字段 id / topic / tags 不动 — 它们是 meta 不含敏感内容)
+  3. tarball 输出到 `<output>/knowledge-<ISO timestamp>.tar.gz` (**default `~/.garage/exports/`**, workspace 之外, 避免 `git status` 显示 / 误 commit; 用户传 `--output <workspace>/exports` 时 + 同时检测到 `.gitignore` 不含 `exports/` → stderr warn 提醒加; 回应 spec-review-r1 Mi-3)
   4. `--dry-run` 时仅 print 命中规则统计 + entry count
 - Acceptance:
   ```
@@ -335,13 +372,14 @@ E. **F012-E (Should)** F009 carry-forward — VersionManager 注册 host-install
 ### FR-1214 — F009 carry-forward: VersionManager 注册 host-installer migration
 
 - 优先级: Should
-- 来源: F009 finalize approval I-2 carry-forward
-- Statement (Ubiquitous): The system SHALL 在 `manifest.py` 模块加载时通过 `@register_migration(1, 2)` decorator 把既有 `migrate_v1_to_v2` 函数注册到 `_MIGRATION_REGISTRY`; F009 既有 `read_manifest` fast-path 不动 (双源一致, 二者都 write 1 → 2)
+- 来源: F009 finalize approval I-2 carry-forward + spec-review-F012-r1 M-1
+- Statement (Ubiquitous): The system SHALL 在 `manifest.py` 模块加载时通过 `@register_migration(1, 2)` decorator 把既有 `migrate_v1_to_v2` 函数注册到 `_MIGRATION_REGISTRY`; **同步把 schema 2 加入 `VersionManager.SUPPORTED_VERSIONS`** (与 schema 1 并列, 让 host-installer.json schema 2 通过 compatibility check); F009 既有 `read_manifest` fast-path 不动 (双源一致, 二者都 write 1 → 2)
 - Acceptance:
   ```
   Given F012 实施完成
   When import garage_os.adapter.installer.manifest + garage_os.platform.version_manager
   Then _MIGRATION_REGISTRY[(1, 2)] 不为空且指向 manifest.migrate_v1_to_v2 (或等价 wrapper)
+  And 2 in VersionManager.SUPPORTED_VERSIONS (与 schema 1 并列)
   And F009 既有 718+ manifest 测试 0 退绿 (双源一致守门)
   ```
 
@@ -411,7 +449,7 @@ E. **F012-E (Should)** F009 carry-forward — VersionManager 注册 host-install
 - ASM-1201: 用户机器有 git (与 F011 ASM-1101 同)
 - ASM-1202: pack.json `source_url` 字段在 install 时正确写入 (F011 FR-1108 提供); uninstall 不依赖 source_url, update + publish 依赖 source_url 存在
 - ASM-1203: 用户提供的 publish `--to <git-url>` 是空的或者 fast-forward 兼容的; publish 的初始 push 用 `--force` 处理空 remote, 后续 update push 走普通 push
-- ASM-1204: 脱敏 regex 列表对常见敏感词召回 ≥ 80% (HYP-1204); 用户自管补充
+- ASM-1204: 脱敏 regex 5 类规则 (email / password / api_key / SHA-1 / private key) 全部命中 fixture 视为召回代理 (HYP-1204 + SM-1204 1:1); 不追求 100% 召回, 用户自管补充 `~/.garage/anonymize-patterns.txt`
 
 ## 10. INVEST + Phase 0 自检
 
@@ -446,15 +484,24 @@ E. **F012-E (Should)** F009 carry-forward — VersionManager 注册 host-install
 - spec FR-1211 答: **不含**, 仅 `.garage/knowledge/`. experience records 含 session_id + 实际 outcome, 脱敏更难; 留 deferred D-1215 (反向 import + experience)
 - 不阻塞 spec 通过
 
-## 12. 评审前自检 ✅ (供 hf-spec-review)
+## 12. 评审前自检 ✅ (供 hf-spec-review r2)
 
-- [x] 14 FR 全部锚 spec 行号 + 真实 API name (F011 PackInstall / F009 manifest / F010 sidecar / F003 KnowledgeStore / VersionManager register_migration)
+- [x] 14 FR 全部锚 spec 行号 + 真实 API name (8/8 命中, F010 r1 typo 防护通过)
 - [x] 4 NFR 全部 ISO 25010 + QAS
-- [x] 7 CON 守门 (F011/F010/F009/F003-F006 既有 0 改动 + manifest ↔ 磁盘一致 + sensitive scan default + 零依赖 + 不夹 F010 carry-forward)
-- [x] B5 user-pact 显式 (uninstall + publish prompt + sensitive scan + anonymize opt-in)
-- [x] HYP-1201..1206 Blocking 5/6 (HYP-1204 脱敏召回 Non-blocking, 用户兜底)
-- [x] § 5.3 Deferred backlog 7 项 (D-1210..1216) 显式
-- [x] 不夹 F010 carry-forward (CON-1207)
-- [x] 不夹 F011 D-2 (monorepo) / D-3 (signature) / 4-24 P2 (HOST_REGISTRY plugin / sync watch / Memory push)
-- [x] 复用既有 PackInstallError + 复用 F011 install pattern
-- [x] BLK-1201..1204 显式回答 (1=是, 2/3 by design ADR, 4=不含)
+- [x] 7 CON 守门完整
+- [x] B5 user-pact 7/7 显式 (r2 补强 publish source_url 写回告知 + force push 风险告知 + flag 状态表)
+- [x] HYP-1201..1206 Blocking 5/6 (HYP-1204 脱敏召回 Non-blocking, B5 兜底)
+- [x] § 5.3 Deferred backlog 8 项 (D-1210..1217, r2 加 D-1217)
+- [x] BLK-1201..1204 显式回答, BLK-1203 force-push 风险已在 FR-1207 prompt 文案 + 状态表中纳入
+- [x] **r2 回修结果** (回应 spec-review-F012-r1 全部 11 finding):
+  - M-1 ✓ FR-1214 + acceptance 加 SUPPORTED_VERSIONS
+  - I-1 ✓ FR-1207 prompt 显式列 source_url 写回 + 加 `--no-update-source-url` flag
+  - I-2 ✓ FR-1207 加 `git ls-remote` 检测 + WARNING 措辞 + 二次确认
+  - I-3 ✓ FR-1208 加 extension allowlist (16 类) + binary skip 统计
+  - I-4 ✓ SM-1204 + HYP-1204 + ASM-1204 三处 wording 合并为 "5 类规则全部命中 fixture 视为召回代理度量 + B5 用户兜底" (auto mode self-decision)
+  - I-5 ✓ FR-1207 加 9 行 flag 状态表 (4 flag × 2 sensitive 状态 + dry-run)
+  - Mi-1 ✓ FR-1204 加 interactive cancel BDD scenario
+  - Mi-2 ✓ FR-1209 显式 dry-run 隐含 --yes
+  - Mi-3 ✓ FR-1211 default `~/.garage/exports/` (workspace 外) + workspace 内 path 时 `.gitignore` warn
+  - Mi-4 ✓ FR-1207 step 5 加 `--commit-author` + `--commit-message` flag + 默认读 git global config
+  - Mi-5 ✓ FR-1211 step 1 改写为混合策略 (KnowledgeStore.list_entries 拿 metadata + filesystem read 拿原 markdown bytes)
