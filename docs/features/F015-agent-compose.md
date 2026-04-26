@@ -1,6 +1,6 @@
 # F015: Agent Compose — `garage agent compose` 半自动产 agent.md 草稿
 
-- **状态**: 草稿 r1 (待 hf-spec-review)
+- **状态**: 草稿 r2 (回应 spec-review-F015-r1; 2 critical + 2 important + 4 minor + 1 nit 全部闭合; 待 r2 hf-spec-review)
 - **主题**: F011 落了 3 个手写 production agent (`code-review-agent` / `blog-writing-agent` / `garage-sample-agent`); 但 `growth-strategy.md § Stage 3 第 67 行` "Skills 可组合成专用 agents" 当前是**半交付** — agent.md 仍手写, 无 compose 路径. F015 加 `garage agent compose <name> --skills <list>` CLI: 用户给一组 skill_ids + 一段意图, 系统自动从 SKILL.md 内容提取 + 用户的 KnowledgeType.STYLE entries 提取, 半自动产出 agent.md 草稿到 `packs/<target-pack>/agents/<name>.md`. 与 F013-A skill mining 同 pattern (template generator + half-automatic promote), 但是 agent 级别而非 skill 级别.
 - **日期**: 2026-04-26
 - **关联**:
@@ -14,13 +14,13 @@
   - manifesto B4 "人机共生" + Stage 3 工匠
   - user-pact (5) "你做主": 所有自动化都有开关; compose 必须 opt-in
   - 调研锚点 (基于 main `f5950b4` 实际代码; F015 base on F014 branch `cursor/f014-workflow-recall-bf33`):
-    - F011 agent.md schema: `packs/garage/agents/{blog-writing-agent,code-review-agent,garage-sample-agent}.md` (frontmatter `name` + `description` + sections "When to Use" / "How It Composes" / "Workflow")
+    - F011 agent.md schema reference subset (Cr-2 r2 收窄): F015 模板参考限 **2 个** agent — `packs/garage/agents/blog-writing-agent.md` (42 行) + `packs/garage/agents/code-review-agent.md` (39 行); 都含 frontmatter `name` + `description` + sections "When to Use" / "How It Composes" / "Workflow". `packs/garage/agents/garage-sample-agent.md` (11 行) 是 F008 安装/容错样本 (FR-708 路径), **无** YAML front matter, 章节为 `## 行为` / `## Notes`; F015 显式**排除**该 agent 出 CON-1504 模板参考集.
     - F013-A SkillSuggestion + template_generator pattern: `src/garage_os/skill_mining/{types,template_generator,suggestion_store}.py`
     - F006 KnowledgeStore.list_entries: 用 `KnowledgeType.STYLE` filter 获取风格偏好
     - F004 KnowledgeEntry schema: `src/garage_os/types/__init__.py:102-121` 含 `topic / tags / content / front_matter`
     - F008 packs/ 目录契约: `packs/<pack-id>/agents/<name>.md` (与 skills/ 平级)
     - skill SKILL.md 内容: 每个 SKILL.md 起首 frontmatter `description` 是 compose 时引的 skill 简介源
-    - F011 既有 agent.md 长度: 11-41 行, 100-150 字 description, 5-7 sections
+    - F011 既有参考 agent.md 长度 (Mi-1 r2 修订): blog-writing 42 行 + code-review 39 行; 100-150 字 description, 4-5 sections
 
 ## 1. 背景与问题陈述
 
@@ -75,14 +75,14 @@ F015 只会:
 - 在 `src/garage_os/agent_compose/` 顶级包内实现 `AgentComposer`
 - 输入: agent_name (例 "config-design-agent") + skill_ids list (例 ["hf-specify", "hf-design", "hf-tasks"]) + 可选 description 提示 + 可选 --target-pack (默认 "garage")
 - 输出: agent.md 草稿 string (in-memory, 与 F013-A template_generator pattern 同精神)
-- 模板 schema 严格遵 F011 既有 agent.md 格式 (frontmatter `name` + `description` 含适用/不适用; sections "When to Use" / "How It Composes" / "Workflow")
+- 模板 schema 严格遵 F011 既有 agent.md 格式 (Cr-2 r2: 参考 2 个 agent — `blog-writing-agent.md` + `code-review-agent.md`; **不参考** `garage-sample-agent.md` 的简化 schema): frontmatter `name` + `description` 含适用/不适用; sections "When to Use" / "How It Composes" / "Workflow"
 - description 自动拼: "适用于 <agent_name>...组合 <skills>...不适用于 <inferred 边界>" (≥ 50 字, 与 F013-A skill template 同 INV-F13-4 精神)
 - "When to Use" 段从每个 skill 的 SKILL.md frontmatter description 抽前半段 (用户场景部分) 拼接
 - "How It Composes" 段列出每个 skill 的角色 (基础/风格/可选 — 启发式标注, 用户可改)
 - "Workflow" 段列出 skill 调用顺序 (按用户给的 skill_ids 顺序)
 
 **B. STYLE Entries 集成** (FR-1502):
-- 读 KnowledgeStore.list_entries() filter `entry.type == KnowledgeType.STYLE` (F011 既有)
+- 读 `KnowledgeStore.list_entries(knowledge_type=KnowledgeType.STYLE)` (Mi-2 r2 完整 API 签名; F011 既有)
 - compose 时附 "## Style Alignment" section 列出相关 STYLE entries 的 topic + ID
 - 默认 include all STYLE entries; `--no-style` flag 禁用 (用户可关)
 - 阈值: 0 STYLE entry 时跳过 Style Alignment section, 用 placeholder TODO
@@ -103,8 +103,8 @@ F015 只会:
 **E. Audit & Sentinels** (FR-1505):
 - INV-F15-1: AgentComposer 是 read-only 在 SKILL.md + KnowledgeStore (不写不删 既有 skill)
 - INV-F15-3 sentinel: compose 不动 packs/<id>/pack.json `agents[]` 列表 (用户在确认 agent.md 满意后自己 update; 与 F013-A CON-1304 同精神)
-- INV-F15-5 sentinel: 既有 F011 production agents (3 个) byte 不变 (compose 是 sibling, 不修改既有)
-- `garage status` 加 agent-compose 段: "Agent compose: <pack> has N agents (last compose: <ts>)"
+- INV-F15-5 sentinel: 既有 F011 production agents (3 个) byte 不变 (compose 是 sibling, 不修改既有; Cr-1 r2 守门; BDD 8.4 的 overwrite 验收使用 `demo-overwrite-agent` 而非任一 F011 agent)
+- `garage status` 加 agent-compose 段: "Agent compose: <pack> has N agents" (Im-2 r2 修订: 删除 last compose ts 提纲, 不依赖 cache.json)
 
 ### 2.2 范围内变化
 
@@ -136,17 +136,17 @@ F015 只会:
 | **触发** | (a) `garage agent compose <name> --skills ...` CLI 调用 |
 | **输入** | agent_name (str, kebab-case) + skill_ids (list[str]; 必须存在于至少一个 packs/<id>/skills/) + description override (Optional[str]) + target_pack (default "garage") + include_style (bool, default True) |
 | **输出** | `ComposeResult(draft: AgentDraft, missing_skills: list[str], style_count: int)` |
-| **验证** | (a) skill_ids 中所有 skill 必须存在于 packs/*/skills/<skill>/SKILL.md (找不到的进 missing_skills); (b) target_pack 必须存在于 packs/<id>/; (c) agent_name 必须 kebab-case (a-z, 0-9, hyphen) |
+| **验证** | (a) skill_ids 中所有 skill 必须存在于 packs/*/skills/<skill>/SKILL.md (找不到的进 missing_skills; Im-1 r2: library 仍生成 draft 给未来其他调用方; CLI exit 1); (b) target_pack 必须存在于 packs/<id>/; (c) agent_name 必须 kebab-case (a-z, 0-9, hyphen) |
 | **draft 内容** | frontmatter (name, description ≥ 50 字 含适用/不适用) + ## When to Use + ## How It Composes + ## Workflow + ## Style Alignment (若 include_style=True 且有 STYLE entries) |
 | **BDD** | Given: skill_ids=["hf-specify", "hf-design"], target_pack="garage"; When: compose; Then: AgentDraft 含 frontmatter name="<input-name>" + description 含 "组合 hf-specify, hf-design"; "How It Composes" 列 2 个 skill |
-| **Edge** | skill_ids 含不存在 skill → missing_skills 含 + draft 用 placeholder; target_pack 不存在 → ValueError; 0 skill_ids → ValueError |
+| **Edge** | skill_ids 含不存在 skill → library `ComposeResult.missing_skills` 含 + draft 含 placeholder (供未来其他调用方按需用部分 draft); target_pack 不存在 → ValueError; 0 skill_ids → ValueError. **CLI 层 (FR-1503) 严格**: missing skill > 0 → exit 1 不写盘 (Im-1 r2 双层语义) |
 
 ### FR-1502: STYLE Entries 集成 (State-driven)
 
 | 字段 | 值 |
 |---|---|
-| **触发** | compose 时, 若 include_style=True 且 KnowledgeStore.list_entries(STYLE) 非空 |
-| **API** | `KnowledgeStore.list_entries(knowledge_type=KnowledgeType.STYLE)` (F011 既有) |
+| **触发** | compose 时, 若 include_style=True 且 KnowledgeStore.list_entries(knowledge_type=KnowledgeType.STYLE) 非空 |
+| **API** | `KnowledgeStore.list_entries(knowledge_type=KnowledgeType.STYLE)` (Mi-2 r2 完整签名; F011 既有, `knowledge_store.py` L229-237) |
 | **draft 内容** | "## Style Alignment" section 列出每个 STYLE entry 的 `topic` + `id` (前 6 个; 多余的省略 + "see all via `garage knowledge list --type style`") |
 | **--no-style flag** | 跳过该 section |
 | **BDD** | Given: 3 STYLE entries (topic "prefer functional Python", "type hints required", "no class-based"); When: compose --skills hf-specify; Then: draft "## Style Alignment" 列 3 个 entry topic |
@@ -181,7 +181,7 @@ F015 只会:
 ### FR-1505: `garage status` 集成 + Sentinels (State-driven)
 
 | 触发 | 每次 `garage status` 调用 |
-| 显示 | "Agent compose: garage has N agents" (始终显, RSK-1501 兜底) |
+| 显示 | "Agent compose: <pack> has N agents" (始终显, RSK-1501 兜底; Im-2 r2 修订: 不带 last compose ts 后缀, 不依赖 cache.json) |
 
 | BDD | Given: packs/garage/agents/ 含 3 agent; When: `garage status`; Then: stdout 末尾含 "Agent compose: garage has 3 agents" |
 
@@ -275,14 +275,20 @@ Then: exit 1 + stderr 含 "Missing skills: nonexistent-skill"
 And: packs/garage/agents/x.md 不创建
 ```
 
-### 8.4 Overwrite prompt
+### 8.4 Overwrite prompt (Cr-1 r2: 改用 demo-overwrite-agent 而非 F011 既有 agent, 避免与 INV-F15-5 冲突)
 
 ```
-Given: packs/garage/agents/code-review-agent.md exists (F011)
-When: garage agent compose code-review-agent --skills hf-code-review (interactive, y)
-Then: prompt "WARNING: packs/garage/agents/code-review-agent.md already exists. Overwrite? [y/N]"
+Given: packs/garage/agents/demo-overwrite-agent.md 已先 compose 一次存在
+  (注: 不用 code-review-agent.md / blog-writing-agent.md / garage-sample-agent.md
+   因为 INV-F15-5 守 F011 既有 3 个 agent byte 不变)
+
+When: garage agent compose demo-overwrite-agent --skills hf-specify (interactive, y)
+
+Then: prompt "WARNING: packs/garage/agents/demo-overwrite-agent.md already exists. Overwrite? [y/N]"
   y → overwrite + stdout "Created agent at..."
   n → cancel + stdout "Cancelled"
+
+INV-F15-5 验证: 跑完后 `git diff packs/garage/agents/code-review-agent.md packs/garage/agents/blog-writing-agent.md packs/garage/agents/garage-sample-agent.md` 应为空 (3 个 F011 agent byte 不变)
 ```
 
 ### 8.5 `garage agent ls` + `garage status`
@@ -311,15 +317,30 @@ Then: stdout 末尾含 "Agent compose: garage has 3 agents"
 
 | 维度 | F015 推动后 |
 |---|---|
-| **Stage 3 工匠** | ~95% → **~100%** (agent compose 闭环, growth-strategy.md § Stage 3 第 67 行 ✅) |
+| **Stage 3 工匠** | ~95% → **~100%** (估算; agent compose 闭环 — Mi-4 r2 注: 量化依据见 vision-gap 答疑 + growth-strategy.md § Stage 3 三项核心新增已全交付) |
 | **Stage 4 生态** | 40% (维持; F015 不动生态) |
 | **B4 人机共生** | 5/5 (维持; F015 是 B4 的进一步具象化) |
 | **growth-strategy.md § Stage 3 第 67 行** | ⚠️ 半交付 → ✅ (vision 上 F015 唯一闭环条目) |
 
 ## 11. 测试基线
 
-F015 base on F014 branch (PR #38 还没 merge 时) — 实际基线由 tasks 阶段实施前 `uv run pytest tests/ -q --ignore=tests/sync/test_baseline_no_regression.py` 确认 (Mi-2 r2 模式).
+F015 base on F014 branch (PR #38 还没 merge 时) — 实际基线由 tasks 阶段实施前 `uv run pytest tests/ -q --ignore=tests/sync/test_baseline_no_regression.py` 确认.
+
+注 (Mi-3 r2): `packs/garage/pack.json` description 文案漂移 ("agents/ 加 **2 个** production agent" 但 agents[] 数组含 3 个) 是 F011 carry-forward, 不阻塞 F015 实施; 可在 F015 finalize 阶段顺手修, 也可推到 F011 carry-forward / 任意未来 cycle.
+
+注 (Ni-1 r2 多行 description 切分规则): 多数 `packs/*/skills/*/SKILL.md` `description` 单行; 少数如 `hv-analysis` 用多行 `description: |`. F015 模板生成时切分规则: 取 `description` 字段值的第一个非空段; 至少 50 字截断到第一个句号 (`。` / `.`) 或行尾, 取较短的.
 
 ---
 
-> **本文档是 spec r1**, 待 hf-spec-review (subagent 派发). r2 起草由 review verdict 驱动.
+> **本文档是 spec r2** (回应 spec-review-F015-r1 的 2 critical + 2 important + 4 minor + 1 nit; 全部 9 finding 已闭合, 详见 `docs/reviews/spec-review-F015-r1-2026-04-26.md`).
+>
+> r2 关键修订:
+> - **Cr-1** (USER-INPUT 选项 a): BDD 8.4 改 agent 名为 `demo-overwrite-agent` (不用 code-review-agent), 避免与 INV-F15-5 守 F011 既有 3 个 agent byte 不变冲突
+> - **Cr-2**: F011 compose 模板参考子集收窄为 **2 个** agent (`code-review-agent` + `blog-writing-agent`); `garage-sample-agent` 显式排除 (它是 F008 安装/容错样本, 故意无 frontmatter; CON-1504 不参考)
+> - **Im-1**: missing skill 双层语义 — library `ComposeResult.missing_skills` 仍生成 partial draft, CLI 严格 exit 1 不写盘
+> - **Im-2**: FR-1505 status 段不带 last compose ts 后缀 (避免依赖 optional cache.json)
+> - **Mi-1**: 调研锚点 agent.md 行数 11-42 行 (实测)
+> - **Mi-2**: API 完整签名 `KnowledgeStore.list_entries(knowledge_type=KnowledgeType.STYLE)`
+> - **Mi-3**: pack.json description 文案漂移注解 (不阻塞 F015)
+> - **Mi-4**: §10 Stage 3 ~95% → ~100% 加 "估算" 注 + 量化依据
+> - **Ni-1**: 多行 description 切分规则补 (Mi-3 / Ni-1 合并到 §11 注)
