@@ -4317,3 +4317,147 @@ class TestSkillSuggestCommand:
         assert rc == 0
         captured = capsys.readouterr()
         assert "No skill suggestions yet (status=promoted)" in captured.out
+
+
+# ===========================================================================
+# F013-A T5: garage skill promote CLI tests
+# ===========================================================================
+
+
+class TestSkillPromoteCommand:
+    """F013-A FR-1304 + INV-F13-1 + INV-F13-2 + CON-1304."""
+
+    @staticmethod
+    def _seed_and_propose(workspace: Path) -> str:
+        from garage_os.knowledge.experience_index import ExperienceIndex
+        from garage_os.skill_mining.suggestion_store import SuggestionStore
+        from garage_os.skill_mining.types import SkillSuggestionStatus
+        from garage_os.storage.file_storage import FileStorage
+        from garage_os.types import ExperienceRecord
+        storage = FileStorage(workspace / ".garage")
+        ei = ExperienceIndex(storage)
+        for i in range(5):
+            ei.store(ExperienceRecord(
+                record_id=f"r-{i:03d}",
+                task_type="review",
+                skill_ids=[],
+                tech_stack=[],
+                domain="dev",
+                problem_domain="review-verdict",
+                outcome="success",
+                duration_seconds=60,
+                complexity="low",
+                session_id=f"ses-{i:03d}",
+                key_patterns=["verdict-format", "5-section"],
+                lessons_learned=[f"lesson {i}"],
+            ))
+        # Trigger via rescan
+        main(["skill", "suggest", "--path", str(workspace), "--rescan"])
+        ss = SuggestionStore(workspace / ".garage")
+        return ss.list_by_status(SkillSuggestionStatus.PROPOSED)[0].id
+
+    def test_promote_yes_writes_skill_md(self, tmp_path: Path, capsys) -> None:
+        workspace = tmp_path / "ws"
+        workspace.mkdir()
+        # Need packs/garage/ to exist for target validation
+        (workspace / "packs" / "garage").mkdir(parents=True)
+        main(["init", "--path", str(workspace), "--yes"])
+        capsys.readouterr()
+        sg_id = self._seed_and_propose(workspace)
+        capsys.readouterr()
+
+        rc = main(["skill", "promote", "--path", str(workspace), sg_id, "--yes"])
+        assert rc == 0
+        captured = capsys.readouterr()
+
+        # SKILL.md exists in the suggestion's name dir
+        from garage_os.skill_mining.suggestion_store import SuggestionStore
+        from garage_os.skill_mining.types import SkillSuggestionStatus
+        ss = SuggestionStore(workspace / ".garage")
+        # status moved to promoted
+        promoted = ss.list_by_status(SkillSuggestionStatus.PROMOTED)
+        assert len(promoted) == 1
+        skill_md = workspace / "packs" / "garage" / "skills" / promoted[0].suggested_name / "SKILL.md"
+        assert skill_md.is_file()
+        # Echo line per FR-1304
+        assert "Created skill at" in captured.out
+        assert "garage run" in captured.out
+
+    def test_promote_dry_run_no_write(self, tmp_path: Path, capsys) -> None:
+        workspace = tmp_path / "ws"
+        workspace.mkdir()
+        (workspace / "packs" / "garage").mkdir(parents=True)
+        main(["init", "--path", str(workspace), "--yes"])
+        capsys.readouterr()
+        sg_id = self._seed_and_propose(workspace)
+        capsys.readouterr()
+
+        rc = main(["skill", "promote", "--path", str(workspace), sg_id, "--dry-run"])
+        assert rc == 0
+        captured = capsys.readouterr()
+        assert "DRY RUN" in captured.out
+
+        # Status still proposed
+        from garage_os.skill_mining.suggestion_store import SuggestionStore
+        from garage_os.skill_mining.types import SkillSuggestionStatus
+        ss = SuggestionStore(workspace / ".garage")
+        assert len(ss.list_by_status(SkillSuggestionStatus.PROPOSED)) == 1
+
+    def test_promote_reject_with_reason(self, tmp_path: Path, capsys) -> None:
+        workspace = tmp_path / "ws"
+        workspace.mkdir()
+        (workspace / "packs" / "garage").mkdir(parents=True)
+        main(["init", "--path", str(workspace), "--yes"])
+        capsys.readouterr()
+        sg_id = self._seed_and_propose(workspace)
+        capsys.readouterr()
+
+        rc = main(["skill", "promote", "--path", str(workspace), sg_id, "--reject", "--yes"])
+        assert rc == 0
+        captured = capsys.readouterr()
+        assert "Rejected" in captured.out
+
+        from garage_os.skill_mining.suggestion_store import SuggestionStore
+        from garage_os.skill_mining.types import SkillSuggestionStatus
+        ss = SuggestionStore(workspace / ".garage")
+        assert len(ss.list_by_status(SkillSuggestionStatus.REJECTED)) == 1
+
+    def test_promote_target_pack_override(self, tmp_path: Path, capsys) -> None:
+        workspace = tmp_path / "ws"
+        workspace.mkdir()
+        (workspace / "packs" / "coding").mkdir(parents=True)
+        main(["init", "--path", str(workspace), "--yes"])
+        capsys.readouterr()
+        sg_id = self._seed_and_propose(workspace)
+        capsys.readouterr()
+
+        rc = main([
+            "skill", "promote", "--path", str(workspace), sg_id,
+            "--yes", "--target-pack", "coding",
+        ])
+        assert rc == 0
+        captured = capsys.readouterr()
+        # Skill went to coding/, not garage/
+        from garage_os.skill_mining.suggestion_store import SuggestionStore
+        from garage_os.skill_mining.types import SkillSuggestionStatus
+        ss = SuggestionStore(workspace / ".garage")
+        promoted = ss.list_by_status(SkillSuggestionStatus.PROMOTED)
+        skill_md = workspace / "packs" / "coding" / "skills" / promoted[0].suggested_name / "SKILL.md"
+        assert skill_md.is_file()
+
+    def test_promote_nonexistent_target_pack(self, tmp_path: Path, capsys) -> None:
+        workspace = tmp_path / "ws"
+        workspace.mkdir()
+        (workspace / "packs" / "garage").mkdir(parents=True)
+        main(["init", "--path", str(workspace), "--yes"])
+        capsys.readouterr()
+        sg_id = self._seed_and_propose(workspace)
+        capsys.readouterr()
+
+        rc = main([
+            "skill", "promote", "--path", str(workspace), sg_id,
+            "--yes", "--target-pack", "nonexistent-pack",
+        ])
+        assert rc == 1
+        captured = capsys.readouterr()
+        assert "not installed" in captured.err
