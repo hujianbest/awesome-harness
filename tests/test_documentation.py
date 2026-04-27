@@ -140,6 +140,25 @@ def test_readmes_list_f006_cli_subcommands() -> None:
             )
 
 
+# F016 / FR-1601 + FR-1602: AGENTS.md must document the new memory activation CLI.
+
+def test_agents_md_mentions_memory_activation_cli() -> None:
+    """F016: AGENTS.md must mention `garage memory enable / disable / status / ingest` CLI."""
+    agents_md = REPO_ROOT / "AGENTS.md"
+    content = agents_md.read_text(encoding="utf-8")
+    for token in (
+        "Memory Activation (F016)",
+        "garage memory enable",
+        "garage memory ingest",
+        "--from-reviews",
+        "--style-template",
+        "Cr-1 r2",  # Lock the critical USER-INPUT decision in docs
+    ):
+        assert token in content, (
+            f"expected AGENTS.md to mention F016 token '{token}'; not found"
+        )
+
+
 # F015 / FR-1503: AGENTS.md must document the new agent compose CLI subcommand.
 
 def test_agents_md_mentions_agent_compose_cli() -> None:
