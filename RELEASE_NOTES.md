@@ -4,6 +4,88 @@
 
 ---
 
+## F016 — Memory Activation (让 memory pipeline 在工作台上真正启动)
+
+- 状态: ✅ 完成 (closed by hf-finalize 2026-04-27)
+- Workflow Profile: `full` (4 task T1-T4 + spec r2 + design r1 + post-impl review chain auto-streamlined)
+- Branch / PR: `cursor/f016-memory-activation-bf33` / TBD (base on F015 branch since PR #38 + #39 not yet merged)
+
+### 用户可见变化
+
+**A. `garage memory {enable, disable, status}`** (FR-1601):
+- 显式控制 `platform.json memory.extraction_enabled`; 既有 F011 `garage memory review` sibling
+- `enable` echo "Run `garage memory ingest` to backfill historical data."
+- `disable` 保留既有数据; 仅停新 extraction
+- `status` 显示 KnowledgeEntry / ExperienceRecord / Candidate count + Last extraction (max record.created_at)
+
+**B. `garage memory ingest`** (FR-1602):
+- `--from-reviews [--reviews-dir docs/reviews/]`: 扫 review verdict markdown → ExperienceRecord
+- `--from-git-log [--limit N]`: 跑 `git log --oneline -<N>` → ExperienceRecord per commit (problem_domain 从 `fXXX` 抽 lowercase, skill_ids 从 `hf-*` 抽)
+- `--style-template <python|typescript|markdown>`: 加载 `packs/garage/templates/style-templates/<lang>.md` → KnowledgeEntry(KnowledgeType.STYLE)
+- `--dry-run` / `--strict` / `--yes` flags
+- Dedup via `source_evidence_anchors[].review_path` / `commit_sha` / topic uniqueness
+
+**C. `garage init` prompt** (FR-1603, Cr-1 r2 critical):
+- Interactive TTY path (无 `--yes` / `--no-memory`): prompt "Enable memory extraction? [Y/n]:" — y/empty → enable; n → disable
+- **`--yes`: extraction_enabled=false (Cr-1 r2 critical: F007 既有 `--yes` 语义字节级不变; F016 不重载)**
+- `--no-memory`: 显式 opt-out (即使 interactive 也跳 prompt)
+- non-TTY without flags: default disabled
+
+**D. STYLE 模板** (FR-1604):
+- 新增 `packs/garage/templates/style-templates/{python,typescript,markdown}.md` (3 模板)
+- python: 7 entries (functional / type hints / f-string / pathlib / dataclass / pytest / mutable args)
+- typescript: 8 entries (strict / readonly / no-default-export / interface / discriminated unions / const assertion / no `!` / async-await)
+- markdown: 7 entries (ATX / code fence lang / relative links / YAML frontmatter / hyphen / 1.1.1 / no trailing space)
+
+**E. `garage status` 显式 Memory line** (FR-1605 + Im-1 r2):
+- 始终显 `Memory extraction: enabled|disabled — run \`garage memory enable\` if you want auto-extraction`
+- **跨 No data 早退路径** (空 workspace 也显, 与 F013-A skill mining / F014 workflow recall status pattern 同)
+- STYLE entries 计入 `Knowledge entries: N (..., style: M)`
+
+### 数据与契约影响
+
+- 新增 `src/garage_os/memory_activation/` 顶级包 (4 模块: types / templates / ingest)
+- 新增 CLI subcommands: `memory enable / disable / status / ingest` (与既有 `memory review` 平级)
+- `_init` 加 `--no-memory` flag + interactive memory prompt
+- `_status` 加 Memory extraction 行 + STYLE 计数
+- 新增 `packs/garage/templates/style-templates/*.md` (3 templates)
+- F003-F015 既有 API + schema 字节级不变 (CON-1601)
+- 新增 sentinel: F011 既有 agent byte invariant + sibling import 独立 + Cr-1 r2 critical regression guard
+- 测试基线: 1103 (F015) → **1149 passed** (+46, 0 regressions)
+- `git diff main..HEAD -- pyproject.toml uv.lock` = 0 (CON-1602)
+- ruff baseline diff = 0
+- platform.json schema 不变 (`memory.extraction_enabled` 既有字段)
+
+### 完整 review/gate 链路
+
+| Stage | Verdict |
+|---|---|
+| using-hf-workflow → hf-workflow-router (entry) | full profile + auto-streamlined review |
+| hf-spec-review (r1+r2) | r1 CHANGES_REQUESTED (5 critical + 4 important + 3 minor; 10 LLM-FIXABLE + 2 USER-INPUT) → r2 APPROVED |
+| hf-design (r1) | auto-streamlined APPROVED (设计无矛盾, F013-A pattern 复刻) |
+| hf-tasks-review | auto-streamlined |
+| hf-test-driven-dev T1-T4 | 4 task commits, +46 new tests, 0 regression |
+| hf-test/code/traceability-review | post-implementation chain (auto-streamlined) |
+| hf-regression-gate | PASS (1149 passed; ruff baseline diff 0) |
+| hf-completion-gate | COMPLETE |
+| hf-finalize | ✅ closed |
+
+### Vision 杠杆
+
+- 解决"团队没用自己的 memory 系统"元问题 (14 cycle 来 dogfood 0 KnowledgeEntry / ExperienceRecord)
+- 用户从"安装 garage"到"看到第一条 SkillSuggestion / WorkflowAdvisory / STYLE-aligned agent compose"路径缩短到 **3 个 CLI 命令** (enable + ingest + style-template)
+- B4 人机共生 5/5 维持 (具象化: 系统 pipeline 真正在用户工作台启动)
+- growth-strategy.md § Stage 3 健康表现第 2 项 "知识条目增长随使用自然" ⚠️ 本仓库 0 → ✅ 用户启动后 ≥ 14 条
+
+### Carry-forward (F017+)
+
+- D-1610: git log timestamp 提取 (当前 duration_seconds 默认 0)
+- D-1611: from-reviews 提取 pitfalls 段 (不仅 lessons_learned)
+- D-1612: 用户自定义 STYLE 模板路径
+- D-1613: `garage memory bootstrap` zero-config (自动 enable + ingest --from-reviews + style-template)
+
+---
+
 ## F015 — Agent Compose (Stage 3 最后一项)
 
 - 状态: ✅ 完成 (closed by hf-finalize 2026-04-26)

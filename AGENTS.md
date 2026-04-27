@@ -387,6 +387,74 @@ garage agent ls --target-pack coding
 
 详见 spec `docs/features/F015-agent-compose.md` + design `docs/designs/2026-04-26-agent-compose-design.md` (6 ADR + 5 INV + 5 CON)。
 
+## Memory Activation (F016)
+
+F016 让 garage memory pipeline 在用户工作台上**真正启动**: F003-F015 投入了完整 pipeline (extraction → candidates → KnowledgeStore + ExperienceIndex → push 信号 F013-A/F014/F015), 但 14 cycle 后本仓库 `.garage/{knowledge,experience,sessions}/` 仍**全是 0** — 因为 `extraction_enabled` 默认 false. F016 加 4 件事 (a) 显式 CLI 控制; (b) 历史回填; (c) `init` prompt; (d) STYLE 模板.
+
+### `garage memory {enable, disable, status, ingest}` (FR-1601 + FR-1602)
+
+```bash
+garage memory enable                          # set platform.json memory.extraction_enabled=true
+garage memory disable                          # 既有数据保留, 仅停新 extraction
+garage memory status                           # 当前 state + counts + last extraction (max(record.created_at))
+
+# Ingest 历史数据 (mutex; 必须选其一):
+garage memory ingest --from-reviews            # 扫 docs/reviews/*.md → ExperienceRecord
+garage memory ingest --from-git-log [--limit 50]  # 扫 git log → ExperienceRecord
+garage memory ingest --style-template python   # well-known python STYLE entries (5-7 条)
+garage memory ingest --style-template typescript  # 8 条 TS STYLE
+garage memory ingest --style-template markdown    # 7 条 markdown STYLE
+
+# Common flags:
+garage memory ingest <source> --dry-run         # preview, 不写
+garage memory ingest <source> --strict          # parse 失败 raise (默认 skip + log warn)
+garage memory ingest <source> --yes             # 跳过 confirmation prompt
+```
+
+### `garage init` 改进 (FR-1603, Cr-1 r2)
+
+| 路径 / 输入 | extraction_enabled |
+|---|---|
+| Interactive (TTY, 无 `--yes`, 无 `--no-memory`), prompt y/Y/空 | **true** |
+| Interactive prompt n/N | false |
+| `--yes` (无论 TTY) | **false** (Cr-1 r2 critical: F007 既有 `--yes` 行为字节级不变, 不重载 memory) |
+| `--no-memory` | false (显式 opt-out) |
+| non-TTY 无 `--yes` 无 `--no-memory` | false (与既有 non-TTY init 行为一致) |
+
+### `garage status` 集成 (FR-1605)
+
+`garage status` 末尾**始终**显: `Memory extraction: <enabled|disabled>` (Im-1 r2: 跨 No data 早退路径; STYLE 计数加入 total knowledge entries).
+
+### dogfood bootstrap (推荐使用顺序)
+
+```bash
+# 1. 创建 garage workspace + 选 enable memory
+garage init                                    # interactive prompt
+# 或 garage init --yes && garage memory enable
+
+# 2. 历史数据回填
+garage memory ingest --from-reviews            # 14+ ExperienceRecord (本仓库)
+garage memory ingest --from-git-log --limit 100  # 100 commits → ExperienceRecord
+
+# 3. 用户风格沉淀
+garage memory ingest --style-template python   # 7 STYLE entries
+
+# 4. 验证 push 信号现在能触发
+garage status                                  # 看 KnowledgeEntry / ExperienceRecord 计数
+garage skill suggest                           # F013-A push 端
+garage recall workflow --task-type review-verdict  # F014 push 端
+garage agent compose new-agent --skills hf-specify  # F015 STYLE alignment 第一次有数据
+```
+
+### Carry-forward (F017+)
+
+- D-1610: git log timestamp 提取 → duration_seconds (当前默认 0)
+- D-1611: from-reviews 模板更细 (extract pitfalls 段, 不仅 lessons_learned)
+- D-1612: 用户自定义 STYLE 模板加载 (当前仅 well-known python/ts/markdown)
+- D-1613: `garage memory bootstrap` (zero-config; 自动 enable + ingest --from-reviews + style-template)
+
+详见 spec `docs/features/F016-memory-activation.md` + design `docs/designs/2026-04-27-memory-activation-design.md` (6 ADR + 5 INV + 5 CON)。
+
 ### Garage OS 开发者参考
 
 #### 模块概览

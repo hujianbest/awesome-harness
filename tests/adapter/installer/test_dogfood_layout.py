@@ -128,6 +128,16 @@ class TestDogfoodLayout:
         for module in ("__init__.py", "types.py", "template_generator.py", "composer.py", "pipeline.py"):
             assert (ac_dir / module).is_file(), f"F015: agent_compose/{module} missing"
 
+    def test_memory_activation_module_exists(self) -> None:
+        """F016 T4 sentinel: memory_activation package + 3 STYLE templates."""
+        ma_dir = REPO_ROOT / "src" / "garage_os" / "memory_activation"
+        assert ma_dir.is_dir(), "F016: src/garage_os/memory_activation/ missing"
+        for module in ("__init__.py", "types.py", "templates.py", "ingest.py"):
+            assert (ma_dir / module).is_file(), f"F016: memory_activation/{module} missing"
+        templates_dir = REPO_ROOT / "packs" / "garage" / "templates" / "style-templates"
+        for lang in ("python", "typescript", "markdown"):
+            assert (templates_dir / f"{lang}.md").is_file(), f"F016: {lang}.md template missing"
+
     def test_agents_readme_explains_mount(self) -> None:
         """.agents/README.md MUST explain why .agents/skills/ exists as symlinks
         and how to regenerate it (companion doc to setup-agent-skills.sh).

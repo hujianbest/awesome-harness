@@ -217,6 +217,7 @@ def _init(
     yes: bool = False,
     force: bool = False,
     scope: str = "project",
+    no_memory: bool = False,
 ) -> int:
     """Create the .garage/ directory structure under garage_root.
 
@@ -244,10 +245,35 @@ def _init(
     if not readme_path.exists():
         readme_path.write_text(GARAGE_README.strip() + "\n", encoding="utf-8")
 
+    # F016 FR-1603 (Cr-1 r2): memory prompt + --no-memory flag
+    # extraction_enabled default decision matrix:
+    # - --no-memory → False (explicit opt-out; even with --yes)
+    # - --yes (no --no-memory) → False (Cr-1 r2: --yes does NOT enable memory; existing F007 semantics preserved)
+    # - interactive TTY (no --yes, no --no-memory) → prompt; default Y → True
+    # - non-TTY without --yes / --no-memory → False (matches existing non-TTY init behavior)
+    extraction_enabled = False  # default
+    if not no_memory and not yes:
+        # Try interactive prompt (only when stdin is a TTY)
+        if sys.stdin.isatty():
+            try:
+                ans = input(
+                    "Enable memory extraction? Garage will auto-extract knowledge "
+                    "from your archived sessions. [Y/n]: "
+                ).strip().lower()
+                extraction_enabled = ans in ("", "y", "yes")
+            except (EOFError, KeyboardInterrupt):
+                extraction_enabled = False
+
     platform_config_path = garage_dir / "config" / "platform.json"
     if not platform_config_path.exists():
+        # F016: build platform config with user's memory choice
+        platform_config = dict(DEFAULT_PLATFORM_CONFIG)
+        platform_config["memory"] = {
+            "extraction_enabled": extraction_enabled,
+            "recommendation_enabled": False,
+        }
         platform_config_path.write_text(
-            json.dumps(DEFAULT_PLATFORM_CONFIG, indent=2, ensure_ascii=False) + "\n",
+            json.dumps(platform_config, indent=2, ensure_ascii=False) + "\n",
             encoding="utf-8",
         )
 
@@ -387,11 +413,12 @@ def _status(garage_root: Path) -> None:
     archived_sessions = storage.list_files("sessions/archived", "*/session.json")
     total_sessions = len(active_sessions) + len(archived_sessions)
 
-    # Count knowledge entries
+    # Count knowledge entries (F016 Im-1 r2: include STYLE in total)
     decisions = storage.list_files("knowledge/decisions", "*.md")
     patterns = storage.list_files("knowledge/patterns", "*.md")
     solutions = storage.list_files("knowledge/solutions", "*.md")
-    total_knowledge = len(decisions) + len(patterns) + len(solutions)
+    style_entries = storage.list_files("knowledge/style", "*.md")
+    total_knowledge = len(decisions) + len(patterns) + len(solutions) + len(style_entries)
 
     # Count experience records
     experience_records = storage.list_files("experience/records", "*.json")
@@ -414,18 +441,35 @@ def _status(garage_root: Path) -> None:
 
     has_data = total_sessions > 0 or total_knowledge > 0 or total_experience > 0
 
+    # F016 FR-1605 + Im-1 r2: Memory extraction line ALWAYS displayed (crosses No data early-return).
+    # Read platform.json memory.extraction_enabled state.
+    try:
+        config = json.loads((garage_dir / "config" / "platform.json").read_text(encoding="utf-8"))
+        memory_enabled = bool(config.get("memory", {}).get("extraction_enabled", False))
+    except (OSError, json.JSONDecodeError):
+        memory_enabled = False
+    memory_line = (
+        "Memory extraction: enabled"
+        if memory_enabled
+        else "Memory extraction: disabled — run `garage memory enable` if you want auto-extraction"
+    )
+
     if not has_data:
+        # Im-1 r2: Memory line crosses No data early-return
+        print(memory_line)
         print("No data")
         return
 
     print(f"Sessions: {total_sessions} (active: {len(active_sessions)}, archived: {len(archived_sessions)})")
     print(
         f"Knowledge entries: {total_knowledge} "
-        f"(decisions: {len(decisions)}, patterns: {len(patterns)}, solutions: {len(solutions)})"
+        f"(decisions: {len(decisions)}, patterns: {len(patterns)}, "
+        f"solutions: {len(solutions)}, style: {len(style_entries)})"
     )
     print(f"Experience records: {total_experience}")
     if recent_experience:
         print(f"Most recent experience: {recent_experience}")
+    print(memory_line)
 
     # F009 FR-908 + ADR-D9-7: 按 scope 分组打印 installed packs (nested bullets).
     # F008 兼容: manifest 不存在时跳过 (与既有 status 行为一致).
@@ -1285,6 +1329,167 @@ def _knowledge_list(garage_root: Path) -> None:
         if entry.tags:
             print(f"    Tags: {', '.join(entry.tags)}")
         print()
+
+
+def _memory_enable(garage_root: Path) -> int:
+    """F016 FR-1601: enable memory extraction by setting platform.json memory.extraction_enabled=true."""
+    return _memory_toggle(garage_root, enable=True)
+
+
+def _memory_disable(garage_root: Path) -> int:
+    """F016 FR-1601: disable memory extraction; existing data preserved."""
+    return _memory_toggle(garage_root, enable=False)
+
+
+def _memory_toggle(garage_root: Path, *, enable: bool) -> int:
+    """Shared backend for enable/disable: read + modify + atomic write platform.json."""
+    garage_dir = _require_garage(garage_root)
+    if garage_dir is None:
+        print(ERR_NO_GARAGE, file=sys.stderr)
+        return 1
+    platform_path = garage_dir / "config" / "platform.json"
+    if not platform_path.is_file():
+        print(
+            f"platform.json not found at {platform_path}; run `garage init` first.",
+            file=sys.stderr,
+        )
+        return 1
+    try:
+        config = json.loads(platform_path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        print(f"Failed to read platform.json: {exc}", file=sys.stderr)
+        return 1
+    config.setdefault("memory", {})
+    config["memory"]["extraction_enabled"] = enable
+    platform_path.write_text(
+        json.dumps(config, indent=2, ensure_ascii=False) + "\n",
+        encoding="utf-8",
+    )
+    if enable:
+        print(
+            "Memory extraction enabled. Run `garage memory ingest --from-reviews` "
+            "or `--from-git-log` to backfill historical data."
+        )
+    else:
+        print(
+            "Memory extraction disabled. Existing KnowledgeEntry / ExperienceRecord "
+            "preserved; will not be modified."
+        )
+    return 0
+
+
+def _memory_status(garage_root: Path) -> int:
+    """F016 FR-1601: show memory pipeline state + counts + last extraction.
+
+    Cr-5 r2: last_extraction = max(record.created_at) over ExperienceIndex.list_records().
+    """
+    from garage_os.knowledge.experience_index import ExperienceIndex
+    from garage_os.knowledge.knowledge_store import KnowledgeStore
+    from garage_os.memory.candidate_store import CandidateStore
+
+    garage_dir = _require_garage(garage_root)
+    if garage_dir is None:
+        print(ERR_NO_GARAGE, file=sys.stderr)
+        return 1
+
+    storage = FileStorage(garage_dir)
+
+    # extraction_enabled state
+    try:
+        config = json.loads((garage_dir / "config" / "platform.json").read_text(encoding="utf-8"))
+        enabled = bool(config.get("memory", {}).get("extraction_enabled", False))
+    except (OSError, json.JSONDecodeError):
+        enabled = False
+
+    knowledge_count = 0
+    experience_count = 0
+    candidate_count = 0
+    last_extraction = None
+    try:
+        ks = KnowledgeStore(storage)
+        knowledge_count = len(ks.list_entries())
+        ei = ExperienceIndex(storage)
+        records = ei.list_records()
+        experience_count = len(records)
+        if records:
+            # Cr-5 r2: max created_at
+            last_extraction = max(r.created_at for r in records)
+        cs = CandidateStore(storage)
+        candidate_count = len(cs.list_candidates_by_status("proposed"))
+    except Exception:
+        pass
+
+    print(f"Memory extraction: {'enabled' if enabled else 'disabled'}")
+    if not enabled:
+        print("  (run `garage memory enable` to start auto-extraction)")
+    print(f"KnowledgeEntry: {knowledge_count}")
+    print(f"ExperienceRecord: {experience_count}")
+    print(f"Candidate: {candidate_count}")
+    last_str = last_extraction.strftime("%Y-%m-%d %H:%M:%S") if last_extraction else "never"
+    print(f"Last extraction: {last_str}")
+    return 0
+
+
+def _memory_ingest(
+    garage_root: Path,
+    *,
+    from_reviews: bool,
+    from_git_log: bool,
+    style_template: str | None,
+    reviews_dir: str,
+    limit: int,
+    dry_run: bool,
+    strict: bool,
+    yes: bool,
+) -> int:
+    """F016 FR-1602: ingest historical data into memory pipeline."""
+    from garage_os.knowledge.experience_index import ExperienceIndex
+    from garage_os.knowledge.knowledge_store import KnowledgeStore
+    from garage_os.memory_activation.ingest import (
+        ingest_from_git_log,
+        ingest_from_reviews,
+        ingest_from_style_template,
+    )
+
+    garage_dir = _require_garage(garage_root)
+    if garage_dir is None:
+        print(ERR_NO_GARAGE, file=sys.stderr)
+        return 1
+
+    storage = FileStorage(garage_dir)
+    ei = ExperienceIndex(storage)
+    ks = KnowledgeStore(storage)
+
+    if from_reviews:
+        path = garage_root / reviews_dir
+        result = ingest_from_reviews(
+            path, ei, garage_root,
+            dry_run=dry_run, strict=strict, stderr=sys.stderr,
+        )
+    elif from_git_log:
+        result = ingest_from_git_log(
+            garage_root, ei,
+            limit=limit, dry_run=dry_run, strict=strict, stderr=sys.stderr,
+        )
+    elif style_template:
+        packs_root = garage_root / "packs"
+        result = ingest_from_style_template(
+            packs_root, style_template, ks,
+            dry_run=dry_run, strict=strict, stderr=sys.stderr,
+        )
+    else:
+        # Should not reach here; argparse mutex guard
+        print("--from-reviews / --from-git-log / --style-template required", file=sys.stderr)
+        return 1
+
+    verb = "Would ingest" if dry_run else "Ingested"
+    print(
+        f"{verb} {result.written} new from {result.source} "
+        f"({result.skipped} skipped)"
+    )
+    if result.errors:
+        print(f"  ({len(result.errors)} errors; first: {result.errors[0]})", file=sys.stderr)
+    return 0
 
 
 def _memory_review(
@@ -2508,6 +2713,19 @@ def build_parser() -> argparse.ArgumentParser:
             "available via --hosts <host>:<scope> syntax."
         ),
     )
+    # F016 FR-1603 (Cr-1 r2): --no-memory flag for explicit opt-out.
+    # Cr-1 r2 守门: --yes does NOT enable memory (existing F007 --yes behavior unchanged);
+    # interactive prompt enables memory if user answers Y; --no-memory skips prompt + disabled.
+    init_parser.add_argument(
+        "--no-memory",
+        dest="init_no_memory",
+        action="store_true",
+        help=(
+            "Disable memory extraction (skips prompt). F016 default: prompt in interactive "
+            "TTY (default Y); --yes does NOT enable memory (existing F007 --yes semantics "
+            "preserved); use `garage memory enable` to enable later."
+        ),
+    )
 
     # status
     status_parser = subparsers.add_parser(
@@ -3162,6 +3380,79 @@ def build_parser() -> argparse.ArgumentParser:
         help="Conflict resolution strategy when accept hits similar published knowledge (FR-304)",
     )
 
+    # F016 FR-1601 + FR-1602: memory enable / disable / status / ingest
+    memory_subparsers.add_parser(
+        "enable",
+        help="Enable memory extraction (sets platform.json memory.extraction_enabled=true)",
+        parents=[path_parser],
+    )
+    memory_subparsers.add_parser(
+        "disable",
+        help="Disable memory extraction (preserves existing data; only stops new extraction)",
+        parents=[path_parser],
+    )
+    memory_subparsers.add_parser(
+        "status",
+        help="Show memory pipeline state + counts + last extraction",
+        parents=[path_parser],
+    )
+    ingest_parser = memory_subparsers.add_parser(
+        "ingest",
+        help="Backfill ExperienceRecord / KnowledgeEntry from existing data (F016 FR-1602)",
+        parents=[path_parser],
+    )
+    ingest_group = ingest_parser.add_mutually_exclusive_group(required=True)
+    ingest_group.add_argument(
+        "--from-reviews",
+        dest="ingest_from_reviews",
+        action="store_true",
+        help="Scan docs/reviews/*.md and create ExperienceRecord per verdict",
+    )
+    ingest_group.add_argument(
+        "--from-git-log",
+        dest="ingest_from_git_log",
+        action="store_true",
+        help="Scan recent git log commits and create ExperienceRecord per commit",
+    )
+    ingest_group.add_argument(
+        "--style-template",
+        dest="ingest_style_template",
+        choices=["python", "typescript", "markdown"],
+        default=None,
+        help="Load STYLE template into KnowledgeStore (KnowledgeType.STYLE)",
+    )
+    ingest_parser.add_argument(
+        "--reviews-dir",
+        dest="ingest_reviews_dir",
+        default="docs/reviews",
+        help="Directory to scan for review verdicts (default 'docs/reviews/')",
+    )
+    ingest_parser.add_argument(
+        "--limit",
+        dest="ingest_limit",
+        type=int,
+        default=50,
+        help="Number of git log commits to ingest (default 50)",
+    )
+    ingest_parser.add_argument(
+        "--dry-run",
+        dest="ingest_dry_run",
+        action="store_true",
+        help="Preview only; do not write to ExperienceIndex / KnowledgeStore",
+    )
+    ingest_parser.add_argument(
+        "--strict",
+        dest="ingest_strict",
+        action="store_true",
+        help="Raise on parse failure (default: skip + log warning)",
+    )
+    ingest_parser.add_argument(
+        "--yes", "-y",
+        dest="ingest_yes",
+        action="store_true",
+        help="Skip confirmation prompt",
+    )
+
     return parser
 
 
@@ -3182,6 +3473,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
             yes=args.init_yes,
             force=args.init_force,
             scope=args.init_scope,
+            no_memory=args.init_no_memory,
         )
 
     if args.command == "status":
@@ -3424,7 +3716,26 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
                 tags=args.tags,
                 strategy=args.strategy,
             )
-        print("Memory command requires 'review' subcommand")
+        # F016 FR-1601 + FR-1602: memory enable / disable / status / ingest
+        if args.memory_command == "enable":
+            return _memory_enable(root)
+        if args.memory_command == "disable":
+            return _memory_disable(root)
+        if args.memory_command == "status":
+            return _memory_status(root)
+        if args.memory_command == "ingest":
+            return _memory_ingest(
+                root,
+                from_reviews=args.ingest_from_reviews,
+                from_git_log=args.ingest_from_git_log,
+                style_template=args.ingest_style_template,
+                reviews_dir=args.ingest_reviews_dir,
+                limit=args.ingest_limit,
+                dry_run=args.ingest_dry_run,
+                strict=args.ingest_strict,
+                yes=args.ingest_yes,
+            )
+        print("Memory command requires one of: review, enable, disable, status, ingest")
         return 1
 
     parser.print_help()
